@@ -1,4 +1,4 @@
-# Mesa Contracts#
+# Mesa Contracts
 
 ## Getting started
 To run the tests, follow these steps. You must have at least node v10 and [yarn](https://yarnpkg.com/) installed.
