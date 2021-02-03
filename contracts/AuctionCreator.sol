@@ -59,10 +59,7 @@ contract AuctionCreator is CloneFactory {
     {
         newAuction = createClone(auctionTemplates[_templateId]);
         allAuctions.push(address(newAuction));
-        emit AuctionCreated(
-            address(newAuction),
-            _templateId
-        );
+        emit AuctionCreated(address(newAuction), _templateId);
         return address(newAuction);
     }
 
@@ -124,11 +121,7 @@ contract AuctionCreator is CloneFactory {
         return auctionTemplates[_templateId];
     }
 
-    function getTemplateId(address _auctionTemplate)
-        public
-        view
-        returns (uint256)
-    {
-        return auctionTemplateToId[_auctionTemplate];
+    function getTemplateId(address _template) public view returns (uint256) {
+        return auctionTemplateToId[_template];
     }
 }
