@@ -8,6 +8,7 @@ import "../libraries/TransferHelper.sol";
 import "../interfaces/IWETH.sol";
 
 contract PoolLiquidity {
+    bool private initialised;
     address public WETH;
     address public router;
     address public factory;
@@ -23,6 +24,15 @@ contract PoolLiquidity {
     mapping(address => mapping(address => uint256)) public tokenBalances;
     mapping(address => uint256) public totals;
 
+    event InitPoolLiquidity(
+        address indexed tokenA,
+        address indexed tokenB,
+        address factory
+    );
+    event LiquidityAdded(uint256 liquidity);
+
+    constructor() public {}
+
     function initPoolLiquidity(
         address _router,
         address _tokenA,
@@ -33,12 +43,14 @@ contract PoolLiquidity {
         uint256 _locktime,
         address _WETH
     ) external {
+        require(!initialised, "PoolLiquidity: ALREADY_INITIALIZED");
         router = _router;
         tokenA = _tokenA;
         tokenB = _tokenB;
         amountA = _amountA;
         amountB = _amountB;
         WETH = _WETH;
+        initialised = true;
         factory = IDXswapRouter(router).factory();
         pair = IDXswapFactory(factory).getPair(_tokenA, _tokenB);
         if (pair == address(0)) {
@@ -46,6 +58,7 @@ contract PoolLiquidity {
         }
         expirationDate = block.timestamp + _duration;
         locktime = _locktime;
+        emit InitPoolLiquidity(_tokenA, _tokenB, factory);
     }
 
     function deposit(uint256 _amountA, uint256 _amountB) external {
@@ -63,6 +76,7 @@ contract PoolLiquidity {
         require(block.timestamp < expirationDate, "PoolLiquidity: EXPIRED");
         require(liquidity == 0, "PoolLiquidity: LIQUIDITY_ALREADY_PROVIDED");
 
+        // Set approvals for router to exact token amounts
         TransferHelper.safeApprove(tokenA, router, amountA);
         TransferHelper.safeApprove(tokenB, router, amountB);
 
@@ -77,8 +91,11 @@ contract PoolLiquidity {
             address(this),
             block.timestamp
         );
+
+        // Reset approvals to zero
         TransferHelper.safeApprove(tokenA, router, 0);
         TransferHelper.safeApprove(tokenB, router, 0);
         liquidity = depositedLiquidity;
+        emit LiquidityAdded(liquidity);
     }
 }

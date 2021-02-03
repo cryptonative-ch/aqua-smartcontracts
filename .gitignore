@@ -5,3 +5,4 @@ coverage/*
 coverage.json
 artifacts/
 cache/
+yarn.lock
