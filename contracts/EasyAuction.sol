@@ -105,6 +105,8 @@ contract EasyAuction is Ownable {
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
 
+    constructor() public Ownable() {}
+
     // @dev: intiate a new auction
     // Warning: In case the auction is expected to raise more than
     // 2^96 units of the biddingToken, don't start the auction, as
@@ -113,7 +115,7 @@ contract EasyAuction is Ownable {
     //
     // Prices between biddingToken and auctioningToken are expressed by a
     // fraction whose components are stored as uint96.
-    constructor(
+    function initAuction(
         IERC20 _auctioningToken,
         IERC20 _biddingToken,
         uint256 _orderCancelationPeriodDuration,
@@ -123,7 +125,7 @@ contract EasyAuction is Ownable {
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
         bool _isAtomicClosureAllowed
-    ) public Ownable() {
+    ) public {
         uint64 userId = getUserId(msg.sender);
 
         // withdraws sellAmount + fees
