@@ -2,10 +2,10 @@
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "./libraries/IAuction.sol";
+import "./interfaces/IAuction.sol";
 import "./utils/cloneFactory.sol";
 
-contract AuctionCreator is CloneFactory{
+contract AuctionCreator is CloneFactory {
     using SafeERC20 for IERC20;
 
     event AuctionCreated(address indexed auction, uint256 templateId);
@@ -18,8 +18,8 @@ contract AuctionCreator is CloneFactory{
     address public feeManager;
     address public templateManager;
     uint256 public auctionFee = 0;
-
     uint256 public auctionTemplateId;
+
     mapping(uint256 => address) private auctionTemplates;
     mapping(address => uint256) private auctionTemplateToId;
 
@@ -35,25 +35,34 @@ contract AuctionCreator is CloneFactory{
         templateManager = _templateManager;
     }
 
-    function createAuction(
-        address _template,
-        bytes calldata _data
-    ) external payable returns (address newAuction) {
+    function createAuction(uint256 _templateId, bytes calldata _data)
+        external
+        payable
+        returns (address newAuction)
+    {
         require(
             msg.value >= auctionFee,
             "AuctionCreator: AUCTION_FEE_NOT_PROVIDED"
         );
-        newAuction = deployAuction(_template);
-        IAuction(newAuction).initMarket(_data);
+        require(
+            auctionTemplates[_templateId] != address(0),
+            "AuctionCreator: INVALID_TEMPLATE"
+        );
+        newAuction = _deployAuction(_templateId);
+        IAuction(newAuction).initAuction(_data);
         return address(newAuction);
     }
 
-    function deployAuction(
-        address _template
-    ) public payable returns (address newAuction) {
-        newAuction = createClone(_template);
+    function _deployAuction(uint256 _templateId)
+        internal
+        returns (address newAuction)
+    {
+        newAuction = createClone(auctionTemplates[_templateId]);
         allAuctions.push(address(newAuction));
-        emit AuctionCreated(address(newAuction), auctionTemplateToId[_template]);
+        emit AuctionCreated(
+            address(newAuction),
+            _templateId
+        );
         return address(newAuction);
     }
 
@@ -103,8 +112,23 @@ contract AuctionCreator is CloneFactory{
         templateManager = _templateManager;
     }
 
-    function allAuctionsLength() external view returns (uint256) {
+    function numberOfAuctions() external view returns (uint256) {
         return allAuctions.length;
     }
 
+    function getTemplate(uint256 _templateId)
+        public
+        view
+        returns (address template)
+    {
+        return auctionTemplates[_templateId];
+    }
+
+    function getTemplateId(address _auctionTemplate)
+        public
+        view
+        returns (uint256)
+    {
+        return auctionTemplateToId[_auctionTemplate];
+    }
 }

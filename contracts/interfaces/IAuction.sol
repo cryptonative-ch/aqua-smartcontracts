@@ -2,8 +2,5 @@
 pragma solidity >=0.6.8;
 
 interface IAuction {
-
-    function initMarket(
-        bytes calldata data
-    ) external;
+    function initAuction(bytes calldata data) external;
 }
