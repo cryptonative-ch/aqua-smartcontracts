@@ -19,6 +19,7 @@ contract PoolLiquidity {
     uint256 public amountB;
     uint256 public locktime;
     uint256 public expirationDate;
+    uint256 public unlockDate;
     uint256 public liquidity;
 
     mapping(address => mapping(address => uint256)) public tokenBalances;
@@ -58,6 +59,7 @@ contract PoolLiquidity {
         }
         expirationDate = block.timestamp + _duration;
         locktime = _locktime;
+        unlockDate = block.timestamp + _locktime;
         emit InitPoolLiquidity(_tokenA, _tokenB, factory);
     }
 
@@ -97,5 +99,35 @@ contract PoolLiquidity {
         TransferHelper.safeApprove(tokenB, router, 0);
         liquidity = depositedLiquidity;
         emit LiquidityAdded(liquidity);
+    }
+
+    function claim() external {
+        require(liquidity > 0, "PoolLiquidity: NOTHING_TO_CLAIM");
+        require(block.timestamp > unlockDate, "PoolLiquidity: NOT_UNLOCKED");
+        uint256 amount = 0;
+        amount +=
+            (tokenBalances[tokenA][msg.sender] * liquidity) /
+            totals[tokenA] /
+            2;
+        tokenBalances[tokenA][msg.sender] = 0;
+        amount +=
+            (tokenBalances[tokenB][msg.sender] * liquidity) /
+            totals[tokenB] /
+            2;
+        tokenBalances[tokenB][msg.sender] = 0;
+        TransferHelper.safeTransfer(pair, msg.sender, amount);
+    }
+
+    function widthrawExpiredTokens() external {
+        require(liquidity == 0, "PoolLiquidity: NOTHING_TO_WITHDRAW");
+        require(block.timestamp > expirationDate, "PoolLiquidity: NOT_EXPIRED");
+        uint256 amountA = tokenBalances[tokenA][msg.sender];
+        uint256 amountB = tokenBalances[tokenB][msg.sender];
+        tokenBalances[tokenA][msg.sender] = 0;
+        tokenBalances[tokenA][msg.sender] = 0;
+        totals[tokenA] -= amountA;
+        totals[tokenA] -= amountB;
+        TransferHelper.safeTransfer(tokenA, msg.sender, amountA);
+        TransferHelper.safeTransfer(tokenA, msg.sender, amountB);
     }
 }
