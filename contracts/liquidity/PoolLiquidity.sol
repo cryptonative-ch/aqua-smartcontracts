@@ -131,7 +131,7 @@ contract PoolLiquidity {
         tokenBalances[tokenA][msg.sender] = 0;
         tokenBalances[tokenA][msg.sender] = 0;
         totals[tokenA] -= amountA;
-        totals[tokenBs] -= amountB;
+        totals[tokenB] -= amountB;
         TransferHelper.safeTransfer(tokenA, msg.sender, amountA);
         TransferHelper.safeTransfer(tokenB, msg.sender, amountB);
     }

@@ -107,6 +107,52 @@ contract FixedPriceAuction is Ownable {
         );
     }
 
+    function initAuction(bytes calldata _data) public {
+        (
+            IERC20 _tokenIn,
+            IERC20 _tokenOut,
+            uint256 _tokenPrice,
+            uint256 _tokensForSale,
+            uint256 _startDate,
+            uint256 _endDate,
+            uint256 _purchaseMinimum,
+            uint256 _purchaseMaximum,
+            uint256 _minimumRaise,
+            address _fundsReceiver,
+            address _idoManager
+        ) =
+            abi.decode(
+                _data,
+                (
+                    IERC20,
+                    IERC20,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    address,
+                    address
+                )
+            );
+
+        initAuction(
+            _tokenIn,
+            _tokenOut,
+            _tokenPrice,
+            _tokensForSale,
+            _startDate,
+            _endDate,
+            _purchaseMinimum,
+            _purchaseMaximum,
+            _minimumRaise,
+            _fundsReceiver,
+            _idoManager
+        );
+    }
+
     function depositAuctionTokens() public onlyIdoManager() {
         require(
             auctionState == States.Initialized,
