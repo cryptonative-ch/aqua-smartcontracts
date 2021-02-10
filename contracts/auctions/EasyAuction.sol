@@ -131,7 +131,7 @@ contract EasyAuction is Ownable {
     ) public {
         uint64 userId = getUserId(msg.sender);
 
-        // withdraws sellAmount + fees
+        // deposits sellAmount + fees
         _auctioningToken.safeTransferFrom(
             msg.sender,
             address(this),

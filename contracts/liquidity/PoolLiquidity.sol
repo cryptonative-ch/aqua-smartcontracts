@@ -66,12 +66,12 @@ contract PoolLiquidity {
     function deposit(uint256 _amountA, uint256 _amountB) external {
         require(block.timestamp < expirationDate, "PoolLiquidity: EXPIRED");
         require(liquidity == 0, "PoolLiquidity: LIQUIDITY_ALREADY_PROVIDED");
-        TransferHelper.safeTransfer(tokenA, address(this), _amountA);
-        TransferHelper.safeTransfer(tokenB, address(this), _amountB);
         tokenBalances[tokenA][msg.sender] += _amountA;
         tokenBalances[tokenB][msg.sender] += _amountB;
         totals[tokenA] += _amountA;
         totals[tokenB] += _amountB;
+        TransferHelper.safeTransfer(tokenA, address(this), _amountA);
+        TransferHelper.safeTransfer(tokenB, address(this), _amountB);
     }
 
     function provideLiquidity() external {
@@ -121,13 +121,18 @@ contract PoolLiquidity {
     function widthrawExpiredTokens() external {
         require(liquidity == 0, "PoolLiquidity: NOTHING_TO_WITHDRAW");
         require(block.timestamp > expirationDate, "PoolLiquidity: NOT_EXPIRED");
+        require(
+            tokenBalances[tokenA][msg.sender] > 0 ||
+                tokenBalances[tokenB][msg.sender] > 0,
+            "PoolLiquidity: NOTHING_DEPOSITED"
+        );
         uint256 amountA = tokenBalances[tokenA][msg.sender];
         uint256 amountB = tokenBalances[tokenB][msg.sender];
         tokenBalances[tokenA][msg.sender] = 0;
         tokenBalances[tokenA][msg.sender] = 0;
         totals[tokenA] -= amountA;
-        totals[tokenA] -= amountB;
+        totals[tokenB] -= amountB;
         TransferHelper.safeTransfer(tokenA, msg.sender, amountA);
-        TransferHelper.safeTransfer(tokenA, msg.sender, amountB);
+        TransferHelper.safeTransfer(tokenB, msg.sender, amountB);
     }
 }
