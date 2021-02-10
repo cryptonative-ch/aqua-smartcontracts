@@ -28,6 +28,7 @@ library IterableOrderedOrderSet {
     struct Data {
         mapping(bytes32 => bytes32) nextMap;
         mapping(bytes32 => bytes32) prevMap;
+        mapping(bytes32 => bytes32) extraInfo;
     }
 
     struct Order {
@@ -48,7 +49,8 @@ library IterableOrderedOrderSet {
     function insert(
         Data storage self,
         bytes32 elementToInsert,
-        bytes32 elementBeforeNewOne
+        bytes32 elementBeforeNewOne,
+        bytes32 extraInfo
     ) internal returns (bool) {
         (, , uint96 denominator) = decodeOrder(elementToInsert);
         require(denominator != uint96(0), "Inserting zero is not supported");
@@ -93,7 +95,7 @@ library IterableOrderedOrderSet {
         self.prevMap[current] = elementToInsert;
         self.prevMap[elementToInsert] = previous;
         self.nextMap[elementToInsert] = current;
-
+        self.extraInfo[elementToInsert] = extraInfo;
         return true;
     }
 
@@ -112,6 +114,7 @@ library IterableOrderedOrderSet {
         self.nextMap[previousElement] = nextElement;
         self.prevMap[nextElement] = previousElement;
         self.nextMap[elementToRemove] = bytes32(0);
+        self.extraInfo[elementToRemove] = bytes32(0);
         return true;
     }
 
