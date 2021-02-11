@@ -5,21 +5,19 @@ import { encodeOrder, Order } from "../../src/priceCalculation";
 
 export async function closeAuction(
   instance: Contract,
-  auctionId: BigNumber,
 ): Promise<void> {
   const time_remaining = (
-    await instance.getSecondsRemainingInBatch(auctionId)
+    await instance.getSecondsRemainingInBatch()
   ).toNumber();
   await increaseTime(time_remaining + 1);
 }
 
 export async function claimFromAllOrders(
   easyAuction: Contract,
-  auctionId: BigNumber,
   orders: Order[],
 ): Promise<void> {
   for (const order of orders) {
-    await easyAuction.claimFromParticipantOrder(auctionId, [
+    await easyAuction.claimFromParticipantOrder([
       encodeOrder(order),
     ]);
   }

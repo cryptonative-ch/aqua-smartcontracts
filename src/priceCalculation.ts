@@ -68,10 +68,8 @@ export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
 
 export async function getInitialOrder(
   easyAuction: Contract,
-  auctionId: BigNumber,
 ): Promise<Order> {
-  const auctionDataStruct = await easyAuction.auctionData(auctionId);
-  return decodeOrder(auctionDataStruct.initialAuctionOrder);
+  return decodeOrder(await easyAuction.initialAuctionOrder());
 }
 
 export function hasLowerClearingPrice(order1: Order, order2: Order): number {
@@ -93,12 +91,11 @@ export function hasLowerClearingPrice(order1: Order, order2: Order): number {
 
 export async function calculateClearingPrice(
   easyAuction: Contract,
-  auctionId: BigNumber,
   debug = false,
 ): Promise<Order> {
   const log = debug ? (...a: any) => console.log(...a) : () => {};
-  const initialOrder = await getInitialOrder(easyAuction, auctionId);
-  const sellOrders = await getAllSellOrders(easyAuction, auctionId);
+  const initialOrder = await getInitialOrder(easyAuction);
+  const sellOrders = await getAllSellOrders(easyAuction);
   sellOrders.sort(function (a: Order, b: Order) {
     return hasLowerClearingPrice(a, b);
   });
@@ -159,8 +156,7 @@ export function findClearingPrice(
     if (
       totalSellVolume
         .mul(order.buyAmount)
-        .div(order.sellAmount)
-        .gte(initialAuctionOrder.sellAmount)
+        .gte(initialAuctionOrder.sellAmount.mul(order.sellAmount))
     ) {
       const coveredBuyAmount = initialAuctionOrder.sellAmount.sub(
         totalSellVolume
@@ -175,7 +171,7 @@ export function findClearingPrice(
         return order;
       } else {
         return {
-          userId: BigNumber.from(0),
+          userId: BigNumber.from(1),
           buyAmount: initialAuctionOrder.sellAmount,
           sellAmount: totalSellVolume.sub(order.sellAmount),
         };
@@ -191,7 +187,7 @@ export function findClearingPrice(
     };
   } else {
     return {
-      userId: initialAuctionOrder.userId,
+      userId: BigNumber.from(0),
       buyAmount: initialAuctionOrder.sellAmount,
       sellAmount: initialAuctionOrder.buyAmount,
     };
@@ -200,10 +196,8 @@ export function findClearingPrice(
 
 export async function getAllSellOrders(
   easyAuction: Contract,
-  auctionId: BigNumber,
 ): Promise<Order[]> {
   const filterSellOrders = easyAuction.filters.NewSellOrder(
-    auctionId,
     null,
     null,
     null,
@@ -212,9 +206,9 @@ export async function getAllSellOrders(
   const events = logs.map((log: any) => easyAuction.interface.parseLog(log));
   const sellOrders = events.map((x: any) => {
     const order: Order = {
-      userId: x.args[1],
-      sellAmount: x.args[3],
-      buyAmount: x.args[2],
+      userId: x.args[0],
+      sellAmount: x.args[2],
+      buyAmount: x.args[1],
     };
     return order;
   });
@@ -230,9 +224,9 @@ export async function getAllSellOrders(
   );
   const sellOrdersDeletions = eventsForCancellations.map((x: any) => {
     const order: Order = {
-      userId: x.args[1],
-      sellAmount: x.args[3],
-      buyAmount: x.args[2],
+      userId: x.args[0],
+      sellAmount: x.args[2],
+      buyAmount: x.args[1],
     };
     return order;
   });
@@ -275,14 +269,12 @@ export function toPrice(result: [BigNumber, BigNumber]): Price {
 export async function placeOrders(
   easyAuction: Contract,
   sellOrders: Order[],
-  auctionId: BigNumber,
   hre: HardhatRuntimeEnvironment,
 ): Promise<void> {
   for (const sellOrder of sellOrders) {
     await easyAuction
-      .connect(hre.waffle.provider.getWallets()[sellOrder.userId.toNumber()])
+      .connect(hre.waffle.provider.getWallets()[sellOrder.userId.toNumber() - 1])
       .placeSellOrders(
-        auctionId,
         [sellOrder.buyAmount],
         [sellOrder.sellAmount],
         [queueStartElement],

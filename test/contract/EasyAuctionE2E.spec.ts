@@ -23,9 +23,9 @@ describe("EasyAuction", async () => {
       biddingToken,
     } = await createTokensAndMintAndApprove(easyAuction, [user_1, user_2], hre);
     const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-    const auctionId: BigNumber = await sendTxAndGetReturnValue(
+    await sendTxAndGetReturnValue(
       easyAuction,
-      "initiateAuction(address,address,uint256,uint256,uint96,uint96,uint256,uint256,bool)",
+      "initAuction(address,address,uint256,uint256,uint96,uint96,uint256,uint256,bool)",
       auctioningToken.address,
       biddingToken.address,
       60 * 60,
@@ -49,13 +49,13 @@ describe("EasyAuction", async () => {
             .div(BigNumber.from(nrTests - 2))
             .mul(i - 1)
             .div(BigNumber.from(i)),
-          userId: BigNumber.from(0),
+          userId: BigNumber.from(1),
         },
       ];
-      await placeOrders(easyAuction, sellOrder, auctionId, hre);
+      await placeOrders(easyAuction, sellOrder, hre);
     }
-    await closeAuction(easyAuction, auctionId);
-    const tx = await easyAuction.settleAuction(auctionId);
+    await closeAuction(easyAuction);
+    const tx = await easyAuction.settleAuction();
     const gasUsed = (await tx.wait()).gasUsed;
 
     console.log("Gas usage for verification", gasUsed.toString());
