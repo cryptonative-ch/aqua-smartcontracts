@@ -125,7 +125,7 @@ contract EasyAuction is Ownable {
         uint96 _minBuyAmount,
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
-        uint256 _gracePeriodStartDate,
+        uint256 _gracePeriodStartDuration,
         uint256 _gracePeriodDuration,
         bool _isAtomicClosureAllowed
     ) public {
@@ -145,12 +145,9 @@ contract EasyAuction is Ownable {
             _minimumBiddingAmountPerOrder > 0,
             "minimumBiddingAmountPerOrder is not allowed to be zero"
         );
-        require(
-            _gracePeriodStartDate > block.timestamp,
-            "GracePeriodStartDate is not configured correctly"
-        );
-        gracePeriodStartDate = _gracePeriodStartDate;
-        gracePeriodEndDate = _gracePeriodStartDate.add(_gracePeriodDuration);
+
+        gracePeriodStartDate = block.timestamp.add(_gracePeriodStartDuration);
+        gracePeriodEndDate = gracePeriodStartDate.add(_gracePeriodDuration);
         uint256 _duration = gracePeriodEndDate.sub(block.timestamp);
         require(
             _orderCancelationPeriodDuration <= _duration,
