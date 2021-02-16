@@ -73,7 +73,7 @@ contract EasyAuction is Ownable {
         uint256 orderCancellationEndDate,
         uint256 gracePeriodStartDate,
         uint256 gracePeriodEndDate,
-        uint96 _expectedAmountIn,
+        uint96 _tokenOut,
         uint96 _expectedAmountOut,
         uint256 minimumBiddingAmountPerOrder,
         uint256 minFundingThreshold
@@ -121,7 +121,7 @@ contract EasyAuction is Ownable {
         IERC20 _auctioningToken,
         IERC20 _biddingToken,
         uint256 _orderCancelationPeriodDuration,
-        uint96 _expectedAmountIn,
+        uint96 _tokenOut,
         uint96 _expectedAmountOut,
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
@@ -135,11 +135,11 @@ contract EasyAuction is Ownable {
         _auctioningToken.safeTransferFrom(
             msg.sender,
             address(this),
-            _expectedAmountIn.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
+            _tokenOut.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
                 FEE_DENOMINATOR
             ) //[0]
         );
-        require(_expectedAmountIn > 0, "cannot auction zero tokens");
+        require(_tokenOut > 0, "cannot auction zero tokens");
         require(_expectedAmountOut > 0, "tokens cannot be auctioned for free");
         require(
             _minimumBiddingAmountPerOrder > 0,
@@ -166,7 +166,7 @@ contract EasyAuction is Ownable {
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             userId,
             _expectedAmountOut,
-            _expectedAmountIn
+            _tokenOut
         );
         minimumBiddingAmountPerOrder = _minimumBiddingAmountPerOrder;
         interimSumBidAmount = 0;
@@ -183,7 +183,7 @@ contract EasyAuction is Ownable {
             orderCancellationEndDate,
             gracePeriodStartDate,
             gracePeriodEndDate,
-            _expectedAmountIn,
+            _tokenOut,
             _expectedAmountOut,
             _minimumBiddingAmountPerOrder,
             _minFundingThreshold
