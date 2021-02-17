@@ -10,8 +10,14 @@ interface IMesaFactory {
 
     function auctionFee() external view returns (uint256);
 
+    function feeDenominator() external view returns (uint256);
+
+    function feeNumerator() external view returns (uint256);
+
     function addTemplate(address _template) external view returns (uint256);
 
-    function addAuction(address _auction, uint256 _templateId) external view returns (uint256);
-    
+    function addAuction(address _auction, uint256 _templateId)
+        external
+        view
+        returns (uint256);
 }

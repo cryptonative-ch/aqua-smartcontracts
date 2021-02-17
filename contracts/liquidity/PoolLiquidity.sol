@@ -38,8 +38,6 @@ contract PoolLiquidity {
         address _router,
         address _tokenA,
         address _tokenB,
-        uint256 _amountA,
-        uint256 _amountB,
         uint256 _duration,
         uint256 _locktime,
         address _WETH
@@ -48,8 +46,6 @@ contract PoolLiquidity {
         router = _router;
         tokenA = _tokenA;
         tokenB = _tokenB;
-        amountA = _amountA;
-        amountB = _amountB;
         WETH = _WETH;
         initialised = true;
         factory = IDXswapRouter(router).factory();

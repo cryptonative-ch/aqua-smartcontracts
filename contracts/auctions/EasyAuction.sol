@@ -182,6 +182,47 @@ contract EasyAuction is Ownable {
         );
     }
 
+    function init(bytes calldata _data) public {
+        (
+            IERC20 _auctioningToken,
+            IERC20 _biddingToken,
+            uint256 _orderCancelationPeriodDuration,
+            uint256 _duration,
+            uint96 _auctionedSellAmount,
+            uint96 _minBuyAmount,
+            uint256 _minimumBiddingAmountPerOrder,
+            uint256 _minFundingThreshold,
+            bool _isAtomicClosureAllowed
+        ) =
+            abi.decode(
+                _data,
+                (
+                    IERC20,
+                    IERC20,
+                    uint256,
+                    uint256,
+                    uint96,
+                    uint96,
+                    uint256,
+                    uint256,
+                    bool
+                )
+            );
+
+        initAuction(
+            _auctioningToken,
+            _biddingToken,
+            _orderCancelationPeriodDuration,
+            _duration,
+            _auctionedSellAmount,
+            _auctionedSellAmount,
+            _minBuyAmount,
+            _minimumBiddingAmountPerOrder,
+            _minFundingThreshold,
+            _isAtomicClosureAllowed
+        );
+    }
+
     uint256 public constant FEE_DENOMINATOR = 1000;
     uint64 public feeReceiverUserId = 1;
 

@@ -2,10 +2,10 @@
 pragma solidity >=0.6.8;
 
 contract MesaFactory {
-
     event AuctionCreated(address indexed auction, uint256 templateId);
     event TemplateAdded(address indexed template, uint256 templateId);
 
+    uint256 public feeDenominator = 1000;
     uint256 public feeNumerator;
     uint256 public auctionFee;
     address public feeTo;
@@ -62,16 +62,19 @@ contract MesaFactory {
     }
 
     function addAuction(address _auction, uint256 _templateId) external {
-      require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
-      allAuctions.push(_auction);
-      emit AuctionCreated(_auction, _templateId);
+        require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
+        allAuctions.push(_auction);
+        emit AuctionCreated(_auction, _templateId);
     }
 
-    function addTemplate(address _template) external returns (uint256 newTemplateId) {
-      require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
-      newTemplateId = templateId;
-      templateId++;
-      emit TemplateAdded(_template, newTemplateId);
+    function addTemplate(address _template)
+        external
+        returns (uint256 newTemplateId)
+    {
+        require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
+        newTemplateId = templateId;
+        templateId++;
+        emit TemplateAdded(_template, newTemplateId);
     }
 
     function numberOfAuctions() external view returns (uint256) {
