@@ -51,20 +51,20 @@ contract EasyAuction is Ownable {
         _;
     }
 
-    event NewSellOrder(
+    event NewOrder(
         uint64 indexed userId,
-        uint96 buyAmount,
-        uint96 sellAmount
+        uint96 amountToBuy,
+        uint96 amountToBid
     );
-    event CancellationSellOrder(
+    event CancellationOrder(
         uint64 indexed userId,
-        uint96 buyAmount,
-        uint96 sellAmount
+        uint96 amountToBuy,
+        uint96 amountToBid
     );
     event ClaimedFromOrder(
         uint64 indexed userId,
-        uint96 buyAmount,
-        uint96 sellAmount
+        uint96 amountToBuy,
+        uint96 amountToBid
     );
     event NewUser(uint64 indexed userId, address indexed userAddress);
     event InitializedAuction(
@@ -72,9 +72,9 @@ contract EasyAuction is Ownable {
         IERC20 indexed _biddingToken,
         uint256 orderCancellationEndDate,
         uint256 gracePeriodStartDate,
-        uint256 gracePeriodDuration,
-        uint96 _auctionedSellAmount,
-        uint96 _minBuyAmount,
+        uint256 gracePeriodEndDate,
+        uint96 _amountToSell,
+        uint96 _minBidAmountToReceive,
         uint256 minimumBiddingAmountPerOrder,
         uint256 minFundingThreshold
     );
@@ -103,7 +103,7 @@ contract EasyAuction is Ownable {
     uint256 public gracePeriodStartDate;
     uint256 public gracePeriodEndDate;
 
-    IterableOrderedOrderSet.Data internal sellOrders;
+    IterableOrderedOrderSet.Data internal orders;
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
 
@@ -121,8 +121,8 @@ contract EasyAuction is Ownable {
         IERC20 _auctioningToken,
         IERC20 _biddingToken,
         uint256 _orderCancelationPeriodDuration,
-        uint96 _auctionedSellAmount,
-        uint96 _minBuyAmount,
+        uint96 _amountToSell,               // total amount to sell
+        uint96 _minBidAmountToReceive,      // Minimum amount of biding token to receive at final point
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
         uint256 _gracePeriodStartDuration,
@@ -131,16 +131,16 @@ contract EasyAuction is Ownable {
     ) public {
         uint64 userId = getUserId(msg.sender);
 
-        // deposits sellAmount + fees
+        // deposits _amountToSell + fees
         _auctioningToken.safeTransferFrom(
             msg.sender,
             address(this),
-            _auctionedSellAmount.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
+            _amountToSell.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
                 FEE_DENOMINATOR
             ) //[0]
         );
-        require(_auctionedSellAmount > 0, "cannot auction zero tokens");
-        require(_minBuyAmount > 0, "tokens cannot be auctioned for free");
+        require(_amountToSell > 0, "cannot auction zero tokens");
+        require(_minBidAmountToReceive > 0, "tokens cannot be auctioned for free");
         require(
             _minimumBiddingAmountPerOrder > 0,
             "minimumBiddingAmountPerOrder is not allowed to be zero"
@@ -153,7 +153,7 @@ contract EasyAuction is Ownable {
             _orderCancelationPeriodDuration <= _duration,
             "time periods are not configured correctly"
         );
-        sellOrders.initializeEmptyList();
+        orders.initializeEmptyList();
 
         uint256 cancellationEndDate =
             block.timestamp + _orderCancelationPeriodDuration;
@@ -165,8 +165,8 @@ contract EasyAuction is Ownable {
         auctionEndDate = 0;
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             userId,
-            _minBuyAmount,
-            _auctionedSellAmount
+            _amountToSell,
+            _minBidAmountToReceive
         );
         minimumBiddingAmountPerOrder = _minimumBiddingAmountPerOrder;
         interimSumBidAmount = 0;
@@ -182,9 +182,9 @@ contract EasyAuction is Ownable {
             _biddingToken,
             orderCancellationEndDate,
             gracePeriodStartDate,
-            _gracePeriodDuration,
-            _auctionedSellAmount,
-            _minBuyAmount,
+            gracePeriodEndDate,
+            _amountToSell,
+            _minBidAmountToReceive,
             _minimumBiddingAmountPerOrder,
             _minFundingThreshold
         );
@@ -193,103 +193,93 @@ contract EasyAuction is Ownable {
     uint256 public constant FEE_DENOMINATOR = 1000;
     uint64 public feeReceiverUserId = 1;
 
-    function setFeeParameters(
-        uint256 newFeeNumerator,
-        address newfeeReceiverAddress
-    ) public onlyOwner() {
-        require(
-            newFeeNumerator <= 15,
-            "Fee is not allowed to be set higher than 1.5%"
-        );
-        // caution: for currently running auctions, the feeReceiverUserId is changing as well.
-        feeReceiverUserId = getUserId(newfeeReceiverAddress);
-        feeNumerator = newFeeNumerator;
-    }
-
-    function placeSellOrders(
-        uint96[] memory _minBuyAmounts,
-        uint96[] memory _sellAmounts,
-        bytes32[] memory _prevSellOrders
+    function placeOrders(
+        uint96[] memory _amountsToBuy,
+        uint96[] memory _amountsToBid,
+        bytes32[] memory _prevOrders
     ) public atStageOrderPlacement() returns (uint64 userId) {
-        return _placeSellOrders(_minBuyAmounts, _sellAmounts, _prevSellOrders);
+        return _placeOrders(_amountsToBuy, _amountsToBid, _prevOrders);
     }
 
-    function _placeSellOrders(
-        uint96[] memory _minBuyAmounts,
-        uint96[] memory _sellAmounts,
-        bytes32[] memory _prevSellOrders
+    function _placeOrders(
+        uint96[] memory _amountsToBuy,
+        uint96[] memory _amountsToBid,
+        bytes32[] memory _prevOrders
     ) internal returns (uint64 userId) {
         (
             ,
-            uint96 buyAmountOfInitialAuctionOrder,
-            uint96 sellAmountOfInitialAuctionOrder
+            uint96 amountToSell,
+            uint96 minAmountToReceive
         ) = initialAuctionOrder.decodeOrder();
 
-        uint256 sumOfSellAmounts = 0;
+        uint256 sumOfAmountsToBid = 0;
         userId = getUserId(msg.sender);
-        bytes32 periodFromStart = IterableOrderedOrderSet.encodeOrder(block.timestamp.sub(auctionStartedDate).toUint64(), 0, 0);
-        for (uint256 i = 0; i < _minBuyAmounts.length; i++) {
+        bytes32 extraInfo = bytes32(0);
+        if (block.timestamp > gracePeriodStartDate) {
+            extraInfo = IterableOrderedOrderSet.encodeOrder(block.timestamp.sub(gracePeriodStartDate).toUint64(), 0, 0);
+        }
+        for (uint256 i = 0; i < _amountsToBuy.length; i++) {
             require(
-                _minBuyAmounts[i].mul(buyAmountOfInitialAuctionOrder) <
-                    sellAmountOfInitialAuctionOrder.mul(_sellAmounts[i]),
+                _amountsToBuy[i].mul(minAmountToReceive) <
+                    amountToSell.mul(_amountsToBid[i]),
                 "limit price not better than mimimal offer"
             );
-            // orders should have a minimum bid size in order to limit the gas
+            // _orders should have a minimum bid size in order to limit the gas
             // required to compute the final price of the auction.
             require(
-                _sellAmounts[i] > minimumBiddingAmountPerOrder,
+                _amountsToBid[i] > minimumBiddingAmountPerOrder,
                 "order too small"
             );
             bool success =
-                sellOrders.insert(
+                orders.insert(
                     IterableOrderedOrderSet.encodeOrder(
                         userId,
-                        _minBuyAmounts[i],
-                        _sellAmounts[i]
+                        _amountsToBuy[i],
+                        _amountsToBid[i]
                     ),
-                    _prevSellOrders[i],
-                    periodFromStart
+                    _prevOrders[i],
+                    extraInfo
                 );
             if (success) {
-                sumOfSellAmounts = sumOfSellAmounts.add(_sellAmounts[i]);
-                emit NewSellOrder(userId, _minBuyAmounts[i], _sellAmounts[i]);
+                sumOfAmountsToBid = sumOfAmountsToBid.add(_amountsToBid[i]);
+                emit NewOrder(userId, _amountsToBuy[i], _amountsToBid[i]);
             }
         }
         biddingToken.safeTransferFrom(
             msg.sender,
             address(this),
-            sumOfSellAmounts
+            sumOfAmountsToBid
         ); //[1]
     }
 
-    function cancelSellOrders(bytes32[] memory _sellOrders)
+    function cancelOrders(bytes32[] memory _orders)
         public
         atStageOrderPlacementAndCancelation()
     {
         uint64 userId = getUserId(msg.sender);
         uint256 claimableAmount = 0;
-        uint64 duration = auctionEndDate != 0 ? auctionEndDate.sub(auctionStartedDate).toUint64() : 0;
-        for (uint256 i = 0; i < _sellOrders.length; i++) {
+        uint64 graceDuration = auctionEndDate != 0 ? auctionEndDate.sub(gracePeriodStartDate).toUint64() : 0;
+        for (uint256 i = 0; i < _orders.length; i++) {
             // Note: we keep the back pointer of the deleted element so that
             // it can be used as a reference point to insert a new node.
-            (uint64 periodFromStart, ,) = _sellOrders[i].decodeOrder();
-            require(duration == 0 || periodFromStart > duration, 'Unable to cancel');
-            bool success = sellOrders.removeKeepHistory(_sellOrders[i]);
+            (uint64 periodFromGraceStart, ,) = orders.extraInfo[_orders[i]].decodeOrder();
+            require(graceDuration == 0 || periodFromGraceStart > graceDuration, 'Unable to cancel');
+            bool success = orders.removeKeepHistory(_orders[i]);
             if (success) {
                 (
                     uint64 userIdOfIter,
-                    uint96 buyAmountOfIter,
-                    uint96 sellAmountOfIter
-                ) = _sellOrders[i].decodeOrder();
+                    uint96 amountToBuy,
+                    uint96 amountToBid
+                ) = _orders[i].decodeOrder();
                 require(
                     userIdOfIter == userId,
                     "Only the user can cancel his orders"
                 );
-                claimableAmount = claimableAmount.add(sellAmountOfIter);
-                emit CancellationSellOrder(
+                claimableAmount = claimableAmount.add(amountToBid);
+                emit CancellationOrder(
                     userId,
-                    buyAmountOfIter,
-                    sellAmountOfIter
+                    amountToBuy,
+                    amountToBid
                 );
             }
         }
@@ -300,14 +290,14 @@ contract EasyAuction is Ownable {
         public
         atStageSolutionSubmission()
     {
-        (, , uint96 auctioneerSellAmount) = initialAuctionOrder.decodeOrder();
+        (, uint96 amountToSell,) = initialAuctionOrder.decodeOrder();
         uint256 sumBidAmount = interimSumBidAmount;
         bytes32 iterOrder = interimOrder;
 
         for (uint256 i = 0; i < iterationSteps; i++) {
-            iterOrder = sellOrders.next(iterOrder);
-            (, , uint96 sellAmountOfIter) = iterOrder.decodeOrder();
-            sumBidAmount = sumBidAmount.add(sellAmountOfIter);
+            iterOrder = orders.next(iterOrder);
+            (, , uint96 amountToBid) = iterOrder.decodeOrder();
+            sumBidAmount = sumBidAmount.add(amountToBid);
         }
 
         require(
@@ -318,11 +308,11 @@ contract EasyAuction is Ownable {
         // it is checked that not too many iteration steps were taken:
         // require that the sum of SellAmounts times the price of the last order
         // is not more than initially sold amount
-        (, uint96 buyAmountOfIter, uint96 sellAmountOfIter) =
+        (, uint96 amountToBuy, uint96 amountToBid) =
             iterOrder.decodeOrder();
         require(
-            sumBidAmount.mul(buyAmountOfIter) <
-                auctioneerSellAmount.mul(sellAmountOfIter),
+            sumBidAmount.mul(amountToBuy) <
+                amountToSell.mul(amountToBid),
             "too many orders summed up"
         );
 
@@ -331,16 +321,16 @@ contract EasyAuction is Ownable {
     }
 
     function settleAuctionAtomically(
-        uint96[] memory _minBuyAmount,
-        uint96[] memory _sellAmount,
-        bytes32[] memory _prevSellOrder
+        uint96[] memory _amountsToBuy,
+        uint96[] memory _amountsToBid,
+        bytes32[] memory _prevOrder
     ) public atStageSolutionSubmission() {
         require(
             isAtomicClosureAllowed,
             "not allowed to settle auction atomically"
         );
         require(
-            _minBuyAmount.length == 1 && _sellAmount.length == 1,
+            _amountsToBuy.length == 1 && _amountsToBid.length == 1,
             "Only one order can be placed atomically"
         );
         uint64 userId = getUserId(msg.sender);
@@ -348,13 +338,13 @@ contract EasyAuction is Ownable {
             interimOrder.smallerThan(
                 IterableOrderedOrderSet.encodeOrder(
                     userId,
-                    _minBuyAmount[0],
-                    _sellAmount[0]
+                    _amountsToBuy[0],
+                    _amountsToBid[0]
                 )
             ),
             "precalculateSellAmountSum is already too advanced"
         );
-        _placeSellOrders(_minBuyAmount, _sellAmount, _prevSellOrder);
+        _placeOrders(_amountsToBuy, _amountsToBid, _prevOrder);
         settleAuction();
     }
 
@@ -366,96 +356,91 @@ contract EasyAuction is Ownable {
     {
         (
             uint64 auctioneerId,
-            uint96 minAuctionedBuyAmount,
-            uint96 fullAuctionedAmount
+            uint96 fullAuctionAmountToSell,
+            uint96 minBidAmountToReceive
         ) = initialAuctionOrder.decodeOrder();
 
         uint256 currentBidSum = interimSumBidAmount;
         bytes32 currentOrder = interimOrder;
-        uint256 buyAmountOfIter;
-        uint256 sellAmountOfIter;
-        uint96 fillVolumeOfAuctioneerOrder = fullAuctionedAmount;
-        uint64 duration = auctionEndDate.sub(auctionStartedDate).toUint64();
-        uint64 periodFromStart;
-        // Sum order up, until fullAuctionedAmount is fully bought or queue end is reached
+        bytes32 nextOrder = currentOrder;
+        uint256 amountToBuy;
+        uint256 amountToBid;
+        uint96 fillVolumeOfAuctioneerOrder = fullAuctionAmountToSell;
+        uint64 graceDuration = auctionEndDate.sub(gracePeriodStartDate).toUint64();
+        // Sum order up, until fullAuctionAmountToSell is fully bought or queue end is reached
         do {
-            bytes32 nextOrder = sellOrders.next(currentOrder);
+            nextOrder = orders.next(nextOrder);
             if (nextOrder == IterableOrderedOrderSet.QUEUE_END) {
                 break;
             }
+            (uint64 periodFromGraceStart, ,) = orders.extraInfo[nextOrder].decodeOrder();
+            if (periodFromGraceStart > graceDuration) {
+                continue;
+            }
             currentOrder = nextOrder;
-            (, buyAmountOfIter, sellAmountOfIter) = currentOrder.decodeOrder();
-            currentBidSum = currentBidSum.add(sellAmountOfIter);
-            (periodFromStart, ,) = sellOrders.extraInfo[currentOrder].decodeOrder();
+            (, amountToBuy, amountToBid) = currentOrder.decodeOrder();
+            currentBidSum = currentBidSum.add(amountToBid);
         } while (
-            periodFromStart <= duration && currentBidSum.mul(buyAmountOfIter) <
-                fullAuctionedAmount.mul(sellAmountOfIter)
+            currentBidSum.mul(amountToBuy) <
+                fullAuctionAmountToSell.mul(amountToBid)
         );
 
-        bytes32 _periodFromStart = IterableOrderedOrderSet.encodeOrder(
-            block.timestamp.sub(auctionStartedDate).toUint64(),
-            0,
-            0
-        );
         if (
             currentBidSum > 0 &&
-            currentBidSum.mul(buyAmountOfIter) >=
-            fullAuctionedAmount.mul(sellAmountOfIter)
+            currentBidSum.mul(amountToBuy) >=
+            fullAuctionAmountToSell.mul(amountToBid)
         ) {
             // All considered/summed orders are sufficient to close the auction fully
             // at price between current and previous orders.
             uint256 uncoveredBids =
                 currentBidSum.sub(
-                    fullAuctionedAmount.mul(sellAmountOfIter).div(
-                        buyAmountOfIter
+                    fullAuctionAmountToSell.mul(amountToBid).div(
+                        amountToBuy
                     )
                 );
 
-            if (sellAmountOfIter >= uncoveredBids) {
+            if (amountToBid >= uncoveredBids) {
                 //[13]
                 // Auction fully filled via partial match of currentOrder
-                uint256 sellAmountClearingOrder =
-                    sellAmountOfIter.sub(uncoveredBids);
-                volumeClearingPriceOrder = sellAmountClearingOrder.toUint96();
+                uint256 amountInClearingOrder =
+                    amountToBid.sub(uncoveredBids);
+                volumeClearingPriceOrder = amountInClearingOrder.toUint96();
                 currentBidSum = currentBidSum.sub(uncoveredBids);
                 clearingOrder = currentOrder;
             } else {
                 //[14]
                 // Auction fully filled via price strictly between currentOrder and the order
                 // immediately before. For a proof
-                currentBidSum = currentBidSum.sub(sellAmountOfIter);
+                currentBidSum = currentBidSum.sub(amountToBid);
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionedAmount,
+                    fullAuctionAmountToSell,
                     currentBidSum.toUint96()
                 );
-                sellOrders.extraInfo[clearingOrder] = _periodFromStart;
             }
         } else {
             // All considered/summed orders are not sufficient to close the auction fully at price of last order //[18]
             // Either a higher price must be used or auction is only partially filled
 
-            if (currentBidSum > minAuctionedBuyAmount) {
+            if (currentBidSum > minBidAmountToReceive) {
                 //[15]
                 // Price higher than last order would fill the auction
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionedAmount,
+                    fullAuctionAmountToSell,
                     currentBidSum.toUint96()
                 );
-                sellOrders.extraInfo[clearingOrder] = _periodFromStart;
             } else {
                 //[16]
                 // Even at the initial auction price, the auction is partially filled
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionedAmount,
-                    minAuctionedBuyAmount
+                    fullAuctionAmountToSell,
+                    minBidAmountToReceive
                 );
-                sellOrders.extraInfo[clearingOrder] = _periodFromStart;
                 fillVolumeOfAuctioneerOrder = currentBidSum
-                    .mul(fullAuctionedAmount)
-                    .div(minAuctionedBuyAmount)
+                    .mul(fullAuctionAmountToSell)
+                    .div(minBidAmountToReceive)
                     .toUint96();
             }
         }
@@ -467,7 +452,7 @@ contract EasyAuction is Ownable {
         processFeesAndFunds(
             fillVolumeOfAuctioneerOrder,
             auctioneerId,
-            fullAuctionedAmount
+            fullAuctionAmountToSell
         );
         emit AuctionCleared(
             fillVolumeOfAuctioneerOrder,
@@ -481,7 +466,7 @@ contract EasyAuction is Ownable {
         minimumBiddingAmountPerOrder = uint256(0);
     }
 
-    function claimFromParticipantOrder(bytes32[] memory orders)
+    function claimFromParticipantOrder(bytes32[] memory _orders)
         public
         atStageFinished()
         returns (
@@ -489,30 +474,30 @@ contract EasyAuction is Ownable {
             uint256 sumBiddingTokenAmount
         )
     {
-        for (uint256 i = 0; i < orders.length; i++) {
+        for (uint256 i = 0; i < _orders.length; i++) {
             // Note: we don't need to keep any information about the node since
             // no new elements need to be inserted.
             require(
-                sellOrders.remove(orders[i]),
+                orders.remove(_orders[i]),
                 "order is no longer claimable"
             );
         }
         (, uint96 priceNumerator, uint96 priceDenominator) =
             clearingPriceOrder.decodeOrder();
-        (uint64 userId, , ) = orders[0].decodeOrder();
-        for (uint256 i = 0; i < orders.length; i++) {
-            (uint64 userIdOrder, uint96 buyAmount, uint96 sellAmount) =
-                orders[i].decodeOrder();
+        (uint64 userId, , ) = _orders[0].decodeOrder();
+        for (uint256 i = 0; i < _orders.length; i++) {
+            (uint64 userIdOrder, uint96 amountToBuy, uint96 amountToBid) =
+                _orders[i].decodeOrder();
             require(
                 userIdOrder == userId,
                 "only allowed to claim for same user"
             );
             if (minFundingThresholdNotReached) {
                 //[10]
-                sumBiddingTokenAmount = sumBiddingTokenAmount.add(sellAmount);
+                sumBiddingTokenAmount = sumBiddingTokenAmount.add(amountToBid);
             } else {
                 //[23]
-                if (orders[i] == clearingPriceOrder) {
+                if (_orders[i] == clearingPriceOrder) {
                     //[25]
                     sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
                         volumeClearingPriceOrder.mul(priceNumerator).div(
@@ -520,23 +505,23 @@ contract EasyAuction is Ownable {
                         )
                     );
                     sumBiddingTokenAmount = sumBiddingTokenAmount.add(
-                        sellAmount.sub(volumeClearingPriceOrder)
+                        amountToBid.sub(volumeClearingPriceOrder)
                     );
                 } else {
-                    if (orders[i].smallerThan(clearingPriceOrder)) {
+                    if (_orders[i].smallerThan(clearingPriceOrder)) {
                         //[17]
                         sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
-                            sellAmount.mul(priceNumerator).div(priceDenominator)
+                            amountToBid.mul(priceNumerator).div(priceDenominator)
                         );
                     } else {
                         //[24]
                         sumBiddingTokenAmount = sumBiddingTokenAmount.add(
-                            sellAmount
+                            amountToBid
                         );
                     }
                 }
             }
-            emit ClaimedFromOrder(userId, buyAmount, sellAmount);
+            emit ClaimedFromOrder(userId, amountToBuy, amountToBid);
         }
         sendOutTokens(sumAuctioningTokenAmount, sumBiddingTokenAmount, userId); //[3]
     }
@@ -544,21 +529,21 @@ contract EasyAuction is Ownable {
     function processFeesAndFunds(
         uint256 fillVolumeOfAuctioneerOrder,
         uint64 auctioneerId,
-        uint96 fullAuctionedAmount
+        uint96 fullAuctionAmountToSell
     ) internal {
         uint256 feeAmount =
-            fullAuctionedAmount.mul(feeNumerator).div(FEE_DENOMINATOR); //[20]
+            fullAuctionAmountToSell.mul(feeNumerator).div(FEE_DENOMINATOR); //[20]
         if (minFundingThresholdNotReached) {
-            sendOutTokens(fullAuctionedAmount.add(feeAmount), 0, auctioneerId); //[4]
+            sendOutTokens(fullAuctionAmountToSell.add(feeAmount), 0, auctioneerId); //[4]
         } else {
             //[11]
             (, uint96 priceNumerator, uint96 priceDenominator) =
                 clearingPriceOrder.decodeOrder();
             uint256 unsettledTokens =
-                fullAuctionedAmount.sub(fillVolumeOfAuctioneerOrder);
+                fullAuctionAmountToSell.sub(fillVolumeOfAuctioneerOrder);
             uint256 auctioningTokenAmount =
                 unsettledTokens.add(
-                    feeAmount.mul(unsettledTokens).div(fullAuctionedAmount)
+                    feeAmount.mul(unsettledTokens).div(fullAuctionAmountToSell)
                 );
             uint256 biddingTokenAmount =
                 fillVolumeOfAuctioneerOrder.mul(priceDenominator).div(
@@ -571,7 +556,7 @@ contract EasyAuction is Ownable {
             ); //[5]
             sendOutTokens(
                 feeAmount.mul(fillVolumeOfAuctioneerOrder).div(
-                    fullAuctionedAmount
+                    fullAuctionAmountToSell
                 ),
                 0,
                 feeReceiverUserId
@@ -619,8 +604,8 @@ contract EasyAuction is Ownable {
         return auctionEndDate.sub(block.timestamp);
     }
 
-    function containsOrder(bytes32 order) public view returns (bool) {
-        return sellOrders.contains(order);
+    function containsOrder(bytes32 _order) public view returns (bool) {
+        return orders.contains(_order);
     }
 
     function setAuctionEndDate(uint256 _auctionEndDate) external {
