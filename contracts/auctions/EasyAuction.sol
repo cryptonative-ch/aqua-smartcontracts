@@ -148,7 +148,7 @@ contract EasyAuction is Ownable {
 
         gracePeriodStartDate = block.timestamp.add(_gracePeriodStartDuration);
         gracePeriodEndDate = gracePeriodStartDate.add(_gracePeriodDuration);
-        uint256 _duration = gracePeriodEndDate.sub(block.timestamp);
+        uint256 _duration = _gracePeriodStartDuration.add(_gracePeriodDuration);
         require(
             _orderCancelationPeriodDuration <= _duration,
             "time periods are not configured correctly"

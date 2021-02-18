@@ -19,8 +19,8 @@ describe("Encoding Orders", () => {
     it("checks that decoding reverts encoding", () => {
       const order: Order = {
         userId: BigNumber.from(1),
-        sellAmount: ethers.utils.parseEther("1"),
-        buyAmount: ethers.utils.parseEther("1"),
+        amountToBid: ethers.utils.parseEther("1"),
+        amountToBuy: ethers.utils.parseEther("1"),
       };
       expect(json(order)).deep.eq(json(decodeOrder(encodeOrder(order))));
     });
@@ -32,52 +32,52 @@ describe("Calculate Prices", () => {
     it("one sell order is clearing order", () => {
       const initialOrder = {
         userId: BigNumber.from(1),
-        sellAmount: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
-        buyAmount: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBid: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
+        amountToBuy: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
       };
       const sellOrders: Order[] = [
         {
           userId: BigNumber.from(1),
-          sellAmount: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
-          buyAmount: BigNumber.from(4).mul(ethers.utils.parseEther("1")),
+          amountToBid: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
+          amountToBuy: BigNumber.from(4).mul(ethers.utils.parseEther("1")),
         },
         {
           userId: BigNumber.from(1),
-          sellAmount: BigNumber.from(1500).mul(ethers.utils.parseEther("1")),
-          buyAmount: BigNumber.from(135).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          amountToBid: BigNumber.from(1500).mul(ethers.utils.parseEther("1")),
+          amountToBuy: BigNumber.from(135).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         },
       ];
       const calculatedPrice = findClearingPrice(sellOrders, initialOrder);
       const expectedPrice = {
         userId: BigNumber.from(1),
-        sellAmount: sellOrders[1].sellAmount,
-        buyAmount: sellOrders[1].buyAmount,
+        amountToBid: sellOrders[1].amountToBid,
+        amountToBuy: sellOrders[1].amountToBuy,
       };
       expect(json(expectedPrice)).deep.eq(json(calculatedPrice));
     });
     it("initalOrder is clearing order", () => {
       const initialOrder = {
         userId: BigNumber.from(1),
-        sellAmount: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
-        buyAmount: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBid: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
+        amountToBuy: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
       };
       const sellOrders: Order[] = [
         {
           userId: BigNumber.from(1),
-          sellAmount: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
-          buyAmount: BigNumber.from(4).mul(ethers.utils.parseEther("1")),
+          amountToBid: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
+          amountToBuy: BigNumber.from(4).mul(ethers.utils.parseEther("1")),
         },
         {
           userId: BigNumber.from(1),
-          sellAmount: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
-          buyAmount: BigNumber.from(45).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          amountToBid: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
+          amountToBuy: BigNumber.from(45).mul(BigNumber.from(10).pow(BigNumber.from(17))),
         },
       ];
       const calculatedPrice = findClearingPrice(sellOrders, initialOrder);
       const expectedPrice = {
         userId: BigNumber.from(0),
-        buyAmount: initialOrder.buyAmount,
-        sellAmount: initialOrder.sellAmount,
+        amountToBuy: initialOrder.amountToBuy,
+        amountToBid: initialOrder.amountToBid,
       };
       expect(json(expectedPrice)).deep.eq(json(calculatedPrice));
     });

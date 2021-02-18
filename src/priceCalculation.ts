@@ -25,8 +25,8 @@ export interface OrderResult {
 }
 
 export interface Order {
-  sellAmount: BigNumber;
-  buyAmount: BigNumber;
+  amountToBid: BigNumber;
+  amountToBuy: BigNumber;
   userId: BigNumber;
 }
 
@@ -38,24 +38,24 @@ export const queueLastElement =
 export function reverseOrderPrice(order: Order): Order {
   return {
     userId: order.userId,
-    sellAmount: order.buyAmount,
-    buyAmount: order.sellAmount,
+    amountToBid: order.amountToBuy,
+    amountToBuy: order.amountToBid,
   };
 }
 export function encodeOrder(order: Order): string {
   return (
     "0x" +
     order.userId.toHexString().slice(2).padStart(16, "0") +
-    order.buyAmount.toHexString().slice(2).padStart(24, "0") +
-    order.sellAmount.toHexString().slice(2).padStart(24, "0")
+    order.amountToBuy.toHexString().slice(2).padStart(24, "0") +
+    order.amountToBid.toHexString().slice(2).padStart(24, "0")
   );
 }
 
 export function decodeOrder(bytes: string): Order {
   return {
     userId: BigNumber.from("0x" + bytes.substring(2, 18)),
-    sellAmount: BigNumber.from("0x" + bytes.substring(43, 66)),
-    buyAmount: BigNumber.from("0x" + bytes.substring(19, 42)),
+    amountToBid: BigNumber.from("0x" + bytes.substring(43, 66)),
+    amountToBuy: BigNumber.from("0x" + bytes.substring(19, 42)),
   };
 }
 
@@ -74,15 +74,15 @@ export async function getInitialOrder(
 
 export function hasLowerClearingPrice(order1: Order, order2: Order): number {
   if (
-    order1.buyAmount
-      .mul(order2.sellAmount)
-      .lt(order2.buyAmount.mul(order1.sellAmount))
+    order1.amountToBuy
+      .mul(order2.amountToBid)
+      .lt(order2.amountToBuy.mul(order1.amountToBid))
   )
     return -1;
   if (
-    order1.buyAmount
-      .mul(order2.sellAmount)
-      .eq(order2.buyAmount.mul(order1.sellAmount))
+    order1.amountToBuy
+      .mul(order2.amountToBid)
+      .eq(order2.amountToBuy.mul(order1.amountToBid))
   ) {
     if (order1.userId < order2.userId) return -1;
   }
@@ -116,11 +116,11 @@ function printOrders(orders: Order[], isInitialOrder: boolean, debug = false) {
     orders.map((order) => {
       log(
         "selling ",
-        order.sellAmount.toString(),
+        order.amountToBid.toString(),
         " for ",
-        order.buyAmount.toString(),
+        order.amountToBuy.toString(),
         " at price of",
-        order.sellAmount.div(order.buyAmount).toString(),
+        order.amountToBid.div(order.amountToBuy).toString(),
       );
     });
   } else {
@@ -128,11 +128,11 @@ function printOrders(orders: Order[], isInitialOrder: boolean, debug = false) {
     orders.map((order) => {
       log(
         "selling ",
-        order.sellAmount.toString(),
+        order.amountToBid.toString(),
         " for ",
-        order.buyAmount.toString(),
+        order.amountToBuy.toString(),
         " at price of",
-        order.buyAmount.div(order.sellAmount).toString(),
+        order.amountToBuy.div(order.amountToBid).toString(),
       );
     });
   }
@@ -152,44 +152,44 @@ export function findClearingPrice(
   let totalSellVolume = BigNumber.from(0);
 
   for (const order of sellOrders) {
-    totalSellVolume = totalSellVolume.add(order.sellAmount);
+    totalSellVolume = totalSellVolume.add(order.amountToBid);
     if (
       totalSellVolume
-        .mul(order.buyAmount)
-        .gte(initialAuctionOrder.sellAmount.mul(order.sellAmount))
+        .mul(order.amountToBuy)
+        .gte(initialAuctionOrder.amountToBid.mul(order.amountToBid))
     ) {
-      const coveredBuyAmount = initialAuctionOrder.sellAmount.sub(
+      const coveredBuyAmount = initialAuctionOrder.amountToBid.sub(
         totalSellVolume
-          .sub(order.sellAmount)
-          .mul(order.buyAmount)
-          .div(order.sellAmount),
+          .sub(order.amountToBid)
+          .mul(order.amountToBuy)
+          .div(order.amountToBid),
       );
       const sellAmountClearingOrder = coveredBuyAmount
-        .mul(order.sellAmount)
-        .div(order.buyAmount);
+        .mul(order.amountToBid)
+        .div(order.amountToBuy);
       if (sellAmountClearingOrder.gt(BigNumber.from(0))) {
         return order;
       } else {
         return {
           userId: BigNumber.from(1),
-          buyAmount: initialAuctionOrder.sellAmount,
-          sellAmount: totalSellVolume.sub(order.sellAmount),
+          amountToBuy: initialAuctionOrder.amountToBid,
+          amountToBid: totalSellVolume.sub(order.amountToBid),
         };
       }
     }
   }
   // otherwise, clearing price is initialAuctionOrder
-  if (totalSellVolume.gt(initialAuctionOrder.buyAmount)) {
+  if (totalSellVolume.gt(initialAuctionOrder.amountToBuy)) {
     return {
       userId: initialAuctionOrder.userId,
-      buyAmount: initialAuctionOrder.sellAmount,
-      sellAmount: totalSellVolume,
+      amountToBuy: initialAuctionOrder.amountToBid,
+      amountToBid: totalSellVolume,
     };
   } else {
     return {
       userId: BigNumber.from(0),
-      buyAmount: initialAuctionOrder.sellAmount,
-      sellAmount: initialAuctionOrder.buyAmount,
+      amountToBuy: initialAuctionOrder.amountToBid,
+      amountToBid: initialAuctionOrder.amountToBuy,
     };
   }
 }
@@ -207,8 +207,8 @@ export async function getAllSellOrders(
   const sellOrders = events.map((x: any) => {
     const order: Order = {
       userId: x.args[0],
-      sellAmount: x.args[2],
-      buyAmount: x.args[1],
+      amountToBid: x.args[2],
+      amountToBuy: x.args[1],
     };
     return order;
   });
@@ -225,8 +225,8 @@ export async function getAllSellOrders(
   const sellOrdersDeletions = eventsForCancellations.map((x: any) => {
     const order: Order = {
       userId: x.args[0],
-      sellAmount: x.args[2],
-      buyAmount: x.args[1],
+      amountToBid: x.args[2],
+      amountToBuy: x.args[1],
     };
     return order;
   });
@@ -243,7 +243,7 @@ export async function createTokensAndMintAndApprove(
 ): Promise<{ auctioningToken: Contract; biddingToken: Contract }> {
   const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
   const biddingToken = await ERC20.deploy("BT", "BT");
-  const auctioningToken = await ERC20.deploy("BT", "BT");
+  const auctioningToken = await ERC20.deploy("AT", "AT");
 
   for (const user of users) {
     await biddingToken.mint(user.address, BigNumber.from(10).pow(30));
@@ -275,8 +275,8 @@ export async function placeOrders(
     await easyAuction
       .connect(hre.waffle.provider.getWallets()[sellOrder.userId.toNumber() - 1])
       .placeSellOrders(
-        [sellOrder.buyAmount],
-        [sellOrder.sellAmount],
+        [sellOrder.amountToBuy],
+        [sellOrder.amountToBid],
         [queueStartElement],
       );
   }
