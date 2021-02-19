@@ -6,3 +6,5 @@ coverage.json
 artifacts/
 cache/
 yarn.lock
+coverage/
+coverage.json

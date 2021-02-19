@@ -17,7 +17,6 @@ const clearAuction: () => void = () => {
       //Todo: Compare current time against auction end time and throw error
       const price = await calculateClearingPrice(
         easyAuction,
-        BigNumber.from(taskArgs.auctionId),
       );
       console.log("Clearing price will be:", price);
       const tx = await easyAuction

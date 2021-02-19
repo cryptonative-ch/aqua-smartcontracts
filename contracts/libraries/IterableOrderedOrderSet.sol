@@ -33,8 +33,8 @@ library IterableOrderedOrderSet {
 
     struct Order {
         uint64 owner;
-        uint96 buyAmount;
-        uint96 sellAmount;
+        uint96 amountToBuy;
+        uint96 amountToBid;
     }
 
     function initializeEmptyList(Data storage self) internal {
@@ -147,7 +147,7 @@ library IterableOrderedOrderSet {
     }
 
     // @dev orders are ordered by
-    // 1. their price - buyAmount/sellAmount and
+    // 1. their price - amountToBuy/amountToBid and
     // 2. their userId,
     function smallerThan(bytes32 orderLeft, bytes32 orderRight)
         internal
@@ -208,27 +208,27 @@ library IterableOrderedOrderSet {
         pure
         returns (
             uint64 userId,
-            uint96 buyAmount,
-            uint96 sellAmount
+            uint96 amountToBuy,
+            uint96 amountToBid
         )
     {
         // Note: converting to uint discards the binary digits that do not fit
         // the type.
         userId = uint64(uint256(_orderData) >> 192);
-        buyAmount = uint96(uint256(_orderData) >> 96);
-        sellAmount = uint96(uint256(_orderData));
+        amountToBuy = uint96(uint256(_orderData) >> 96);
+        amountToBid = uint96(uint256(_orderData));
     }
 
     function encodeOrder(
         uint64 userId,
-        uint96 buyAmount,
-        uint96 sellAmount
+        uint96 amountToBuy,
+        uint96 amountToBid
     ) internal pure returns (bytes32) {
         return
             bytes32(
                 (uint256(userId) << 192) +
-                    (uint256(buyAmount) << 96) +
-                    uint256(sellAmount)
+                    (uint256(amountToBuy) << 96) +
+                    uint256(amountToBid)
             );
     }
 }

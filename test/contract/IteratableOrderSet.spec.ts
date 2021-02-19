@@ -12,43 +12,43 @@ const QUEUE_END =
   "0xffffffffffffffffffffffffffffffffffffffff000000000000000000000001";
 const BYTES32_ZERO = encodeOrder({
   userId: BigNumber.from(0),
-  sellAmount: BigNumber.from(0),
-  buyAmount: BigNumber.from(0),
+  amountToBid: BigNumber.from(0),
+  amountToBuy: BigNumber.from(0),
 });
 const BYTES32_ONE = encodeOrder({
   userId: BigNumber.from(1),
-  sellAmount: BigNumber.from(1),
-  buyAmount: BigNumber.from(1),
+  amountToBid: BigNumber.from(1),
+  amountToBuy: BigNumber.from(1),
 });
 const BYTES32_ONE_DIFFERENT = encodeOrder({
   userId: BigNumber.from(1),
-  sellAmount: BigNumber.from(2),
-  buyAmount: BigNumber.from(2),
+  amountToBid: BigNumber.from(2),
+  amountToBuy: BigNumber.from(2),
 });
 const BYTES32_ONE_BEST_USER = encodeOrder({
   userId: BigNumber.from(0),
-  sellAmount: BigNumber.from(2),
-  buyAmount: BigNumber.from(2),
+  amountToBid: BigNumber.from(2),
+  amountToBuy: BigNumber.from(2),
 });
 const BYTES32_TWO = encodeOrder({
   userId: BigNumber.from(1),
-  buyAmount: BigNumber.from(8),
-  sellAmount: BigNumber.from(4),
+  amountToBuy: BigNumber.from(8),
+  amountToBid: BigNumber.from(4),
 });
 const BYTES32_THREE = encodeOrder({
   userId: BigNumber.from(1),
-  buyAmount: BigNumber.from(6),
-  sellAmount: BigNumber.from(2),
+  amountToBuy: BigNumber.from(6),
+  amountToBid: BigNumber.from(2),
 });
 const BYTES32_FOUR = encodeOrder({
   userId: BigNumber.from(1),
-  buyAmount: BigNumber.from(8),
-  sellAmount: BigNumber.from(2),
+  amountToBuy: BigNumber.from(8),
+  amountToBid: BigNumber.from(2),
 });
 const BYTES32_FIVE = encodeOrder({
   userId: BigNumber.from(1),
-  buyAmount: BigNumber.from(10),
-  sellAmount: BigNumber.from(2),
+  amountToBuy: BigNumber.from(10),
+  amountToBid: BigNumber.from(2),
 });
 
 async function getSetContent(set: Contract) {
@@ -127,10 +127,10 @@ describe("IterableOrderedOrderSet", function () {
     await set.insert(BYTES32_ONE);
     await set.insert(BYTES32_THREE);
 
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, 0)).to.equal(
+    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO)).to.equal(
       true,
     );
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, 0)).to.equal(
+    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO)).to.equal(
       false,
     );
   });
@@ -138,25 +138,25 @@ describe("IterableOrderedOrderSet", function () {
   it("should not allow to insert element with non-containing element-Before-New-One", async () => {
     await set.insert(BYTES32_THREE);
 
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, 0)).to.equal(
+    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO)).to.equal(
       false,
     );
   });
 
   it("should not allow to insert element with element not in front of other element", async () => {
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, 0)).to.equal(
+    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO)).to.equal(
       false,
     );
   });
 
   it("should not allow to insert queue start element", async () => {
     await expect(
-      set.callStatic.insertAt(queueStartElement, queueStartElement, 0),
+      set.callStatic.insertAt(queueStartElement, queueStartElement, BYTES32_ZERO),
     ).to.be.revertedWith("Inserting element is not valid");
   });
   it("should not allow to insert queue end element", async () => {
     await expect(
-      set.callStatic.insertAt(queueLastElement, queueStartElement, 0),
+      set.callStatic.insertAt(queueLastElement, queueStartElement, BYTES32_ZERO),
     ).to.be.revertedWith("Inserting element is not valid");
   });
 
@@ -254,9 +254,9 @@ describe("IterableOrderedOrderSet", function () {
 
       await set.removeKeepHistory(BYTES32_TWO);
       expect(
-        await set.callStatic.insertAt(BYTES32_THREE, BYTES32_TWO, 0),
+        await set.callStatic.insertAt(BYTES32_THREE, BYTES32_TWO, BYTES32_ZERO),
       ).to.equal(true);
-      await set.insertAt(BYTES32_THREE, BYTES32_TWO, 0);
+      await set.insertAt(BYTES32_THREE, BYTES32_TWO, BYTES32_ZERO);
 
       const first = await set.first();
       const second = await set.next(first);
@@ -287,7 +287,7 @@ describe("IterableOrderedOrderSet", function () {
       // └──> 3
       expect(await set.prevMap(BYTES32_THREE)).to.equal(BYTES32_ONE);
       expect(await set.nextMap(BYTES32_THREE)).to.equal(ethers.constants.Zero);
-      await set.insertAt(BYTES32_FOUR, BYTES32_TWO, 0);
+      await set.insertAt(BYTES32_FOUR, BYTES32_TWO, BYTES32_ZERO);
       // 1 ─> 4 ─> 5
       // └──> 2
       // └──> 3
@@ -321,7 +321,7 @@ describe("IterableOrderedOrderSet", function () {
       //      └──> 3
       expect(await set.prevMap(BYTES32_TWO)).to.equal(BYTES32_ONE);
       expect(await set.nextMap(BYTES32_TWO)).to.equal(ethers.constants.Zero);
-      await set.insertAt(BYTES32_FOUR, BYTES32_THREE, 0);
+      await set.insertAt(BYTES32_FOUR, BYTES32_THREE, BYTES32_ZERO);
       // 1 ─> 4 ─> 5
       // └──> 2
       //      └──> 3
@@ -355,7 +355,7 @@ describe("IterableOrderedOrderSet", function () {
       expect(await set.prevMap(BYTES32_THREE)).to.equal(BYTES32_ONE);
       expect(await set.nextMap(BYTES32_THREE)).to.equal(BYTES32_FIVE);
 
-      await set.insertAt(BYTES32_FOUR, BYTES32_TWO, 0);
+      await set.insertAt(BYTES32_FOUR, BYTES32_TWO, BYTES32_ZERO);
       // 1 ─> 3 ─> 4 ─> 5
       // └──> 2
       expect(await set.prevMap(BYTES32_FOUR)).to.equal(BYTES32_THREE);

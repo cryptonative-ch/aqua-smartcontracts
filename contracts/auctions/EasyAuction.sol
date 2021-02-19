@@ -148,7 +148,7 @@ contract EasyAuction is Ownable {
 
         gracePeriodStartDate = block.timestamp.add(_gracePeriodStartDuration);
         gracePeriodEndDate = gracePeriodStartDate.add(_gracePeriodDuration);
-        uint256 _duration = gracePeriodEndDate.sub(block.timestamp);
+        uint256 _duration = _gracePeriodStartDuration.add(_gracePeriodDuration);
         require(
             _orderCancelationPeriodDuration <= _duration,
             "time periods are not configured correctly"
@@ -345,6 +345,12 @@ contract EasyAuction is Ownable {
             "precalculateSellAmountSum is already too advanced"
         );
         _placeOrders(_amountsToBuy, _amountsToBid, _prevOrder);
+        bytes32 _order = IterableOrderedOrderSet.encodeOrder(
+            userId,
+            _amountsToBuy[0],
+            _amountsToBid[0]
+        );
+        orders.extraInfo[_order] = bytes32(0);
         settleAuction();
     }
 
@@ -598,10 +604,10 @@ contract EasyAuction is Ownable {
     }
 
     function getSecondsRemainingInBatch() public view returns (uint256) {
-        if (auctionEndDate < block.timestamp) {
+        if (gracePeriodEndDate <= block.timestamp) {
             return 0;
         }
-        return auctionEndDate.sub(block.timestamp);
+        return gracePeriodEndDate.sub(block.timestamp);
     }
 
     function containsOrder(bytes32 _order) public view returns (bool) {
@@ -610,7 +616,7 @@ contract EasyAuction is Ownable {
 
     function setAuctionEndDate(uint256 _auctionEndDate) external {
         require(auctionEndDate == 0, "auction end date already set");
-        require(block.timestamp >= gracePeriodEndDate, "cannot set auctionEndDate during grace period");
+        require(block.timestamp >= gracePeriodEndDate, "cannot set auctionEndDate before gracePeriodEndDate");
         require(_auctionEndDate >= gracePeriodStartDate && _auctionEndDate <= gracePeriodEndDate, "auctionEndDate must be between grace period");
         auctionEndDate = _auctionEndDate;
     }
