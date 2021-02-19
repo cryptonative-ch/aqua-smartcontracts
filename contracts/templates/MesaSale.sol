@@ -41,7 +41,9 @@ contract MesaSale {
         WETH = IWETH(_WETH);
         auction = IAuction(_auction);
         auctionLauncher = IAuctionLauncher(_auctionLauncher);
-        mesaFactory = IMesaFactory(IAuctionLauncher(_auctionLauncher).factory());
+        mesaFactory = IMesaFactory(
+            IAuctionLauncher(_auctionLauncher).factory()
+        );
         feeDenominator = IMesaFactory(mesaFactory).feeDenominator();
         feeNumerator = IMesaFactory(mesaFactory).feeNumerator();
         auctionTemplateId = _auctionTemplateId;
@@ -55,11 +57,12 @@ contract MesaSale {
         uint96 _minPrice,
         uint96 _minBuyAmount,
         uint256 _minRaise
-    ) public returns (address newAuction){
+    ) public returns (address newAuction) {
         uint256 orderCancelationPeriodDuration = 100;
         uint256 minimumBiddingAmountPerOrder = 100;
         bool isAtomicClosureAllowed = false;
-        bytes memory encodedInitData = abi.encode(
+        bytes memory encodedInitData =
+            abi.encode(
                 IERC20(_tokenOut),
                 IERC20(_tokenIn),
                 orderCancelationPeriodDuration,
@@ -69,7 +72,7 @@ contract MesaSale {
                 minimumBiddingAmountPerOrder,
                 _minRaise,
                 isAtomicClosureAllowed
-        );
+            );
 
         uint256 depositAmount =
             _tokenOutSupply.mul(feeDenominator.add(feeNumerator)).div(
@@ -77,17 +80,25 @@ contract MesaSale {
             );
 
         // deposits sellAmount + fees
-        TransferHelper.safeTransferFrom(_tokenOut, msg.sender, address(this), depositAmount);
+        TransferHelper.safeTransferFrom(
+            _tokenOut,
+            msg.sender,
+            address(this),
+            depositAmount
+        );
 
         // approve deposited tokens on auctionLauncher
-        TransferHelper.safeApprove(_tokenOut, address(auctionLauncher), depositAmount);
+        TransferHelper.safeApprove(
+            _tokenOut,
+            address(auctionLauncher),
+            depositAmount
+        );
 
-        newAuction =
-            auctionLauncher.createAuction(
-                auctionTemplateId,
-                _tokenOut,
-                _tokenOutSupply,
-                encodedInitData
-            );
+        newAuction = auctionLauncher.createAuction(
+            auctionTemplateId,
+            _tokenOut,
+            _tokenOutSupply,
+            encodedInitData
+        );
     }
 }

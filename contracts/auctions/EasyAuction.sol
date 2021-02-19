@@ -19,39 +19,24 @@ contract EasyAuction is Ownable {
     using IterableOrderedOrderSet for bytes32;
     using IdToAddressBiMap for IdToAddressBiMap.Data;
 
-    modifier atStageOrderPlacement() {
-        require(
-            block.timestamp < auctionEndDate,
-            "no longer in order placement phase"
-        );
-        _;
-    }
+    IERC20 public auctioningToken;
+    IERC20 public biddingToken;
+    uint256 public orderCancellationEndDate;
+    uint256 public auctionEndDate;
+    bytes32 public initialAuctionOrder;
+    uint256 public minimumBiddingAmountPerOrder;
+    uint256 public interimSumBidAmount;
+    bytes32 public interimOrder;
+    bytes32 public clearingPriceOrder;
+    uint96 public volumeClearingPriceOrder;
+    bool public minFundingThresholdNotReached;
+    bool public isAtomicClosureAllowed;
+    uint256 public feeNumerator;
+    uint256 public minFundingThreshold;
 
-    modifier atStageOrderPlacementAndCancelation() {
-        require(
-            block.timestamp < orderCancellationEndDate,
-            "no longer in order placement and cancelation phase"
-        );
-        _;
-    }
-
-    modifier atStageSolutionSubmission() {
-        {
-            uint256 auctionEndDate = auctionEndDate;
-            require(
-                auctionEndDate != 0 &&
-                    block.timestamp >= auctionEndDate &&
-                    clearingPriceOrder == bytes32(0),
-                "Auction not in solution submission phase"
-            );
-        }
-        _;
-    }
-
-    modifier atStageFinished() {
-        require(clearingPriceOrder != bytes32(0), "Auction not yet finished");
-        _;
-    }
+    IterableOrderedOrderSet.Data internal sellOrders;
+    IdToAddressBiMap.Data private registeredUsers;
+    uint64 public numUsers;
 
     event NewSellOrder(
         uint64 indexed userId,
@@ -86,24 +71,39 @@ contract EasyAuction is Ownable {
     );
     event UserRegistration(address indexed user, uint64 userId);
 
-    IERC20 public auctioningToken;
-    IERC20 public biddingToken;
-    uint256 public orderCancellationEndDate;
-    uint256 public auctionEndDate;
-    bytes32 public initialAuctionOrder;
-    uint256 public minimumBiddingAmountPerOrder;
-    uint256 public interimSumBidAmount;
-    bytes32 public interimOrder;
-    bytes32 public clearingPriceOrder;
-    uint96 public volumeClearingPriceOrder;
-    bool public minFundingThresholdNotReached;
-    bool public isAtomicClosureAllowed;
-    uint256 public feeNumerator;
-    uint256 public minFundingThreshold;
+    modifier atStageOrderPlacement() {
+        require(
+            block.timestamp < auctionEndDate,
+            "no longer in order placement phase"
+        );
+        _;
+    }
 
-    IterableOrderedOrderSet.Data internal sellOrders;
-    IdToAddressBiMap.Data private registeredUsers;
-    uint64 public numUsers;
+    modifier atStageOrderPlacementAndCancelation() {
+        require(
+            block.timestamp < orderCancellationEndDate,
+            "no longer in order placement and cancelation phase"
+        );
+        _;
+    }
+
+    modifier atStageSolutionSubmission() {
+        {
+            uint256 auctionEndDate = auctionEndDate;
+            require(
+                auctionEndDate != 0 &&
+                    block.timestamp >= auctionEndDate &&
+                    clearingPriceOrder == bytes32(0),
+                "Auction not in solution submission phase"
+            );
+        }
+        _;
+    }
+
+    modifier atStageFinished() {
+        require(clearingPriceOrder != bytes32(0), "Auction not yet finished");
+        _;
+    }
 
     constructor() public Ownable() {}
 
@@ -125,7 +125,7 @@ contract EasyAuction is Ownable {
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
         bool _isAtomicClosureAllowed
-    ) public {
+    ) internal {
         uint64 userId = getUserId(msg.sender);
 
         // deposits sellAmount + fees
@@ -182,6 +182,7 @@ contract EasyAuction is Ownable {
         );
     }
 
+    // unified init function across auction template to streamline initialization process
     function init(bytes calldata _data) public {
         (
             IERC20 _auctioningToken,
