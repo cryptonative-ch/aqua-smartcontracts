@@ -8,4 +8,6 @@ interface IAuctionLauncher {
         uint256 _tokenOutSupply,
         bytes calldata _data
     ) external view returns (address);
+
+    function factory() external returns (address);
 }

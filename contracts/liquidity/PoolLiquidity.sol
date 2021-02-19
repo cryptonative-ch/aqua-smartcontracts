@@ -122,13 +122,13 @@ contract PoolLiquidity {
                 tokenBalances[tokenB][msg.sender] > 0,
             "PoolLiquidity: NOTHING_DEPOSITED"
         );
-        uint256 amountA = tokenBalances[tokenA][msg.sender];
-        uint256 amountB = tokenBalances[tokenB][msg.sender];
+        uint256 withdrawAmountA = tokenBalances[tokenA][msg.sender];
+        uint256 withdrawAmountB = tokenBalances[tokenB][msg.sender];
         tokenBalances[tokenA][msg.sender] = 0;
         tokenBalances[tokenA][msg.sender] = 0;
-        totals[tokenA] -= amountA;
-        totals[tokenB] -= amountB;
-        TransferHelper.safeTransfer(tokenA, msg.sender, amountA);
-        TransferHelper.safeTransfer(tokenB, msg.sender, amountB);
+        totals[tokenA] -= withdrawAmountA;
+        totals[tokenB] -= withdrawAmountB;
+        TransferHelper.safeTransfer(tokenA, msg.sender, withdrawAmountA);
+        TransferHelper.safeTransfer(tokenB, msg.sender, withdrawAmountB);
     }
 }

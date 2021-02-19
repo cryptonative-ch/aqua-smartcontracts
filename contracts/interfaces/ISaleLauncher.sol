@@ -7,5 +7,5 @@ interface ISaleLauncher {
         payable
         returns (address newAuction);
 
-    function factory() public returns (address);
+    function factory() external returns (address);
 }

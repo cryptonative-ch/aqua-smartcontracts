@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./interfaces/ILiquidityLauncher.sol";
-import "./interfaces/IAuctionLauncher.sol";
-import "./interfaces/IMesaFactory.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "../interfaces/IAuctionLauncher.sol";
+import "../libraries/TransferHelper.sol";
+import "../interfaces/IMesaFactory.sol";
+import "../interfaces/IWETH.sol";
 
 interface IAuction {
     function initAuction(
@@ -16,7 +18,7 @@ interface IAuction {
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
         bool _isAtomicClosureAllowed
-    ) public;
+    ) external;
 }
 
 contract MesaSale {
@@ -24,7 +26,7 @@ contract MesaSale {
 
     IAuction public auction;
     IWETH public WETH;
-    IAuctionLauncer public auctionLauncher;
+    IAuctionLauncher public auctionLauncher;
     IMesaFactory public mesaFactory;
     uint256 public feeDenominator;
     uint256 public feeNumerator;
@@ -38,8 +40,8 @@ contract MesaSale {
     ) public {
         WETH = IWETH(_WETH);
         auction = IAuction(_auction);
-        auctionLauncher = IAuctionLauncer(_auctionLauncher);
-        mesaFactory = IAuctionLauncer(_auctionLauncher).factory();
+        auctionLauncher = IAuctionLauncher(_auctionLauncher);
+        mesaFactory = IMesaFactory(IAuctionLauncher(_auctionLauncher).factory());
         feeDenominator = IMesaFactory(mesaFactory).feeDenominator();
         feeNumerator = IMesaFactory(mesaFactory).feeNumerator();
         auctionTemplateId = _auctionTemplateId;
@@ -53,27 +55,39 @@ contract MesaSale {
         uint96 _minPrice,
         uint96 _minBuyAmount,
         uint256 _minRaise
-    ) public {
-
-        bytes data; // ToDo: encode easyAuction params
+    ) public returns (address newAuction){
+        uint256 orderCancelationPeriodDuration = 100;
+        uint256 minimumBiddingAmountPerOrder = 100;
+        bool isAtomicClosureAllowed = false;
+        bytes memory encodedInitData = abi.encode(
+                IERC20(_tokenOut),
+                IERC20(_tokenIn),
+                orderCancelationPeriodDuration,
+                _duration,
+                _tokenOutSupply,
+                _minBuyAmount,
+                minimumBiddingAmountPerOrder,
+                _minRaise,
+                isAtomicClosureAllowed
+        );
 
         uint256 depositAmount =
-            _totalTokensOut.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
-                FEE_DENOMINATOR
+            _tokenOutSupply.mul(feeDenominator.add(feeNumerator)).div(
+                feeDenominator
             );
 
         // deposits sellAmount + fees
-        _tokenOut.safeTransferFrom(msg.sender, address(this), depositAmount);
+        TransferHelper.safeTransferFrom(_tokenOut, msg.sender, address(this), depositAmount);
 
         // approve deposited tokens on auctionLauncher
-        safeApprove(_tokenOut, address(auctionLauncher), depositAmount);
+        TransferHelper.safeApprove(_tokenOut, address(auctionLauncher), depositAmount);
 
-        address auctionAddress =
+        newAuction =
             auctionLauncher.createAuction(
                 auctionTemplateId,
                 _tokenOut,
                 _tokenOutSupply,
-                _data
+                encodedInitData
             );
     }
 }

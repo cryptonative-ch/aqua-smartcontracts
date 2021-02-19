@@ -37,7 +37,7 @@ contract SaleLauncher is CloneFactory {
             "AuctionCreator: INVALID_TEMPLATE"
         );
         newAuction = _deployAuction(_templateId);
-        IAuction(newAuction).initAuction(_data);
+        IAuction(newAuction).init(_data);
         return address(newAuction);
     }
 

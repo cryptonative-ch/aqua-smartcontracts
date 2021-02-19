@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../utils/cloneFactory.sol";
 import "../interfaces/IAuction.sol";
 
@@ -84,7 +85,7 @@ contract AuctionLauncher is CloneFactory {
         bytes calldata _data
     ) external returns (address newAuction) {
         newAuction = deployMarket(_templateId);
-        if (_tokenSupply > 0) {
+        if (_tokenOutAmount > 0) {
             require(
                 IERC20(_tokenOut).transferFrom(
                     msg.sender,
@@ -92,14 +93,14 @@ contract AuctionLauncher is CloneFactory {
                     _tokenOutAmount
                 )
             );
-            require(IERC20(_token).approve(newAuction, _tokenOutAmount));
+            require(IERC20(_tokenOut).approve(newAuction, _tokenOutAmount));
         }
         IAuction(newAuction).init(_data);
         return newAuction;
     }
 
     // used by IDO project to withdraw raised tokens – allow to take fee
-    function withdrawAuctionFunds() {}
+    function withdrawAuctionFunds() external {}
 
     function addAuctionTemplate(address _template) external {
         // ToDo: Permissions

@@ -215,7 +215,6 @@ contract EasyAuction is Ownable {
             _orderCancelationPeriodDuration,
             _duration,
             _auctionedSellAmount,
-            _auctionedSellAmount,
             _minBuyAmount,
             _minimumBiddingAmountPerOrder,
             _minFundingThreshold,
