@@ -156,9 +156,9 @@ export function findClearingPrice(
     if (
       totalSellVolume
         .mul(order.amountToBuy)
-        .gte(initialAuctionOrder.amountToBid.mul(order.amountToBid))
+        .gte(initialAuctionOrder.amountToBuy.mul(order.amountToBid))
     ) {
-      const coveredBuyAmount = initialAuctionOrder.amountToBid.sub(
+      const coveredBuyAmount = initialAuctionOrder.amountToBuy.sub(
         totalSellVolume
           .sub(order.amountToBid)
           .mul(order.amountToBuy)
@@ -172,24 +172,24 @@ export function findClearingPrice(
       } else {
         return {
           userId: BigNumber.from(1),
-          amountToBuy: initialAuctionOrder.amountToBid,
+          amountToBuy: initialAuctionOrder.amountToBuy,
           amountToBid: totalSellVolume.sub(order.amountToBid),
         };
       }
     }
   }
   // otherwise, clearing price is initialAuctionOrder
-  if (totalSellVolume.gt(initialAuctionOrder.amountToBuy)) {
+  if (totalSellVolume.gt(initialAuctionOrder.amountToBid)) {
     return {
       userId: initialAuctionOrder.userId,
-      amountToBuy: initialAuctionOrder.amountToBid,
+      amountToBuy: initialAuctionOrder.amountToBuy,
       amountToBid: totalSellVolume,
     };
   } else {
     return {
       userId: BigNumber.from(0),
-      amountToBuy: initialAuctionOrder.amountToBid,
-      amountToBid: initialAuctionOrder.amountToBuy,
+      amountToBuy: initialAuctionOrder.amountToBuy,
+      amountToBid: initialAuctionOrder.amountToBid,
     };
   }
 }
@@ -197,7 +197,7 @@ export function findClearingPrice(
 export async function getAllSellOrders(
   easyAuction: Contract,
 ): Promise<Order[]> {
-  const filterSellOrders = easyAuction.filters.NewSellOrder(
+  const filterSellOrders = easyAuction.filters.NewOrder(
     null,
     null,
     null,
@@ -213,7 +213,7 @@ export async function getAllSellOrders(
     return order;
   });
 
-  const filterOrderCancellations = easyAuction.filters.CancellationSellOrder;
+  const filterOrderCancellations = easyAuction.filters.CancellationOrder;
   const logsForCancellations = await easyAuction.queryFilter(
     filterOrderCancellations(),
     0,
@@ -274,7 +274,7 @@ export async function placeOrders(
   for (const sellOrder of sellOrders) {
     await easyAuction
       .connect(hre.waffle.provider.getWallets()[sellOrder.userId.toNumber() - 1])
-      .placeSellOrders(
+      .placeOrders(
         [sellOrder.amountToBuy],
         [sellOrder.amountToBid],
         [queueStartElement],

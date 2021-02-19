@@ -23,6 +23,12 @@ export async function claimFromAllOrders(
   }
 }
 
+export async function getCurrentTime(): Promise<number> {
+  const blockNum = await ethers.provider.getBlockNumber();
+  const block = await ethers.provider.getBlock(blockNum);
+  return block.timestamp;
+}
+
 export async function increaseTime(duration: number): Promise<void> {
   ethers.provider.send("evm_increaseTime", [duration]);
   ethers.provider.send("evm_mine", []);
