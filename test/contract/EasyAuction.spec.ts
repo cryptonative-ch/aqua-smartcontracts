@@ -1177,7 +1177,7 @@ describe("EasyAuction", async () => {
         [sellOrders[2].amountToBid],
       );
     });
-    it("checks case 10: it shows an example why userId should always be given: 2 orders with the same price", async () => {
+    it("checks case 10, it shows an example why userId should always be given: 2 orders with the same price", async () => {
       const initialAuctionOrder = {
         amountToBid: ethers.utils.parseEther("0.5"),
         amountToBuy: ethers.utils.parseEther("1"),

@@ -32,8 +32,8 @@ describe("Calculate Prices", () => {
     it("one sell order is clearing order", () => {
       const initialOrder = {
         userId: BigNumber.from(1),
-        amountToBid: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
-        amountToBuy: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBid: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBuy: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
       };
       const sellOrders: Order[] = [
         {
@@ -58,8 +58,8 @@ describe("Calculate Prices", () => {
     it("initalOrder is clearing order", () => {
       const initialOrder = {
         userId: BigNumber.from(1),
-        amountToBid: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
-        amountToBuy: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBid: BigNumber.from(2000).mul(ethers.utils.parseEther("1")),
+        amountToBuy: BigNumber.from(10).mul(ethers.utils.parseEther("1")),
       };
       const sellOrders: Order[] = [
         {
