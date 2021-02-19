@@ -610,7 +610,7 @@ contract EasyAuction is Ownable {
 
     function setAuctionEndDate(uint256 _auctionEndDate) external {
         require(auctionEndDate == 0, "auction end date already set");
-        require(block.timestamp >= gracePeriodEndDate, "cannot set auctionEndDate during grace period");
+        require(block.timestamp >= gracePeriodEndDate, "cannot set auctionEndDate before gracePeriodEndDate");
         require(_auctionEndDate >= gracePeriodStartDate && _auctionEndDate <= gracePeriodEndDate, "auctionEndDate must be between grace period");
         auctionEndDate = _auctionEndDate;
     }
