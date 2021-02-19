@@ -80,6 +80,7 @@ contract AuctionLauncher is CloneFactory {
         uint256 _templateId,
         address _tokenOut,
         uint256 _tokenOutAmount,
+        address _auctionManager,
         bytes calldata _data
     ) external returns (address newAuction) {
         newAuction = deployMarket(_templateId);
