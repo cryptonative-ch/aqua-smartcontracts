@@ -345,6 +345,12 @@ contract EasyAuction is Ownable {
             "precalculateSellAmountSum is already too advanced"
         );
         _placeOrders(_amountsToBuy, _amountsToBid, _prevOrder);
+        bytes32 _order = IterableOrderedOrderSet.encodeOrder(
+            userId,
+            _amountsToBuy[0],
+            _amountsToBid[0]
+        );
+        orders.extraInfo[_order] = bytes32(0);
         settleAuction();
     }
 
