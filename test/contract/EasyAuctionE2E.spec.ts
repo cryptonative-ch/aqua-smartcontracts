@@ -23,27 +23,26 @@ describe("EasyAuction", async () => {
       biddingToken,
     } = await createTokensAndMintAndApprove(easyAuction, [user_1, user_2], hre);
     const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-    await sendTxAndGetReturnValue(
-      easyAuction,
-      "initAuction(address,address,uint256,uint256,uint96,uint96,uint256,uint256,bool)",
+    await easyAuction.initAuction(
       auctioningToken.address,
       biddingToken.address,
-      60 * 60,
       60 * 60,
       ethers.utils.parseEther("1000"),
       ethers.utils.parseEther("1000"),
       1,
       0,
+      60 * 20,
+      60 * 40,
       false,
     );
 
     for (let i = 2; i < nrTests; i++) {
       const sellOrder = [
         {
-          sellAmount: ethers.utils
+          amountToBid: ethers.utils
             .parseEther("1000")
             .div(BigNumber.from(nrTests - 2)),
-          buyAmount: BigNumber.from("10")
+            amountToBuy: BigNumber.from("10")
             .pow(BigNumber.from(18))
             .mul(1000)
             .div(BigNumber.from(nrTests - 2))
