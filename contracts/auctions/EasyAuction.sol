@@ -598,10 +598,10 @@ contract EasyAuction is Ownable {
     }
 
     function getSecondsRemainingInBatch() public view returns (uint256) {
-        if (auctionEndDate < block.timestamp) {
+        if (gracePeriodEndDate <= block.timestamp) {
             return 0;
         }
-        return auctionEndDate.sub(block.timestamp);
+        return gracePeriodEndDate.sub(block.timestamp);
     }
 
     function containsOrder(bytes32 _order) public view returns (bool) {
