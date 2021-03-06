@@ -30,9 +30,17 @@ export async function getCurrentTime(): Promise<number> {
   return block.timestamp;
 }
 
+export async function mineBlock(timestamp: number): Promise<void> {
+  ethers.provider.send("evm_mine", [timestamp]);
+}
+
 export async function increaseTime(duration: number): Promise<void> {
   ethers.provider.send("evm_increaseTime", [duration]);
   ethers.provider.send("evm_mine", []);
+}
+
+export function expandTo18Decimals(n: number): BigNumber {
+  return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
 }
 
 export async function sendTxAndGetReturnValue<T>(
