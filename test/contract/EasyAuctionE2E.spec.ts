@@ -6,7 +6,7 @@ import {
   placeOrders,
 } from "../../src/priceCalculation";
 
-import { sendTxAndGetReturnValue, closeAuction } from "./utilities";
+import { closeAuction } from "./utilities";
 
 describe("EasyAuction", async () => {
   const [user_1, user_2] = waffle.provider.getWallets();

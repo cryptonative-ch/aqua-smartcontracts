@@ -6,12 +6,10 @@ import "@nomiclabs/hardhat-ethers";
 import {
   toReceivedFunds,
   encodeOrder,
-  decodeOrder,
   queueStartElement,
   createTokensAndMintAndApprove,
   placeOrders,
   calculateClearingPrice,
-  getAllSellOrders,
   reverseOrderPrice,
 } from "../../src/priceCalculation";
 
@@ -31,7 +29,6 @@ import {
 describe("EasyAuction", async () => {
   const [user_1, user_2, user_3] = waffle.provider.getWallets();
   let easyAuction: Contract;
-  let timestampForMining = 1700000000;
   beforeEach(async () => {
     const EasyAuction = await ethers.getContractFactory("EasyAuction");
 
@@ -1656,8 +1653,8 @@ describe("EasyAuction", async () => {
       const auctioningTokenBalanceBeforeAuction = await auctioningToken.balanceOf(
         user_1.address,
       );
-      const feeReceiver = user_3;
-      const feeNumerator = 10;
+      //const feeReceiver = user_3;
+      //const feeNumerator = 10;
       // await easyAuction
       //   .connect(user_1)
       //   .setFeeParameters(feeNumerator, feeReceiver.address);

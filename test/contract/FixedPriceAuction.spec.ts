@@ -1,22 +1,23 @@
 import { expect } from "chai";
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
-import { increaseTime, mineBlock, expandTo18Decimals } from "./utilities";
+
+import { mineBlock, expandTo18Decimals } from "./utilities";
 import "@nomiclabs/hardhat-ethers";
 
 describe("FixedPriceAuction", async () => {
-  const [user_1, user_2, user_3] = waffle.provider.getWallets();
+  const [user_1, user_2] = waffle.provider.getWallets();
   let fixedPriceAuction: Contract;
   let auctionIntialized: Contract;
   let tokenA: Contract;
   let tokenB: Contract;
-  let initData, currentBlockNumber, currentBlock;
+  let currentBlockNumber, currentBlock;
 
-  let defaultTokenPrice = expandTo18Decimals(10);
-  let defaultTokensForSale = expandTo18Decimals(2000);
-  let defaultAllocationMin = expandTo18Decimals(2);
-  let defaultAllocationMax = expandTo18Decimals(10);
-  let defaultMinimumRaise = expandTo18Decimals(5000);
+  const defaultTokenPrice = expandTo18Decimals(10);
+  const defaultTokensForSale = expandTo18Decimals(2000);
+  const defaultAllocationMin = expandTo18Decimals(2);
+  const defaultAllocationMax = expandTo18Decimals(10);
+  const defaultMinimumRaise = expandTo18Decimals(5000);
   let defaultStartDate: number;
   let defaultEndDate: number;
 
@@ -83,7 +84,7 @@ describe("FixedPriceAuction", async () => {
     await tokenB.mint(user_1.address, BigNumber.from(10).pow(30));
     await tokenB.approve(auctionIntialized.address, defaultTokensForSale);
 
-    let initData = await encodeInitData(
+    const initData = await encodeInitData(
       tokenA.address,
       tokenB.address,
       defaultTokenPrice,
@@ -100,7 +101,7 @@ describe("FixedPriceAuction", async () => {
   });
   describe("initiate auction", async () => {
     it("throws if token is used for both tokenIn and tokenOut", async () => {
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenA.address,
         defaultTokenPrice,
@@ -119,7 +120,7 @@ describe("FixedPriceAuction", async () => {
     });
 
     it("throws if token price is zero", async () => {
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         BigNumber.from(0),
@@ -138,7 +139,7 @@ describe("FixedPriceAuction", async () => {
     });
 
     it("throws if tokensForSale is zero", async () => {
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -157,7 +158,7 @@ describe("FixedPriceAuction", async () => {
     });
 
     it("throws if startDate is in the past", async () => {
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -176,7 +177,7 @@ describe("FixedPriceAuction", async () => {
     });
 
     it("throws if endDate is before startDate", async () => {
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -197,7 +198,7 @@ describe("FixedPriceAuction", async () => {
     it("initializes auction", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -255,7 +256,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to purchase after auction is closed", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -314,7 +315,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to close auction twice", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -341,7 +342,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to close auction before endDate", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -364,7 +365,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to close auction without minumumRaise reached", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -387,7 +388,7 @@ describe("FixedPriceAuction", async () => {
     it("allows closing auction", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -416,7 +417,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to release tokens for auctions without minRaise", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -440,7 +441,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to release tokens for auctions before endDate passed", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -465,7 +466,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to release tokens for auctions if no tokens purchaed", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -488,7 +489,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to release tokens for auctions if no tokens purchaed", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -514,7 +515,7 @@ describe("FixedPriceAuction", async () => {
     it("allows releasing tokens back to investor if minRaise was not reached", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -547,7 +548,7 @@ describe("FixedPriceAuction", async () => {
     it("throws trying to claim tokens without purchase", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -571,7 +572,7 @@ describe("FixedPriceAuction", async () => {
     it("allows claiming tokens after auction closing", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -599,7 +600,7 @@ describe("FixedPriceAuction", async () => {
     it("allows withdrawing unsold tokens", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -624,7 +625,7 @@ describe("FixedPriceAuction", async () => {
 
       await fixedPriceAuction.closeAuction();
 
-      let remainingTokes = await fixedPriceAuction.tokensRemaining();
+      const remainingTokes = await fixedPriceAuction.tokensRemaining();
 
       await expect(fixedPriceAuction.withdrawUnsoldFunds())
         .to.emit(tokenB, "Transfer")
@@ -634,9 +635,9 @@ describe("FixedPriceAuction", async () => {
     it("allows withdrawing funds", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let calldata = "0x";
+      const calldata = "0x";
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -673,7 +674,7 @@ describe("FixedPriceAuction", async () => {
     it("allows only owner to withdraw ERC20", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,
@@ -716,7 +717,7 @@ describe("FixedPriceAuction", async () => {
     it("allows only owner to withdraw ETH", async () => {
       tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
 
-      let initData = await encodeInitData(
+      const initData = await encodeInitData(
         tokenA.address,
         tokenB.address,
         defaultTokenPrice,

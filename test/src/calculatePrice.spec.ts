@@ -1,6 +1,6 @@
+import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { expect } from "chai";
 
 import "mocha";
 function json(obj: unknown): unknown {

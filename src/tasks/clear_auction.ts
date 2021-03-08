@@ -1,6 +1,5 @@
 import "hardhat-deploy";
 import "@nomiclabs/hardhat-ethers";
-import { BigNumber } from "ethers";
 import { task } from "hardhat/config";
 
 import { calculateClearingPrice } from "../priceCalculation";
