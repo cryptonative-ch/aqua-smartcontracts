@@ -25,4 +25,4 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn install
       - run: yarn build
-      - run: yarn lint-ts
+      - run: yarn lint:ts
