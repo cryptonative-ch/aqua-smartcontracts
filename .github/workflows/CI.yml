@@ -1,0 +1,21 @@
+name: Mesa Smart Contract CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install modules
+        run: yarn --frozen-lockfile
+      - name: Compile contracts
+        run: yarn build
+      - name: Linting files
+        run: yarn lint
+      - name: Running tests
+        run: yarn test
