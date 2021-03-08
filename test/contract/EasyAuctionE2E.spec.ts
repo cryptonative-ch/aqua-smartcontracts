@@ -42,7 +42,7 @@ describe("EasyAuction", async () => {
           amountToBid: ethers.utils
             .parseEther("1000")
             .div(BigNumber.from(nrTests - 2)),
-            amountToBuy: BigNumber.from("10")
+          amountToBuy: BigNumber.from("10")
             .pow(BigNumber.from(18))
             .mul(1000)
             .div(BigNumber.from(nrTests - 2))

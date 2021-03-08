@@ -3,14 +3,12 @@ import { ethers } from "hardhat";
 
 import { encodeOrder, Order } from "../../src/priceCalculation";
 
-export async function closeAuction(
-  instance: Contract,
-): Promise<void> {
+export async function closeAuction(instance: Contract): Promise<void> {
   const time_remaining = (
     await instance.getSecondsRemainingInBatch()
   ).toNumber();
   await increaseTime(time_remaining + 1);
-  await instance.setAuctionEndDate(await getCurrentTime() - 10);
+  await instance.setAuctionEndDate((await getCurrentTime()) - 10);
 }
 
 export async function claimFromAllOrders(
@@ -18,9 +16,7 @@ export async function claimFromAllOrders(
   orders: Order[],
 ): Promise<void> {
   for (const order of orders) {
-    await easyAuction.claimFromParticipantOrder([
-      encodeOrder(order),
-    ]);
+    await easyAuction.claimFromParticipantOrder([encodeOrder(order)]);
   }
 }
 
@@ -40,7 +36,7 @@ export async function increaseTime(duration: number): Promise<void> {
 }
 
 export function expandTo18Decimals(n: number): BigNumber {
-  return BigNumber.from(n).mul(BigNumber.from(10).pow(18))
+  return BigNumber.from(n).mul(BigNumber.from(10).pow(18));
 }
 
 export async function sendTxAndGetReturnValue<T>(

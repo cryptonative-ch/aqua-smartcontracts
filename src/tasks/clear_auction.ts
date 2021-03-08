@@ -15,9 +15,7 @@ const clearAuction: () => void = () => {
       console.log("Using the account:", caller.address);
       const easyAuction = await getEasyAuctionContract(hardhatRuntime);
       //Todo: Compare current time against auction end time and throw error
-      const price = await calculateClearingPrice(
-        easyAuction,
-      );
+      const price = await calculateClearingPrice(easyAuction);
       console.log("Clearing price will be:", price);
       const tx = await easyAuction
         .connect(caller)

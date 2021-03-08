@@ -66,9 +66,7 @@ export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
   };
 }
 
-export async function getInitialOrder(
-  easyAuction: Contract,
-): Promise<Order> {
+export async function getInitialOrder(easyAuction: Contract): Promise<Order> {
   return decodeOrder(await easyAuction.initialAuctionOrder());
 }
 
@@ -197,11 +195,7 @@ export function findClearingPrice(
 export async function getAllSellOrders(
   easyAuction: Contract,
 ): Promise<Order[]> {
-  const filterSellOrders = easyAuction.filters.NewOrder(
-    null,
-    null,
-    null,
-  );
+  const filterSellOrders = easyAuction.filters.NewOrder(null, null, null);
   const logs = await easyAuction.queryFilter(filterSellOrders, 0, "latest");
   const events = logs.map((log: any) => easyAuction.interface.parseLog(log));
   const sellOrders = events.map((x: any) => {
@@ -273,7 +267,9 @@ export async function placeOrders(
 ): Promise<void> {
   for (const sellOrder of sellOrders) {
     await easyAuction
-      .connect(hre.waffle.provider.getWallets()[sellOrder.userId.toNumber() - 1])
+      .connect(
+        hre.waffle.provider.getWallets()[sellOrder.userId.toNumber() - 1],
+      )
       .placeOrders(
         [sellOrder.amountToBuy],
         [sellOrder.amountToBid],

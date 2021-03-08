@@ -304,7 +304,9 @@ describe("FixedPriceAuction", async () => {
       );
 
       await mineBlock(defaultEndDate + 100);
-      expect(await auctionIntialized.secondsRemainingInAuction()).to.be.equal(0);
+      expect(await auctionIntialized.secondsRemainingInAuction()).to.be.equal(
+        0,
+      );
     });
   });
 

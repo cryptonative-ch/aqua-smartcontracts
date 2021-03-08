@@ -164,7 +164,9 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-      expect(await easyAuction.auctioningToken()).to.equal(auctioningToken.address);
+      expect(await easyAuction.auctioningToken()).to.equal(
+        auctioningToken.address,
+      );
       expect(await easyAuction.biddingToken()).to.equal(biddingToken.address);
       expect(await easyAuction.initialAuctionOrder()).to.equal(
         encodeOrder({
@@ -174,10 +176,18 @@ describe("EasyAuction", async () => {
         }),
       );
       expect(await easyAuction.auctionEndDate()).to.be.equal(0);
-      expect(await easyAuction.orderCancellationEndDate()).to.be.equal(timestampForMining + 3600);
-      expect(await easyAuction.auctionStartedDate()).to.be.equal(timestampForMining);
-      expect(await easyAuction.gracePeriodStartDate()).to.be.equal(timestampForMining + 1200);
-      expect(await easyAuction.gracePeriodEndDate()).to.be.equal(timestampForMining + 3600);
+      expect(await easyAuction.orderCancellationEndDate()).to.be.equal(
+        timestampForMining + 3600,
+      );
+      expect(await easyAuction.auctionStartedDate()).to.be.equal(
+        timestampForMining,
+      );
+      expect(await easyAuction.gracePeriodStartDate()).to.be.equal(
+        timestampForMining + 1200,
+      );
+      expect(await easyAuction.gracePeriodEndDate()).to.be.equal(
+        timestampForMining + 3600,
+      );
       expect(await easyAuction.minimumBiddingAmountPerOrder()).to.be.equal(1);
       expect(await easyAuction.interimSumBidAmount()).to.be.equal(0);
       await expect(await easyAuction.clearingPriceOrder()).to.equal(
@@ -504,9 +514,9 @@ describe("EasyAuction", async () => {
       );
       await placeOrders(easyAuction, sellOrders, hre);
       await closeAuction(easyAuction);
-      await expect(
-        easyAuction.precalculateSellAmountSum(3),
-      ).to.be.revertedWith("too many orders summed up");
+      await expect(easyAuction.precalculateSellAmountSum(3)).to.be.revertedWith(
+        "too many orders summed up",
+      );
     });
     it("fails if queue end is reached", async () => {
       const initialAuctionOrder = {
@@ -545,9 +555,9 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await closeAuction(easyAuction);
-      await expect(
-        easyAuction.precalculateSellAmountSum(2),
-      ).to.be.revertedWith("reached end of order list");
+      await expect(easyAuction.precalculateSellAmountSum(2)).to.be.revertedWith(
+        "reached end of order list",
+      );
     });
     it("verifies that interimSumBidAmount and iterOrder is set correctly", async () => {
       const initialAuctionOrder = {
@@ -601,7 +611,9 @@ describe("EasyAuction", async () => {
         sellOrders[0].amountToBid,
       );
 
-      expect(await easyAuction.interimOrder()).to.equal(encodeOrder(sellOrders[0]));
+      expect(await easyAuction.interimOrder()).to.equal(
+        encodeOrder(sellOrders[0]),
+      );
     });
     it("verifies that interimSumBidAmount and iterOrder takes correct starting values by applying twice", async () => {
       const initialAuctionOrder = {
@@ -662,7 +674,9 @@ describe("EasyAuction", async () => {
         sellOrders[0].amountToBid.add(sellOrders[0].amountToBid),
       );
 
-      expect(await easyAuction.interimOrder()).to.equal(encodeOrder(sellOrders[1]));
+      expect(await easyAuction.interimOrder()).to.equal(
+        encodeOrder(sellOrders[1]),
+      );
     });
   });
   describe("settleAuction", async () => {
@@ -679,7 +693,7 @@ describe("EasyAuction", async () => {
           userId: BigNumber.from(1),
         },
       ];
-      
+
       const {
         auctioningToken,
         biddingToken,
@@ -701,15 +715,17 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-      
+
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
 
       await easyAuction.settleAuction();
-      
-      expect(await easyAuction.clearingPriceOrder()).to.equal(encodeOrder(initialAuctionOrder));
+
+      expect(await easyAuction.clearingPriceOrder()).to.equal(
+        encodeOrder(initialAuctionOrder),
+      );
       expect(await easyAuction.volumeClearingPriceOrder()).to.equal(0);
       await claimFromAllOrders(easyAuction, sellOrders);
     });
@@ -757,14 +773,14 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-      
+
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
 
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(initialAuctionOrder),
       );
@@ -807,13 +823,13 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-      
+
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(initialAuctionOrder),
       );
@@ -867,13 +883,13 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-      
+
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder({
           amountToBid: ethers.utils.parseEther("3"),
@@ -914,13 +930,15 @@ describe("EasyAuction", async () => {
       );
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(initialAuctionOrder),
       );
-      expect(await easyAuction.volumeClearingPriceOrder()).to.equal(BigNumber.from(0));
+      expect(await easyAuction.volumeClearingPriceOrder()).to.equal(
+        BigNumber.from(0),
+      );
     });
     it("checks case 2, it verifies the price in case without a partially filled order", async () => {
       const initialAuctionOrder = {
@@ -964,7 +982,7 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder({
@@ -1013,9 +1031,9 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(sellOrders[0]),
       );
@@ -1068,26 +1086,24 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
-      expect(await easyAuction.clearingPriceOrder()).to.eql(encodeOrder(sellOrders[1]));
+
+      expect(await easyAuction.clearingPriceOrder()).to.eql(
+        encodeOrder(sellOrders[1]),
+      );
       expect(await easyAuction.volumeClearingPriceOrder()).to.equal(
         sellOrders[1].amountToBid,
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[0]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[0])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_2],
         [sellOrders[0].amountToBid],
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[1]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[1])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_3],
@@ -1138,39 +1154,35 @@ describe("EasyAuction", async () => {
         60 * 40,
         false,
       );
-  
+
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
-      expect(await easyAuction.clearingPriceOrder()).to.eql(encodeOrder(sellOrders[1]));
+
+      expect(await easyAuction.clearingPriceOrder()).to.eql(
+        encodeOrder(sellOrders[1]),
+      );
       expect(await easyAuction.volumeClearingPriceOrder()).to.equal(
         sellOrders[1].amountToBid,
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[0]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[0])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_1],
         [sellOrders[0].amountToBuy],
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[1]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[1])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_2],
         [sellOrders[1].amountToBuy],
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[2]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[2])]),
       ).to.changeTokenBalances(
         biddingToken,
         [user_3],
@@ -1224,9 +1236,9 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(sellOrders[0]),
       );
@@ -1234,27 +1246,21 @@ describe("EasyAuction", async () => {
         sellOrders[1].amountToBid,
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[0]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[0])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_2],
         [sellOrders[0].amountToBid],
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[1]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[1])]),
       ).to.changeTokenBalances(
         biddingToken,
         [user_3],
         [sellOrders[1].amountToBid],
       );
       await expect(() =>
-        easyAuction.claimFromParticipantOrder([
-          encodeOrder(sellOrders[2]),
-        ]),
+        easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[2])]),
       ).to.changeTokenBalances(
         auctioningToken,
         [user_3],
@@ -1309,10 +1315,12 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
-      expect(await easyAuction.clearingPriceOrder()).to.eql(encodeOrder(sellOrders[1]));
+
+      expect(await easyAuction.clearingPriceOrder()).to.eql(
+        encodeOrder(sellOrders[1]),
+      );
       expect(await easyAuction.volumeClearingPriceOrder()).to.equal(0);
       await claimFromAllOrders(easyAuction, sellOrders);
     });
@@ -1364,13 +1372,15 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       // this is the additional step
       await easyAuction.precalculateSellAmountSum(1);
 
       await easyAuction.settleAuction();
-      
-      expect(await easyAuction.clearingPriceOrder()).to.eql(encodeOrder(sellOrders[1]));
+
+      expect(await easyAuction.clearingPriceOrder()).to.eql(
+        encodeOrder(sellOrders[1]),
+      );
       expect(await easyAuction.volumeClearingPriceOrder()).to.equal(0);
     });
     it("verifies the price in case of 2 of 4 sellOrders eating initialAuctionOrder completely - with precalculateSellAmountSum step and one more step within settleAuction", async () => {
@@ -1426,14 +1436,16 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       // this is the additional step
       await easyAuction.precalculateSellAmountSum(1);
-      
+
       expect(await easyAuction.interimSumBidAmount()).to.equal(
         sellOrders[0].amountToBid,
       );
-      expect(await easyAuction.interimOrder()).to.equal(encodeOrder(sellOrders[0]));
+      expect(await easyAuction.interimOrder()).to.equal(
+        encodeOrder(sellOrders[0]),
+      );
       await easyAuction.settleAuction();
 
       expect(await easyAuction.clearingPriceOrder()).to.eql(
@@ -1490,9 +1502,9 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.be.equal(
         encodeOrder(sellOrders[1]),
       );
@@ -1551,12 +1563,12 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       const price = await calculateClearingPrice(easyAuction);
 
       await easyAuction.settleAuction();
       expect(price).to.eql(initialAuctionOrder);
-      
+
       expect(await easyAuction.clearingPriceOrder()).to.equal(
         encodeOrder(reverseOrderPrice(initialAuctionOrder)),
       );
@@ -1605,12 +1617,12 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
 
       await increaseTime(3601);
-      await easyAuction.setAuctionEndDate(await getCurrentTime() - 10);
+      await easyAuction.setAuctionEndDate((await getCurrentTime()) - 10);
       const price = await calculateClearingPrice(easyAuction);
 
       await easyAuction.settleAuction();
       expect(price).to.eql(initialAuctionOrder);
-      
+
       expect(await easyAuction.minFundingThresholdNotReached()).to.equal(true);
     });
   });
@@ -1664,7 +1676,7 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
       await closeAuction(easyAuction);
       await easyAuction.settleAuction();
-      
+
       expect(await easyAuction.minFundingThresholdNotReached()).to.equal(true);
       expect(await auctioningToken.balanceOf(user_1.address)).to.be.equal(
         auctioningTokenBalanceBeforeAuction,
@@ -2092,17 +2104,13 @@ describe("EasyAuction", async () => {
       await placeOrders(easyAuction, sellOrders, hre);
       await closeAuction(easyAuction);
       await easyAuction.settleAuction();
-      await easyAuction.claimFromParticipantOrder([
-        encodeOrder(sellOrders[0]),
-      ]),
+      await easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[0])]),
         await expect(
-          easyAuction.claimFromParticipantOrder([
-            encodeOrder(sellOrders[0]),
-          ]),
+          easyAuction.claimFromParticipantOrder([encodeOrder(sellOrders[0])]),
         ).to.be.revertedWith("order is no longer claimable");
     });
   });
-  describe("checks that orders from different users can not be claimed at once", async() => {
+  describe("checks that orders from different users can not be claimed at once", async () => {
     it("checks that orders from different users can not be claimed at once", async () => {
       const initialAuctionOrder = {
         amountToBid: ethers.utils.parseEther("1"),
@@ -2124,8 +2132,12 @@ describe("EasyAuction", async () => {
       const {
         auctioningToken,
         biddingToken,
-      } = await createTokensAndMintAndApprove(easyAuction, [user_1, user_2], hre);
-  
+      } = await createTokensAndMintAndApprove(
+        easyAuction,
+        [user_1, user_2],
+        hre,
+      );
+
       await easyAuction.initAuction(
         auctioningToken.address,
         biddingToken.address,
@@ -2148,8 +2160,8 @@ describe("EasyAuction", async () => {
         ]),
       ).to.be.revertedWith("only allowed to claim for same user");
     });
-  })
-  describe("checks the claimed amounts are summed up correctly for two orders", async() => {
+  });
+  describe("checks the claimed amounts are summed up correctly for two orders", async () => {
     it("checks the claimed amounts are summed up correctly for two orders", async () => {
       const initialAuctionOrder = {
         amountToBid: ethers.utils.parseEther("1"),
@@ -2171,7 +2183,11 @@ describe("EasyAuction", async () => {
       const {
         auctioningToken,
         biddingToken,
-      } = await createTokensAndMintAndApprove(easyAuction, [user_1, user_2], hre);
+      } = await createTokensAndMintAndApprove(
+        easyAuction,
+        [user_1, user_2],
+        hre,
+      );
 
       await easyAuction.initAuction(
         auctioningToken.address,
@@ -2424,9 +2440,7 @@ describe("EasyAuction", async () => {
       );
       await placeOrders(easyAuction, sellOrders, hre);
 
-      await expect(
-        easyAuction.cancelOrders([encodeOrder(sellOrders[0])]),
-      )
+      await expect(easyAuction.cancelOrders([encodeOrder(sellOrders[0])]))
         .to.emit(biddingToken, "Transfer")
         .withArgs(
           easyAuction.address,
@@ -2522,9 +2536,7 @@ describe("EasyAuction", async () => {
       // removes the order
       easyAuction.cancelOrders([encodeOrder(sellOrders[0])]);
       // claims 0 amountToBid tokens
-      await expect(
-        easyAuction.cancelOrders([encodeOrder(sellOrders[0])]),
-      )
+      await expect(easyAuction.cancelOrders([encodeOrder(sellOrders[0])]))
         .to.emit(biddingToken, "Transfer")
         .withArgs(easyAuction.address, user_1.address, 0);
     });
@@ -2608,9 +2620,7 @@ describe("EasyAuction", async () => {
 
       await closeAuction(easyAuction);
       expect(
-        await easyAuction.callStatic.containsOrder(
-          encodeOrder(sellOrders[0]),
-        ),
+        await easyAuction.callStatic.containsOrder(encodeOrder(sellOrders[0])),
       ).to.be.equal(true);
     });
   });
@@ -2677,7 +2687,7 @@ describe("EasyAuction", async () => {
         false,
       );
       await expect(
-        easyAuction.setAuctionEndDate(await getCurrentTime() - 10),
+        easyAuction.setAuctionEndDate((await getCurrentTime()) - 10),
       ).to.be.revertedWith(
         "cannot set auctionEndDate before gracePeriodEndDate",
       );
@@ -2713,14 +2723,10 @@ describe("EasyAuction", async () => {
       await increaseTime(3601);
       await expect(
         easyAuction.setAuctionEndDate(currentTime),
-      ).to.be.revertedWith(
-        "auctionEndDate must be between grace period",
-      );
+      ).to.be.revertedWith("auctionEndDate must be between grace period");
       await expect(
-        easyAuction.setAuctionEndDate(await getCurrentTime() + 10),
-      ).to.be.revertedWith(
-        "auctionEndDate must be between grace period",
-      );
+        easyAuction.setAuctionEndDate((await getCurrentTime()) + 10),
+      ).to.be.revertedWith("auctionEndDate must be between grace period");
     });
     it("set auctionEndDate after grace period ends", async () => {
       const initialAuctionOrder = {
@@ -2750,7 +2756,7 @@ describe("EasyAuction", async () => {
         false,
       );
       await increaseTime(3601);
-      const endDate = await getCurrentTime() - 10;
+      const endDate = (await getCurrentTime()) - 10;
       await easyAuction.setAuctionEndDate(endDate);
       expect(await easyAuction.auctionEndDate()).to.equal(endDate);
     });
@@ -2782,13 +2788,11 @@ describe("EasyAuction", async () => {
         false,
       );
       await increaseTime(3601);
-      const endDate = await getCurrentTime() - 10;
+      const endDate = (await getCurrentTime()) - 10;
       await easyAuction.setAuctionEndDate(endDate);
       await expect(
-        easyAuction.setAuctionEndDate(await getCurrentTime() - 5),
-      ).to.be.revertedWith(
-        "auction end date already set",
-      );
+        easyAuction.setAuctionEndDate((await getCurrentTime()) - 5),
+      ).to.be.revertedWith("auction end date already set");
     });
   });
   // describe("claimsFee", async () => {
