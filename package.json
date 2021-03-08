@@ -8,11 +8,10 @@
     "build": "hardhat compile",
     "test": "hardhat test",
     "deploy": "hardhat deploy",
-    "coverage": "hardhat coverage",
     "lint": "yarn lint:sol && yarn lint:ts",
     "lint:sol": "solhint 'contracts/**/*.sol'",
     "lint:ts": "eslint --max-warnings 0 .",
-    "prettier": "prettier 'contracts/**/*.sol' -w",
+    "prettier": "prettier 'contracts/**/*.sol' -w && prettier '**/*.ts' -w",
     "prepack": "yarn build",
     "coverage": "yarn hardhat coverage"
   },

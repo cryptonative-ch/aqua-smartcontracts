@@ -127,36 +127,44 @@ describe("IterableOrderedOrderSet", function () {
     await set.insert(BYTES32_ONE);
     await set.insert(BYTES32_THREE);
 
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO)).to.equal(
-      true,
-    );
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO)).to.equal(
-      false,
-    );
+    expect(
+      await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO),
+    ).to.equal(true);
+    expect(
+      await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO),
+    ).to.equal(false);
   });
 
   it("should not allow to insert element with non-containing element-Before-New-One", async () => {
     await set.insert(BYTES32_THREE);
 
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO)).to.equal(
-      false,
-    );
+    expect(
+      await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE, BYTES32_ZERO),
+    ).to.equal(false);
   });
 
   it("should not allow to insert element with element not in front of other element", async () => {
-    expect(await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO)).to.equal(
-      false,
-    );
+    expect(
+      await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE, BYTES32_ZERO),
+    ).to.equal(false);
   });
 
   it("should not allow to insert queue start element", async () => {
     await expect(
-      set.callStatic.insertAt(queueStartElement, queueStartElement, BYTES32_ZERO),
+      set.callStatic.insertAt(
+        queueStartElement,
+        queueStartElement,
+        BYTES32_ZERO,
+      ),
     ).to.be.revertedWith("Inserting element is not valid");
   });
   it("should not allow to insert queue end element", async () => {
     await expect(
-      set.callStatic.insertAt(queueLastElement, queueStartElement, BYTES32_ZERO),
+      set.callStatic.insertAt(
+        queueLastElement,
+        queueStartElement,
+        BYTES32_ZERO,
+      ),
     ).to.be.revertedWith("Inserting element is not valid");
   });
 

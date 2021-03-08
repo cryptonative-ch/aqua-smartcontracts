@@ -19,9 +19,7 @@ contract AuctionLauncher is CloneFactory {
     mapping(uint256 => address) private templates;
     mapping(address => uint256) private templateToId;
 
-    constructor(
-        address _factory
-    ) public {
+    constructor(address _factory) public {
         factory = _factory;
     }
 
@@ -54,7 +52,10 @@ contract AuctionLauncher is CloneFactory {
     }
 
     function addTemplate(address _template) external {
-        require(msg.sender == IMesaFactory(factory).templateManager(), "AuctionCreator: FORBIDDEN");
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "AuctionCreator: FORBIDDEN"
+        );
         require(
             templateToId[_template] == 0,
             "AuctionCreator: TEMPLATE_DUPLICATE"
@@ -64,10 +65,12 @@ contract AuctionLauncher is CloneFactory {
         templateToId[_template] = templateId;
         emit TemplateAdded(_template, templateId);
     }
-    
 
     function removeTemplate(uint256 _templateId) external {
-        require(msg.sender == IMesaFactory(factory).templateManager(), "AuctionCreator: FORBIDDEN");
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "AuctionCreator: FORBIDDEN"
+        );
         require(templates[_templateId] != address(0));
         address template = templates[_templateId];
         templates[_templateId] = address(0);

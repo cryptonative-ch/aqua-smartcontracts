@@ -1,6 +1,6 @@
-import {  BigNumber } from "ethers";
-import { ethers } from "hardhat";
 import { expect } from "chai";
+import { BigNumber } from "ethers";
+import { ethers } from "hardhat";
 
 import "mocha";
 function json(obj: unknown): unknown {
@@ -44,7 +44,9 @@ describe("Calculate Prices", () => {
         {
           userId: BigNumber.from(1),
           amountToBid: BigNumber.from(1500).mul(ethers.utils.parseEther("1")),
-          amountToBuy: BigNumber.from(135).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          amountToBuy: BigNumber.from(135).mul(
+            BigNumber.from(10).pow(BigNumber.from(17)),
+          ),
         },
       ];
       const calculatedPrice = findClearingPrice(sellOrders, initialOrder);
@@ -70,7 +72,9 @@ describe("Calculate Prices", () => {
         {
           userId: BigNumber.from(1),
           amountToBid: BigNumber.from(1000).mul(ethers.utils.parseEther("1")),
-          amountToBuy: BigNumber.from(45).mul(BigNumber.from(10).pow(BigNumber.from(17))),
+          amountToBuy: BigNumber.from(45).mul(
+            BigNumber.from(10).pow(BigNumber.from(17)),
+          ),
         },
       ];
       const calculatedPrice = findClearingPrice(sellOrders, initialOrder);

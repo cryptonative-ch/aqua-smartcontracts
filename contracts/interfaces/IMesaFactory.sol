@@ -12,6 +12,8 @@ interface IMesaFactory {
 
     function addTemplate(address _template) external view returns (uint256);
 
-    function addAuction(address _auction, uint256 _templateId) external view returns (uint256);
-    
+    function addAuction(address _auction, uint256 _templateId)
+        external
+        view
+        returns (uint256);
 }

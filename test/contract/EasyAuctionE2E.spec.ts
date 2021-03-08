@@ -6,7 +6,7 @@ import {
   placeOrders,
 } from "../../src/priceCalculation";
 
-import { sendTxAndGetReturnValue, closeAuction } from "./utilities";
+import { closeAuction } from "./utilities";
 
 describe("EasyAuction", async () => {
   const [user_1, user_2] = waffle.provider.getWallets();
@@ -42,7 +42,7 @@ describe("EasyAuction", async () => {
           amountToBid: ethers.utils
             .parseEther("1000")
             .div(BigNumber.from(nrTests - 2)),
-            amountToBuy: BigNumber.from("10")
+          amountToBuy: BigNumber.from("10")
             .pow(BigNumber.from(18))
             .mul(1000)
             .div(BigNumber.from(nrTests - 2))
