@@ -1,4 +1,4 @@
-name: Test
+name: Solidity Tests
 on:
   push:
     branches: [ main ]
