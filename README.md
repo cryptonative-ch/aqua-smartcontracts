@@ -32,6 +32,16 @@ yarn build
 Create a new .env file in the main directory with the following variables:
 
 ```sh
-PRIVATE_KEY=xxx
-INFURA_KEY=xxx
+# Mnemonic, only first address will be used
+MNEMONIC="xxx"
+
+# Add Infura provider key
+INFURA_KEY=""
+
+# Optional Etherscan key, for automatize the verification of the contracts at Etherscan
+ETHERSCAN_KEY=""
+
+# Optional, if you plan to use Tenderly scripts
+TENDERLY_PROJECT=""
+TENDERLY_USERNAME=""
 ```
