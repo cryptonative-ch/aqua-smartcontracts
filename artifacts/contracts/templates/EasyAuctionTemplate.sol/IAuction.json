@@ -1,0 +1,69 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IAuction",
+  "sourceName": "contracts/templates/EasyAuctionTemplate.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "_auctioningToken",
+          "type": "address"
+        },
+        {
+          "internalType": "contract IERC20",
+          "name": "_biddingToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_orderCancelationPeriodDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint96",
+          "name": "_amountToSell",
+          "type": "uint96"
+        },
+        {
+          "internalType": "uint96",
+          "name": "_minBidAmountToReceive",
+          "type": "uint96"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_minimumBiddingAmountPerOrder",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_minFundingThreshold",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_gracePeriodStartDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_gracePeriodDuration",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_isAtomicClosureAllowed",
+          "type": "bool"
+        }
+      ],
+      "name": "initAuction",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
