@@ -13,7 +13,7 @@ contract MesaFactory {
         uint256 auctionFee
     );
 
-    event TemplateLaunched(address indexed auction, uint256 templateId);
+    event TemplateLaunched(address indexed template, uint256 templateId);
     event SetFeeTo(address indexed feeTo);
     event SetFeeNumerator(uint256 indexed feeNumerator);
     event SetAuctionFee(uint256 indexed auctionFee);
