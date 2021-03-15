@@ -48,10 +48,12 @@ contract FixedPriceAuction {
 
     mapping(address => uint256) public tokensPurchased;
 
-    modifier onlyOwer {
+    modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceAuction: FORBIDDEN");
         _;
     }
+
+    constructor() public {}
 
     function initAuction(
         IERC20 _tokenIn,
@@ -227,7 +229,7 @@ contract FixedPriceAuction {
         );
     }
 
-    function withdrawFunds(bytes calldata _data) external onlyOwer() {
+    function withdrawFunds(bytes calldata _data) external onlyOwner() {
         _withdrawFunds();
     }
 
@@ -241,7 +243,7 @@ contract FixedPriceAuction {
         );
     }
 
-    function ERC20Withdraw(address token, uint256 amount) external onlyOwer() {
+    function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
             "FixedPriceAuction: auction not ended"
@@ -249,7 +251,7 @@ contract FixedPriceAuction {
         TransferHelper.safeTransfer(token, owner, amount);
     }
 
-    function ETHWithdraw(uint256 amount) external onlyOwer() {
+    function ETHWithdraw(uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
             "FixedPriceAuction: auction not ended"

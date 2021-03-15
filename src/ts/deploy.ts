@@ -3,8 +3,8 @@ import { ethers } from "hardhat";
 import { DeployResult, DeploymentsExtension } from "hardhat-deploy/types";
 
 export const contractNames = {
-  easyAuction: "EasyAuction",
-  multiCall: "MultiCall",
+    easyAuction: "EasyAuction",
+    multiCall: "MultiCall",
 };
 
 /**
@@ -30,19 +30,19 @@ const DEPLOYER_CONTRACT = "0x4e59b44847b379578588920ca78fbf26c0b4956c";
  * @returns The address that is expected to store the deployed code.
  */
 export async function deterministicDeploymentAddress(
-  contractName: string,
-  ...deploymentArguments: unknown[]
+    contractName: string,
+    ...deploymentArguments: unknown[]
 ): Promise<string> {
-  const factory = await ethers.getContractFactory(contractName);
-  const deployTransaction = factory.getDeployTransaction(
-    ...deploymentArguments,
-  );
+    const factory = await ethers.getContractFactory(contractName);
+    const deployTransaction = factory.getDeployTransaction(
+        ...deploymentArguments
+    );
 
-  return utils.getCreate2Address(
-    DEPLOYER_CONTRACT,
-    SALT,
-    utils.keccak256(deployTransaction.data || "0x"),
-  );
+    return utils.getCreate2Address(
+        DEPLOYER_CONTRACT,
+        SALT,
+        utils.keccak256(deployTransaction.data || "0x")
+    );
 }
 
 /**
@@ -54,35 +54,35 @@ export async function deterministicDeploymentAddress(
  * @param log The logging function.
  */
 export async function logResult(
-  deployResult: DeployResult,
-  contractName: string,
-  networkName: string,
-  log: DeploymentsExtension["log"],
+    deployResult: DeployResult,
+    contractName: string,
+    networkName: string,
+    log: DeploymentsExtension["log"]
 ): Promise<void> {
-  if (deployResult.newlyDeployed) {
-    // the transaction exists since the contract was just deployed
-    /* eslint-disable @typescript-eslint/no-non-null-assertion */
-    const transaction = await ethers.provider.getTransaction(
-      deployResult.transactionHash!,
-    );
-    const receipt = deployResult.receipt!;
-    /* eslint-enable @typescript-eslint/no-non-null-assertion */
-    log(`Deployed contract ${contractName} on network ${networkName}.`);
-    log(` - Address: ${deployResult.address}`);
-    log(` - Transaction hash: ${deployResult.transactionHash}`);
-    log(
-      ` - Gas used: ${receipt.gasUsed} @ ${
-        transaction.gasPrice.toNumber() / 10 ** 9
-      } GWei`,
-    );
-    log(
-      ` - Deployment cost: ${ethers.utils.formatEther(
-        transaction.gasPrice.mul(receipt.gasUsed),
-      )} ETH`,
-    );
-  } else {
-    log(
-      `Contract ${contractName} was already deployed on network ${networkName}, skipping.`,
-    );
-  }
+    if (deployResult.newlyDeployed) {
+        // the transaction exists since the contract was just deployed
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        const transaction = await ethers.provider.getTransaction(
+            deployResult.transactionHash!
+        );
+        const receipt = deployResult.receipt!;
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+        log(`Deployed contract ${contractName} on network ${networkName}.`);
+        log(` - Address: ${deployResult.address}`);
+        log(` - Transaction hash: ${deployResult.transactionHash}`);
+        log(
+            ` - Gas used: ${receipt.gasUsed} @ ${
+                transaction.gasPrice.toNumber() / 10 ** 9
+            } GWei`
+        );
+        log(
+            ` - Deployment cost: ${ethers.utils.formatEther(
+                transaction.gasPrice.mul(receipt.gasUsed)
+            )} ETH`
+        );
+    } else {
+        log(
+            `Contract ${contractName} was already deployed on network ${networkName}, skipping.`
+        );
+    }
 }

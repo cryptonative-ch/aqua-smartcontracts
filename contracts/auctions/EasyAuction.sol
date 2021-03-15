@@ -4,12 +4,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "../libraries/IdToAddressBiMap.sol";
 import "../libraries/SafeCast.sol";
 import "../libraries/IterableOrderedOrderSet.sol";
 
-contract EasyAuction is Ownable {
+contract EasyAuction {
     using SafeERC20 for IERC20;
     using SafeMath for uint64;
     using SafeMath for uint96;
@@ -107,7 +106,7 @@ contract EasyAuction is Ownable {
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
 
-    constructor() public Ownable() {}
+    constructor() public {}
 
     // @dev: intiate a new auction
     // Warning: In case the auction is expected to raise more than

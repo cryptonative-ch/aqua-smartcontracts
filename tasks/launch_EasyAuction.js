@@ -1,12 +1,6 @@
-import "hardhat-deploy";
-import "@nomiclabs/hardhat-ethers";
-import { ethers } from "ethers";
-import { task, types } from "hardhat/config";
+const { task } = require("hardhat/config");
 
-import { getEasyAuctionContract } from "./utils";
-
-const initiateAuction: () => void = () => {
-    task("initiateAuction", "Starts a new auction")
+task("launchEasyAuction", "Starts a new auction from EasyAuction template")
         .addParam(
             "auctioningToken",
             "The ERC20's address of the token that should be sold"
@@ -113,16 +107,11 @@ const initiateAuction: () => void = () => {
                     taskArgs.isAtomicClosureAllowed
                 );
             const txResult = await tx.wait();
-            const auctionId = txResult.events
-                .filter((event: any) => event.event === "NewAuction")
-                .map((event: any) => event.args.auctionId);
             console.log(
                 "Your auction has been schedule and has the Id:",
                 auctionId.toString()
             );
         });
-};
-export { initiateAuction };
 
 // Rinkeby tests task selling WETH for DAI:
 // yarn hardhat initiateAuction --auctioning-token "0xc778417e063141139fce010982780140aa0cd5ab" --bidding-token "0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa" --sell-amount 0.1 --min-buy-amount 50 --network rinkeby

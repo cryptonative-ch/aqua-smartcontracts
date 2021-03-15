@@ -8,3 +8,4 @@ cache/
 yarn.lock
 coverage/
 coverage.json
+.env
