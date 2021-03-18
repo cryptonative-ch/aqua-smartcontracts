@@ -13,6 +13,7 @@ contract TemplateLauncher is CloneFactory {
         bool exists;
         uint64 templateId;
         uint128 index;
+        bool verified;
     }
 
     uint256 public templateId;
@@ -23,6 +24,7 @@ contract TemplateLauncher is CloneFactory {
     event TemplateLaunched(address indexed auction, uint256 templateId);
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
+    event TemplateVerified(address indexed template, uint256 templateId);
 
     address public factory;
 
@@ -60,10 +62,6 @@ contract TemplateLauncher is CloneFactory {
 
     function addTemplate(address _template) external {
         require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "AuctionCreator: FORBIDDEN"
-        );
-        require(
             templateToId[_template] == 0,
             "AuctionCreator: TEMPLATE_DUPLICATE"
         );
@@ -91,6 +89,16 @@ contract TemplateLauncher is CloneFactory {
         returns (address template)
     {
         return templates[_templateId];
+    }
+
+    function verifyTemplate(uint256 _templateId) public {
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "AuctionCreator: FORBIDDEN"
+        );
+
+        templateInfo[templates[_templateId]].verified = true;
+        emit TemplateVerified(templates[_templateId], _templateId);
     }
 
     function getTemplateId(address _template) public view returns (uint256) {
