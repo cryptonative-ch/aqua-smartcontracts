@@ -9,8 +9,8 @@ import "../interfaces/IWETH.sol";
 
 interface IAuction {
     function initAuction(
-        IERC20 _auctioningToken,
-        IERC20 _biddingToken,
+        IERC20 _tokenOut,
+        IERC20 _tokenIn,
         uint256 _orderCancelationPeriodDuration,
         uint96 _amountToSell,
         uint96 _minBidAmountToReceive,
