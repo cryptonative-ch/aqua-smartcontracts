@@ -67,8 +67,8 @@ contract EasyAuction {
     );
     event NewUser(uint64 indexed userId, address indexed userAddress);
     event InitializedAuction(
-        IERC20 indexed _auctioningToken,
-        IERC20 indexed _biddingToken,
+        IERC20 indexed _tokenOut,
+        IERC20 indexed _tokenIn,
         uint256 orderCancellationEndDate,
         uint256 gracePeriodStartDate,
         uint256 gracePeriodEndDate,
@@ -84,8 +84,8 @@ contract EasyAuction {
     );
     event UserRegistration(address indexed user, uint64 userId);
 
-    IERC20 public auctioningToken;
-    IERC20 public biddingToken;
+    IERC20 public tokenOut;
+    IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
     uint256 public auctionStartedDate;
     uint256 public auctionEndDate;
@@ -110,15 +110,15 @@ contract EasyAuction {
 
     // @dev: intiate a new auction
     // Warning: In case the auction is expected to raise more than
-    // 2^96 units of the biddingToken, don't start the auction, as
+    // 2^96 units of the tokenIn, don't start the auction, as
     // it will not be settlable. This corresponds to about 79
     // billion DAI.
     //
-    // Prices between biddingToken and auctioningToken are expressed by a
+    // Prices between tokenIn and tokenOut are expressed by a
     // fraction whose components are stored as uint96.
     function initAuction(
-        IERC20 _auctioningToken,
-        IERC20 _biddingToken,
+        IERC20 _tokenOut,
+        IERC20 _tokenIn,
         uint256 _orderCancelationPeriodDuration,
         uint96 _amountToSell, // total amount to sell
         uint96 _minBidAmountToReceive, // Minimum amount of biding token to receive at final point
@@ -131,7 +131,7 @@ contract EasyAuction {
         uint64 userId = getUserId(msg.sender);
 
         // deposits _amountToSell + fees
-        _auctioningToken.safeTransferFrom(
+        _tokenOut.safeTransferFrom(
             msg.sender,
             address(this),
             _amountToSell.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
@@ -160,8 +160,8 @@ contract EasyAuction {
         uint256 cancellationEndDate =
             block.timestamp + _orderCancelationPeriodDuration;
 
-        auctioningToken = _auctioningToken;
-        biddingToken = _biddingToken;
+        tokenOut = _tokenOut;
+        tokenIn = _tokenIn;
         orderCancellationEndDate = cancellationEndDate;
         auctionStartedDate = block.timestamp;
         auctionEndDate = 0;
@@ -180,8 +180,8 @@ contract EasyAuction {
         minFundingThreshold = _minFundingThreshold;
 
         emit InitializedAuction(
-            _auctioningToken,
-            _biddingToken,
+            _tokenOut,
+            _tokenIn,
             orderCancellationEndDate,
             gracePeriodStartDate,
             gracePeriodEndDate,
@@ -248,7 +248,7 @@ contract EasyAuction {
                 emit NewOrder(userId, _amountsToBuy[i], _amountsToBid[i]);
             }
         }
-        biddingToken.safeTransferFrom(
+        tokenIn.safeTransferFrom(
             msg.sender,
             address(this),
             sumOfAmountsToBid
@@ -286,7 +286,7 @@ contract EasyAuction {
                 emit CancellationOrder(userId, amountToBuy, amountToBid);
             }
         }
-        biddingToken.safeTransfer(msg.sender, claimableAmount); //[2]
+        tokenIn.safeTransfer(msg.sender, claimableAmount); //[2]
     }
 
     function precalculateSellAmountSum(uint256 iterationSteps)
@@ -551,17 +551,17 @@ contract EasyAuction {
                 clearingPriceOrder.decodeOrder();
             uint256 unsettledTokens =
                 fullAuctionAmountToSell.sub(fillVolumeOfAuctioneerOrder);
-            uint256 auctioningTokenAmount =
+            uint256 tokenOutAmount =
                 unsettledTokens.add(
                     feeAmount.mul(unsettledTokens).div(fullAuctionAmountToSell)
                 );
-            uint256 biddingTokenAmount =
+            uint256 tokenInAmount =
                 fillVolumeOfAuctioneerOrder.mul(priceDenominator).div(
                     priceNumerator
                 );
             sendOutTokens(
-                auctioningTokenAmount,
-                biddingTokenAmount,
+                tokenOutAmount,
+                tokenInAmount,
                 auctioneerId
             ); //[5]
             sendOutTokens(
@@ -575,16 +575,16 @@ contract EasyAuction {
     }
 
     function sendOutTokens(
-        uint256 auctioningTokenAmount,
-        uint256 biddingTokenAmount,
+        uint256 tokenOutAmount,
+        uint256 tokenInAmount,
         uint64 userId
     ) internal {
         address userAddress = registeredUsers.getAddressAt(userId);
-        if (auctioningTokenAmount > 0) {
-            auctioningToken.safeTransfer(userAddress, auctioningTokenAmount);
+        if (tokenOutAmount > 0) {
+            tokenOut.safeTransfer(userAddress, tokenOutAmount);
         }
-        if (biddingTokenAmount > 0) {
-            biddingToken.safeTransfer(userAddress, biddingTokenAmount);
+        if (tokenInAmount > 0) {
+            tokenIn.safeTransfer(userAddress, tokenInAmount);
         }
     }
 
