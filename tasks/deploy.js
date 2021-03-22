@@ -14,6 +14,7 @@ task(
   .addParam("weth", "Address of WETH")
   .addParam("auctionFee", "Fixed fee to create auctions")
   .addParam("templateManager", "The address which is able to manage templates")
+  .addParam("templateFee", "The fee which is taken to register a template")
   .addFlag(
       "verify",
       "Additional (and optional) Etherscan contracts verification"
@@ -25,6 +26,7 @@ task(
         feeNumerator,
         auctionFee,
         templateManager,
+        templateFee,
         verify,
         weth
       } = taskArguments;
@@ -60,6 +62,7 @@ task(
         feeTo,
         templateManager,
         templateLauncher.address,
+        templateFee,
         feeNumerator,
         auctionFee
       );
@@ -93,34 +96,9 @@ task(
          auctionLauncher.address,
          auction1
       );
-
-      // Deploy Dummy token
-      const ERC20Mintable = hre.artifacts.require(
-        "ERC20Mintable"
-      );
       
-      const testToken = await ERC20Mintable.new(
-         "TestToken",
-         "TT"
-      );
-
-      await testToken.mint(feeManager, "1500000000000000000000")
-
       // Register EasyAuctionTemplate on TemplateLauncher
       await templateLauncher.addTemplate(easyAuctionTemplate.address);
-      
-      const initData = encodeInitData(
-        testToken.address,
-        weth,
-        "10000",
-        "100000000000000000000",
-        "100",
-        "10000000000000000000",
-        "100000000000000000000"
-      )
-
-      const auction1launched = await mesaFactory.launchTemplate(auction1, initData);
-      //console.log(JSON.stringify(auction1launched))
 
       if (verify) {
 
@@ -147,11 +125,6 @@ task(
           });
 
           await hre.run("verify:verify", {
-            address: testToken.address,
-            constructorArguments: [ "TestToken", "TT",],
-          });
-
-          await hre.run("verify:verify", {
             address: easyAuctionTemplate.address,
             constructorArguments: [
               weth,
@@ -172,9 +145,6 @@ task(
       );
 
       console.log(`TemplateLauncher deployed at address ${templateLauncher.address}`);
-
-
-      console.log(`TestToken deployed at address ${testToken.address}`);
   });
 
   function encodeInitData(
@@ -185,6 +155,7 @@ task(
     minPrice,
     minBuyAmount,
     minRaise,
+    tokenSupplier
 ) {
     return ethers.utils.defaultAbiCoder.encode(
         [
@@ -195,6 +166,7 @@ task(
             "uint96",
             "uint96",
             "uint256",
+            "address",
         ],
         [
             tokenOut,
@@ -204,6 +176,7 @@ task(
             minPrice,
             minBuyAmount,
             minRaise,
+            tokenSupplier,
         ]
     );
 }

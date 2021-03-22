@@ -1,11 +1,9 @@
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "solidity-coverage";
-import "hardhat-deploy";
-import dotenv from "dotenv";
-
-// Load environment variables.
-dotenv.config();
+require("dotenv").config();
+require("@nomiclabs/hardhat-truffle5");
+require("solidity-coverage");
+require("hardhat-gas-reporter");
+require("@nomiclabs/hardhat-etherscan");
+require("./tasks/deploy");
 
 module.exports = {
     networks: {

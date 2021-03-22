@@ -12,7 +12,7 @@
     "lint:ts": "eslint --max-warnings 0 .",
     "prettier": "prettier 'contracts/**/*.sol' -w && prettier '**/*.ts' -w",
     "coverage": "yarn hardhat coverage",
-    "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --auction-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --weth 0xc778417e063141139fce010982780140aa0cd5ab --verify"
+    "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --auction-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --weth 0xc778417e063141139fce010982780140aa0cd5ab --verify"
     
   },
   "repository": {

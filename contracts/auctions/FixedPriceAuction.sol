@@ -33,7 +33,7 @@ contract FixedPriceAuction {
 
     event AuctionClosed();
 
-    string public immutable templateName = "FixedPriceAuction";
+    string public constant templateName = "FixedPriceAuction";
     address public owner;
     IERC20 public tokenIn;
     IERC20 public tokenOut;
