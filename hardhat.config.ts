@@ -1,27 +1,31 @@
-require("dotenv").config();
-require("@nomiclabs/hardhat-truffle5");
-require("solidity-coverage");
-require("hardhat-gas-reporter");
-require("@nomiclabs/hardhat-etherscan");
-require("./tasks/deploy");
+import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
+import "solidity-coverage";
+import "hardhat-deploy";
+import dotenv from "dotenv";
 
-require("./tasks/deploy");
-
-const infuraId = process.env.INFURA_KEY;
+// Load environment variables.
+dotenv.config();
 
 module.exports = {
     networks: {
         mainnet: {
-            url: `https://mainnet.infura.io/v3/${infuraId}`,
+            url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
         },
         rinkeby: {
-            url: `https://rinkeby.infura.io/v3/${infuraId}`,
+            url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
             accounts: [process.env.PRIVATE_KEY],
         },
         xdai: {
             url: "https://xdai.poanetwork.dev",
             accounts: [process.env.PRIVATE_KEY],
         },
+    },
+    paths: {
+      artifacts: "build/artifacts",
+      cache: "build/cache",
+      deploy: "src/deploy",
+      sources: "contracts",
     },
     solidity: {
         compilers: [
