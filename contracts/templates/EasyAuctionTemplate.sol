@@ -25,6 +25,7 @@ interface IAuction {
 contract EasyAuctionTemplate {
     using SafeMath for uint256;
 
+    string public immutable templateName = "EasyAuctionTemplate";
     IAuction public auction;
     IWETH public WETH;
     IAuctionLauncher public auctionLauncher;

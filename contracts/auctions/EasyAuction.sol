@@ -84,6 +84,7 @@ contract EasyAuction {
     );
     event UserRegistration(address indexed user, uint64 userId);
 
+    string public immutable templateName = "EasyAuction";
     IERC20 public auctioningToken;
     IERC20 public biddingToken;
     uint256 public orderCancellationEndDate;
