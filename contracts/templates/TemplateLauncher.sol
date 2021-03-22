@@ -32,25 +32,30 @@ contract TemplateLauncher is CloneFactory {
         factory = _factory;
     }
 
+    /// @dev function to launch a template on Mesa, called from MesaFactory
+    /// @param _templateId template to be deployed
+    /// @param _data encoded template parameters
     function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
         payable
         returns (address newAuction)
     {
-        require(address(msg.sender) == factory, "AuctionCreator: FORBIDDEN");
+        require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
         require(
             msg.value >= IMesaFactory(factory).auctionFee(),
-            "AuctionCreator: AUCTION_FEE_NOT_PROVIDED"
+            "TemplateLauncher: AUCTION_FEE_NOT_PROVIDED"
         );
         require(
             templates[_templateId] != address(0),
-            "AuctionCreator: INVALID_TEMPLATE"
+            "TemplateLauncher: INVALID_TEMPLATE"
         );
         newAuction = _deployTemplate(_templateId);
         ITemplate(newAuction).init(_data);
         return address(newAuction);
     }
 
+    /// @dev internal function to clone a template contract
+    /// @param _templateId template to be cloned
     function _deployTemplate(uint256 _templateId)
         internal
         returns (address newAuction)
@@ -60,10 +65,16 @@ contract TemplateLauncher is CloneFactory {
         return address(newAuction);
     }
 
-    function addTemplate(address _template) external {
+    /// @dev allows to register a template by paying a fee
+    /// @param _template address of template to be added
+    function addTemplate(address _template) external payable {
+        require(
+            msg.value >= IMesaFactory(factory).templateFee(),
+            "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"
+        );
         require(
             templateToId[_template] == 0,
-            "AuctionCreator: TEMPLATE_DUPLICATE"
+            "TemplateLauncher: TEMPLATE_DUPLICATE"
         );
         templateId++;
         templates[templateId] = _template;
@@ -71,10 +82,12 @@ contract TemplateLauncher is CloneFactory {
         emit TemplateAdded(_template, templateId);
     }
 
+    /// @dev allows the templateManager to unregister a template
+    /// @param _templateId template to be removed
     function removeTemplate(uint256 _templateId) external {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
-            "AuctionCreator: FORBIDDEN"
+            "TemplateLauncher: FORBIDDEN"
         );
         require(templates[_templateId] != address(0));
         address template = templates[_templateId];
@@ -83,22 +96,24 @@ contract TemplateLauncher is CloneFactory {
         emit TemplateRemoved(template, _templateId);
     }
 
+    /// @dev allows the templateManager to verify a template
+    /// @param _templateId template to be verified
+    function verifyTemplate(uint256 _templateId) public {
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "TemplateLauncher: FORBIDDEN"
+        );
+
+        templateInfo[templates[_templateId]].verified = true;
+        emit TemplateVerified(templates[_templateId], _templateId);
+    }
+
     function getTemplate(uint256 _templateId)
         public
         view
         returns (address template)
     {
         return templates[_templateId];
-    }
-
-    function verifyTemplate(uint256 _templateId) public {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "AuctionCreator: FORBIDDEN"
-        );
-
-        templateInfo[templates[_templateId]].verified = true;
-        emit TemplateVerified(templates[_templateId], _templateId);
     }
 
     function getTemplateId(address _template) public view returns (uint256) {

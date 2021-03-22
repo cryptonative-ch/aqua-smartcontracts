@@ -55,6 +55,15 @@ contract EasyAuctionTemplate {
         auctionTemplateId = _auctionTemplateId;
     }
 
+    /// @dev internal setup function to initialize the template, called by init()
+    /// @param _tokenOut token to be auctioned
+    /// @param _tokenIn token to bid on auction
+    /// @param _duration auction duration in seconds
+    /// @param _tokenOutSupply amount of tokens to be auctioned
+    /// @param _minPrice minimum Price that token should be auctioned for
+    /// @param _minBuyAmount minimum amount of tokens an investor has to buy
+    /// @param _minRaise minimum amount an project is expected to raise
+    /// @param _tokenSupplier address that deposits the tokens
     function initTemplate(
         address _tokenOut,
         address _tokenIn,
@@ -62,14 +71,14 @@ contract EasyAuctionTemplate {
         uint256 _tokenOutSupply,
         uint96 _minPrice,
         uint96 _minBuyAmount,
-        uint256 _minRaise
+        uint256 _minRaise,
+        address _tokenSupplier
     ) internal returns (address newAuction) {
         require(!initialized, "EasyAuctionTemplate: ALEADY_INITIALIZED");
 
         uint256 orderCancelationPeriodDuration = 100;
         uint256 minimumBiddingAmountPerOrder = 100;
         bool isAtomicClosureAllowed = false;
-
 
         bytes memory encodedInitData =
             abi.encode(
@@ -84,8 +93,6 @@ contract EasyAuctionTemplate {
                 isAtomicClosureAllowed
             );
 
-        /*
-
         uint256 depositAmount =
             auctionLauncher.getDepositAmountWithFees(_tokenOutSupply);
 
@@ -94,7 +101,7 @@ contract EasyAuctionTemplate {
         // deposits sellAmount + fees
         TransferHelper.safeTransferFrom(
             _tokenOut,
-            msg.sender,
+            _tokenSupplier,
             address(this),
             depositAmount
         );
@@ -128,6 +135,8 @@ contract EasyAuctionTemplate {
         );
     }
 
+    /// @dev setup function expexted to be called by templateLauncher to init the template
+    /// @param _data encoded template params
     function init(bytes calldata _data) public returns (address newAuction) {
         (
             address _tokenOut,
@@ -136,11 +145,21 @@ contract EasyAuctionTemplate {
             uint256 _tokenOutSupply,
             uint96 _minPrice,
             uint96 _minBuyAmount,
-            uint256 _minRaise
+            uint256 _minRaise,
+            address _tokenSupplier
         ) =
             abi.decode(
                 _data,
-                (address, address, uint256, uint256, uint96, uint96, uint256)
+                (
+                    address,
+                    address,
+                    uint256,
+                    uint256,
+                    uint96,
+                    uint96,
+                    uint256,
+                    address
+                )
             );
 
         return
@@ -151,7 +170,8 @@ contract EasyAuctionTemplate {
                 _tokenOutSupply,
                 _minPrice,
                 _minBuyAmount,
-                _minRaise
+                _minRaise,
+                _tokenSupplier
             );
     }
 }
