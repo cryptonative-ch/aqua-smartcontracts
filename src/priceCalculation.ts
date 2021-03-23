@@ -11,8 +11,8 @@ export interface ReceivedFunds {
 }
 
 export interface OrderResult {
-    tokenOut: string;
     tokenIn: string;
+    tokenOut: string;
     endDate: BigNumber;
     orderCancellationEndDate: BigNumber;
     initialAuctionOrder: string;
@@ -234,10 +234,10 @@ export async function createTokensAndMintAndApprove(
     easyAuction: Contract,
     users: Wallet[],
     hre: HardhatRuntimeEnvironment
-): Promise<{ tokenOut: Contract; tokenIn: Contract }> {
+): Promise<{ tokenIn: Contract; tokenOut: Contract }> {
     const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
-    const tokenIn = await ERC20.deploy("BT", "BT");
-    const tokenOut = await ERC20.deploy("AT", "AT");
+    const tokenIn = await ERC20.deploy("AT", "AT");
+    const tokenOut = await ERC20.deploy("BT", "BT");
 
     for (const user of users) {
         await tokenIn.mint(user.address, BigNumber.from(10).pow(30));
@@ -250,7 +250,7 @@ export async function createTokensAndMintAndApprove(
             .connect(user)
             .approve(easyAuction.address, BigNumber.from(10).pow(30));
     }
-    return { tokenOut: tokenOut, tokenIn: tokenIn };
+    return { tokenIn: tokenIn, tokenOut: tokenOut };
 }
 
 export function toPrice(result: [BigNumber, BigNumber]): Price {

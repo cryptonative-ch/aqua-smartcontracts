@@ -19,8 +19,8 @@ describe("EasyAuction", async () => {
 
     it("e2e - places a lot of sellOrders, such that the second last order is the clearingOrder and calculates the price to test gas usage of settleAuction", async () => {
         const {
-            tokenOut,
             tokenIn,
+            tokenOut,
         } = await createTokensAndMintAndApprove(
             easyAuction,
             [user_1, user_2],
@@ -28,8 +28,8 @@ describe("EasyAuction", async () => {
         );
         const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
         await easyAuction.initAuction(
-            tokenOut.address,
             tokenIn.address,
+            tokenOut.address,
             60 * 60,
             ethers.utils.parseEther("1000"),
             ethers.utils.parseEther("1000"),

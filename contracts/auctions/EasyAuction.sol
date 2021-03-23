@@ -67,8 +67,8 @@ contract EasyAuction {
     );
     event NewUser(uint64 indexed ownerId, address indexed userAddress);
     event InitializedAuction(
-        IERC20 indexed _tokenOut,
         IERC20 indexed _tokenIn,
+        IERC20 indexed _tokenOut,
         uint256 orderCancellationEndDate,
         uint256 gracePeriodStartDate,
         uint256 gracePeriodEndDate,
@@ -85,8 +85,8 @@ contract EasyAuction {
     event UserRegistration(address indexed user, uint64 ownerId);
 
     string public constant templateName = "EasyAuction";
-    IERC20 public tokenOut;
     IERC20 public tokenIn;
+    IERC20 public tokenOut;
     uint256 public orderCancellationEndDate;
     uint256 public auctionStartedDate;
     uint256 public endDate;
@@ -118,8 +118,8 @@ contract EasyAuction {
     // Prices between tokenIn and tokenOut are expressed by a
     // fraction whose components are stored as uint96.
     function initAuction(
-        IERC20 _tokenOut,
         IERC20 _tokenIn,
+        IERC20 _tokenOut,
         uint256 _orderCancelationPeriodDuration,
         uint96 _totalTokenOutAmount, // total amount to sell
         uint96 _minBidAmountToReceive, // Minimum amount of biding token to receive at final point
@@ -161,8 +161,8 @@ contract EasyAuction {
         uint256 cancellationEndDate =
             block.timestamp + _orderCancelationPeriodDuration;
 
-        tokenOut = _tokenOut;
         tokenIn = _tokenIn;
+        tokenOut = _tokenOut;
         orderCancellationEndDate = cancellationEndDate;
         auctionStartedDate = block.timestamp;
         endDate = 0;
@@ -181,8 +181,8 @@ contract EasyAuction {
         minSellThreshold = _minSellThreshold;
 
         emit InitializedAuction(
-            _tokenOut,
             _tokenIn,
+            _tokenOut,
             orderCancellationEndDate,
             gracePeriodStartDate,
             gracePeriodEndDate,
