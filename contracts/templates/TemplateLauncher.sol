@@ -25,8 +25,10 @@ contract TemplateLauncher is CloneFactory {
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
+    event UpdatedTemplateRestriction(bool restrictedTemplates);
 
     address public factory;
+    bool public restrictedTemplates = true;
 
     constructor(address _factory) public {
         factory = _factory;
@@ -69,6 +71,10 @@ contract TemplateLauncher is CloneFactory {
     /// @param _template address of template to be added
     function addTemplate(address _template) external payable {
         require(
+            !restrictedTemplates || msg.sender == IMesaFactory(factory).templateManager(),
+            "TemplateLauncher: FORBIDDEN"
+        );
+        require(
             msg.value >= IMesaFactory(factory).templateFee(),
             "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"
         );
@@ -106,6 +112,14 @@ contract TemplateLauncher is CloneFactory {
 
         templateInfo[templates[_templateId]].verified = true;
         emit TemplateVerified(templates[_templateId], _templateId);
+    }
+
+    /// @dev allows to switch on/off public template registrations
+    /// @param restrictedTemplates turns on/off the option
+    function updateTemplateRestriction(bool _restrictedTemplates) external {
+        require(msg.sender == IMesaFactory(factory).templateManager(), "TemplateLauncher: FORBIDDEN");
+        restrictedTemplates = _restrictedTemplates;
+        emit UpdatedTemplateRestriction(_restrictedTemplates);
     }
 
     function getTemplate(uint256 _templateId)
