@@ -11,44 +11,44 @@ import {
 const QUEUE_END =
     "0xffffffffffffffffffffffffffffffffffffffff000000000000000000000001";
 const BYTES32_ZERO = encodeOrder({
-    userId: BigNumber.from(0),
-    amountToBid: BigNumber.from(0),
-    amountToBuy: BigNumber.from(0),
+    ownerId: BigNumber.from(0),
+    orderTokenIn: BigNumber.from(0),
+    orderTokenOut: BigNumber.from(0),
 });
 const BYTES32_ONE = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBid: BigNumber.from(1),
-    amountToBuy: BigNumber.from(1),
+    ownerId: BigNumber.from(1),
+    orderTokenIn: BigNumber.from(1),
+    orderTokenOut: BigNumber.from(1),
 });
 const BYTES32_ONE_DIFFERENT = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBid: BigNumber.from(2),
-    amountToBuy: BigNumber.from(2),
+    ownerId: BigNumber.from(1),
+    orderTokenIn: BigNumber.from(2),
+    orderTokenOut: BigNumber.from(2),
 });
 const BYTES32_ONE_BEST_USER = encodeOrder({
-    userId: BigNumber.from(0),
-    amountToBid: BigNumber.from(2),
-    amountToBuy: BigNumber.from(2),
+    ownerId: BigNumber.from(0),
+    orderTokenIn: BigNumber.from(2),
+    orderTokenOut: BigNumber.from(2),
 });
 const BYTES32_TWO = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBuy: BigNumber.from(8),
-    amountToBid: BigNumber.from(4),
+    ownerId: BigNumber.from(1),
+    orderTokenOut: BigNumber.from(8),
+    orderTokenIn: BigNumber.from(4),
 });
 const BYTES32_THREE = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBuy: BigNumber.from(6),
-    amountToBid: BigNumber.from(2),
+    ownerId: BigNumber.from(1),
+    orderTokenOut: BigNumber.from(6),
+    orderTokenIn: BigNumber.from(2),
 });
 const BYTES32_FOUR = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBuy: BigNumber.from(8),
-    amountToBid: BigNumber.from(2),
+    ownerId: BigNumber.from(1),
+    orderTokenOut: BigNumber.from(8),
+    orderTokenIn: BigNumber.from(2),
 });
 const BYTES32_FIVE = encodeOrder({
-    userId: BigNumber.from(1),
-    amountToBuy: BigNumber.from(10),
-    amountToBid: BigNumber.from(2),
+    ownerId: BigNumber.from(1),
+    orderTokenOut: BigNumber.from(10),
+    orderTokenIn: BigNumber.from(2),
 });
 
 async function getSetContent(set: Contract) {
