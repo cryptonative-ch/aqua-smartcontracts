@@ -185,6 +185,12 @@ describe("EasyAuction", async () => {
             expect(await easyAuction.auctionStartedDate()).to.be.equal(
                 timestampForMining
             );
+            expect(await easyAuction.gracePeriodStartDate()).to.be.equal(
+                timestampForMining + 1200
+            );
+            expect(await easyAuction.gracePeriodEndDate()).to.be.equal(
+                timestampForMining + 3600
+            );
             expect(
                 await easyAuction.minimumBiddingAmountPerOrder()
             ).to.be.equal(1);
@@ -2729,6 +2735,143 @@ describe("EasyAuction", async () => {
             expect(
                 await easyAuction.callStatic.getSecondsRemainingInBatch()
             ).to.be.equal("0");
+        });
+    });
+    describe("setAuctionEndDate", async () => {
+        it("canot set endDate before gracePeriodEndDate", async () => {
+            const initialAuctionOrder = {
+                orderTokenIn: ethers.utils.parseEther("1"),
+                orderTokenOut: ethers.utils.parseEther("1"),
+                ownerId: BigNumber.from(0),
+            };
+            const {
+                tokenIn,
+                tokenOut,
+            } = await createTokensAndMintAndApprove(
+                easyAuction,
+                [user_1, user_2],
+                hre
+            );
+
+            await easyAuction.initAuction(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                initialAuctionOrder.orderTokenOut,
+                initialAuctionOrder.orderTokenIn,
+                1,
+                0,
+                60 * 20,
+                60 * 40,
+                false
+            );
+            await expect(
+                easyAuction.setAuctionEndDate((await getCurrentTime()) - 10)
+            ).to.be.revertedWith(
+                "cannot set endDate before gracePeriodEndDate"
+            );
+        });
+        it("canot set endDate out of grace period", async () => {
+            const initialAuctionOrder = {
+                orderTokenIn: ethers.utils.parseEther("1"),
+                orderTokenOut: ethers.utils.parseEther("1"),
+                ownerId: BigNumber.from(0),
+            };
+            const {
+                tokenIn,
+                tokenOut,
+            } = await createTokensAndMintAndApprove(
+                easyAuction,
+                [user_1, user_2],
+                hre
+            );
+
+            const currentTime = await getCurrentTime();
+            await easyAuction.initAuction(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                initialAuctionOrder.orderTokenOut,
+                initialAuctionOrder.orderTokenIn,
+                1,
+                0,
+                60 * 20,
+                60 * 40,
+                false
+            );
+            await increaseTime(3601);
+            await expect(
+                easyAuction.setAuctionEndDate(currentTime)
+            ).to.be.revertedWith("endDate must be between grace period");
+            await expect(
+                easyAuction.setAuctionEndDate((await getCurrentTime()) + 10)
+            ).to.be.revertedWith("endDate must be between grace period");
+        });
+        it("set endDate after grace period ends", async () => {
+            const initialAuctionOrder = {
+                orderTokenIn: ethers.utils.parseEther("1"),
+                orderTokenOut: ethers.utils.parseEther("1"),
+                ownerId: BigNumber.from(0),
+            };
+            const {
+                tokenIn,
+                tokenOut,
+            } = await createTokensAndMintAndApprove(
+                easyAuction,
+                [user_1, user_2],
+                hre
+            );
+
+            await easyAuction.initAuction(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                initialAuctionOrder.orderTokenOut,
+                initialAuctionOrder.orderTokenIn,
+                1,
+                0,
+                60 * 20,
+                60 * 40,
+                false
+            );
+            await increaseTime(3601);
+            const endDate = (await getCurrentTime()) - 10;
+            await easyAuction.setAuctionEndDate(endDate);
+            expect(await easyAuction.endDate()).to.equal(endDate);
+        });
+        it("can not set auction endDate twice", async () => {
+            const initialAuctionOrder = {
+                orderTokenIn: ethers.utils.parseEther("1"),
+                orderTokenOut: ethers.utils.parseEther("1"),
+                ownerId: BigNumber.from(0),
+            };
+            const {
+                tokenIn,
+                tokenOut,
+            } = await createTokensAndMintAndApprove(
+                easyAuction,
+                [user_1, user_2],
+                hre
+            );
+
+            await easyAuction.initAuction(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                initialAuctionOrder.orderTokenOut,
+                initialAuctionOrder.orderTokenIn,
+                1,
+                0,
+                60 * 20,
+                60 * 40,
+                false
+            );
+            await increaseTime(3601);
+            const endDate = (await getCurrentTime()) - 10;
+            await easyAuction.setAuctionEndDate(endDate);
+            await expect(
+                easyAuction.setAuctionEndDate((await getCurrentTime()) - 5)
+            ).to.be.revertedWith("auction end date already set");
         });
     });
     // describe("claimsFee", async () => {
