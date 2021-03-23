@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
+
+import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-ethers";
 
 import {
