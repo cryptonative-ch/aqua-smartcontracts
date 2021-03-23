@@ -568,4 +568,5 @@ contract EasyAuction {
     function containsOrder(bytes32 _order) public view returns (bool) {
         return orders.contains(_order);
     }
+
 }
