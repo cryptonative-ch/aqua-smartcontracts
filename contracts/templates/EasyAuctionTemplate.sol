@@ -134,15 +134,8 @@ contract EasyAuctionTemplate {
         );
     }
 
-    /// @dev standard init()
-    /// @param _tokenIn token to make the bid
-    /// @param _tokenOut token which is auctioned off
-    /// @param _duration auction duration in seconds
-    /// @param _tokenOutSupply amount of tokens to be auctioned
-    /// @param _minPrice minimum Price that token should be auctioned for
-    /// @param _minBuyAmount minimum amount of tokens an investor has to buy
-    /// @param _minRaise minimum amount an project is expected to raise
-    /// @param _tokenSupplier address that deposits the tokens
+    /// @dev setup function expexted to be called by templateLauncher to init the template
+    /// @param _data encoded template params
     function init(bytes calldata _data) public returns (address newAuction) {
         (
             address _tokenIn,
