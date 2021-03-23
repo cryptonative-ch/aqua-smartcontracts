@@ -6,14 +6,14 @@ export interface Price {
 }
 
 export interface ReceivedFunds {
-    auctioningTokenAmount: BigNumber;
-    biddingTokenAmount: BigNumber;
+    tokenOutAmount: BigNumber;
+    tokenInAmount: BigNumber;
 }
 
 export interface OrderResult {
-    auctioningToken: string;
-    biddingToken: string;
-    auctionEndDate: BigNumber;
+    tokenIn: string;
+    tokenOut: string;
+    endDate: BigNumber;
     orderCancellationEndDate: BigNumber;
     initialAuctionOrder: string;
     minimumBiddingAmountPerOrder: BigNumber;
@@ -25,9 +25,9 @@ export interface OrderResult {
 }
 
 export interface Order {
-    amountToBid: BigNumber;
-    amountToBuy: BigNumber;
-    userId: BigNumber;
+    orderTokenIn: BigNumber;
+    orderTokenOut: BigNumber;
+    ownerId: BigNumber;
 }
 
 export const queueStartElement =
@@ -37,32 +37,32 @@ export const queueLastElement =
 
 export function reverseOrderPrice(order: Order): Order {
     return {
-        userId: order.userId,
-        amountToBid: order.amountToBuy,
-        amountToBuy: order.amountToBid,
+        ownerId: order.ownerId,
+        orderTokenIn: order.orderTokenOut,
+        orderTokenOut: order.orderTokenIn,
     };
 }
 export function encodeOrder(order: Order): string {
     return (
         "0x" +
-        order.userId.toHexString().slice(2).padStart(16, "0") +
-        order.amountToBuy.toHexString().slice(2).padStart(24, "0") +
-        order.amountToBid.toHexString().slice(2).padStart(24, "0")
+        order.ownerId.toHexString().slice(2).padStart(16, "0") +
+        order.orderTokenOut.toHexString().slice(2).padStart(24, "0") +
+        order.orderTokenIn.toHexString().slice(2).padStart(24, "0")
     );
 }
 
 export function decodeOrder(bytes: string): Order {
     return {
-        userId: BigNumber.from("0x" + bytes.substring(2, 18)),
-        amountToBid: BigNumber.from("0x" + bytes.substring(43, 66)),
-        amountToBuy: BigNumber.from("0x" + bytes.substring(19, 42)),
+        ownerId: BigNumber.from("0x" + bytes.substring(2, 18)),
+        orderTokenIn: BigNumber.from("0x" + bytes.substring(43, 66)),
+        orderTokenOut: BigNumber.from("0x" + bytes.substring(19, 42)),
     };
 }
 
 export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
     return {
-        auctioningTokenAmount: result[0],
-        biddingTokenAmount: result[1],
+        tokenOutAmount: result[0],
+        tokenInAmount: result[1],
     };
 }
 
@@ -72,17 +72,17 @@ export async function getInitialOrder(easyAuction: Contract): Promise<Order> {
 
 export function hasLowerClearingPrice(order1: Order, order2: Order): number {
     if (
-        order1.amountToBuy
-            .mul(order2.amountToBid)
-            .lt(order2.amountToBuy.mul(order1.amountToBid))
+        order1.orderTokenOut
+            .mul(order2.orderTokenIn)
+            .lt(order2.orderTokenOut.mul(order1.orderTokenIn))
     )
         return -1;
     if (
-        order1.amountToBuy
-            .mul(order2.amountToBid)
-            .eq(order2.amountToBuy.mul(order1.amountToBid))
+        order1.orderTokenOut
+            .mul(order2.orderTokenIn)
+            .eq(order2.orderTokenOut.mul(order1.orderTokenIn))
     ) {
-        if (order1.userId < order2.userId) return -1;
+        if (order1.ownerId < order2.ownerId) return -1;
     }
     return 1;
 }
@@ -114,11 +114,11 @@ function printOrders(orders: Order[], isInitialOrder: boolean, debug = false) {
         orders.map((order) => {
             log(
                 "selling ",
-                order.amountToBid.toString(),
+                order.orderTokenIn.toString(),
                 " for ",
-                order.amountToBuy.toString(),
+                order.orderTokenOut.toString(),
                 " at price of",
-                order.amountToBid.div(order.amountToBuy).toString()
+                order.orderTokenIn.div(order.orderTokenOut).toString()
             );
         });
     } else {
@@ -126,11 +126,11 @@ function printOrders(orders: Order[], isInitialOrder: boolean, debug = false) {
         orders.map((order) => {
             log(
                 "selling ",
-                order.amountToBid.toString(),
+                order.orderTokenIn.toString(),
                 " for ",
-                order.amountToBuy.toString(),
+                order.orderTokenOut.toString(),
                 " at price of",
-                order.amountToBuy.div(order.amountToBid).toString()
+                order.orderTokenOut.div(order.orderTokenIn).toString()
             );
         });
     }
@@ -150,44 +150,44 @@ export function findClearingPrice(
     let totalSellVolume = BigNumber.from(0);
 
     for (const order of sellOrders) {
-        totalSellVolume = totalSellVolume.add(order.amountToBid);
+        totalSellVolume = totalSellVolume.add(order.orderTokenIn);
         if (
             totalSellVolume
-                .mul(order.amountToBuy)
-                .gte(initialAuctionOrder.amountToBuy.mul(order.amountToBid))
+                .mul(order.orderTokenOut)
+                .gte(initialAuctionOrder.orderTokenOut.mul(order.orderTokenIn))
         ) {
-            const coveredBuyAmount = initialAuctionOrder.amountToBuy.sub(
+            const coveredBuyAmount = initialAuctionOrder.orderTokenOut.sub(
                 totalSellVolume
-                    .sub(order.amountToBid)
-                    .mul(order.amountToBuy)
-                    .div(order.amountToBid)
+                    .sub(order.orderTokenIn)
+                    .mul(order.orderTokenOut)
+                    .div(order.orderTokenIn)
             );
             const sellAmountClearingOrder = coveredBuyAmount
-                .mul(order.amountToBid)
-                .div(order.amountToBuy);
+                .mul(order.orderTokenIn)
+                .div(order.orderTokenOut);
             if (sellAmountClearingOrder.gt(BigNumber.from(0))) {
                 return order;
             } else {
                 return {
-                    userId: BigNumber.from(1),
-                    amountToBuy: initialAuctionOrder.amountToBuy,
-                    amountToBid: totalSellVolume.sub(order.amountToBid),
+                    ownerId: BigNumber.from(1),
+                    orderTokenOut: initialAuctionOrder.orderTokenOut,
+                    orderTokenIn: totalSellVolume.sub(order.orderTokenIn),
                 };
             }
         }
     }
     // otherwise, clearing price is initialAuctionOrder
-    if (totalSellVolume.gt(initialAuctionOrder.amountToBid)) {
+    if (totalSellVolume.gt(initialAuctionOrder.orderTokenIn)) {
         return {
-            userId: initialAuctionOrder.userId,
-            amountToBuy: initialAuctionOrder.amountToBuy,
-            amountToBid: totalSellVolume,
+            ownerId: initialAuctionOrder.ownerId,
+            orderTokenOut: initialAuctionOrder.orderTokenOut,
+            orderTokenIn: totalSellVolume,
         };
     } else {
         return {
-            userId: BigNumber.from(0),
-            amountToBuy: initialAuctionOrder.amountToBuy,
-            amountToBid: initialAuctionOrder.amountToBid,
+            ownerId: BigNumber.from(0),
+            orderTokenOut: initialAuctionOrder.orderTokenOut,
+            orderTokenIn: initialAuctionOrder.orderTokenIn,
         };
     }
 }
@@ -200,9 +200,9 @@ export async function getAllSellOrders(
     const events = logs.map((log: any) => easyAuction.interface.parseLog(log));
     const sellOrders = events.map((x: any) => {
         const order: Order = {
-            userId: x.args[0],
-            amountToBid: x.args[2],
-            amountToBuy: x.args[1],
+            ownerId: x.args[0],
+            orderTokenIn: x.args[2],
+            orderTokenOut: x.args[1],
         };
         return order;
     });
@@ -218,9 +218,9 @@ export async function getAllSellOrders(
     );
     const sellOrdersDeletions = eventsForCancellations.map((x: any) => {
         const order: Order = {
-            userId: x.args[0],
-            amountToBid: x.args[2],
-            amountToBuy: x.args[1],
+            ownerId: x.args[0],
+            orderTokenIn: x.args[2],
+            orderTokenOut: x.args[1],
         };
         return order;
     });
@@ -234,23 +234,23 @@ export async function createTokensAndMintAndApprove(
     easyAuction: Contract,
     users: Wallet[],
     hre: HardhatRuntimeEnvironment
-): Promise<{ auctioningToken: Contract; biddingToken: Contract }> {
+): Promise<{ tokenIn: Contract; tokenOut: Contract }> {
     const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
-    const biddingToken = await ERC20.deploy("BT", "BT");
-    const auctioningToken = await ERC20.deploy("AT", "AT");
+    const tokenIn = await ERC20.deploy("AT", "AT");
+    const tokenOut = await ERC20.deploy("BT", "BT");
 
     for (const user of users) {
-        await biddingToken.mint(user.address, BigNumber.from(10).pow(30));
-        await biddingToken
+        await tokenIn.mint(user.address, BigNumber.from(10).pow(30));
+        await tokenIn
             .connect(user)
             .approve(easyAuction.address, BigNumber.from(10).pow(30));
 
-        await auctioningToken.mint(user.address, BigNumber.from(10).pow(30));
-        await auctioningToken
+        await tokenOut.mint(user.address, BigNumber.from(10).pow(30));
+        await tokenOut
             .connect(user)
             .approve(easyAuction.address, BigNumber.from(10).pow(30));
     }
-    return { auctioningToken: auctioningToken, biddingToken: biddingToken };
+    return { tokenIn: tokenIn, tokenOut: tokenOut };
 }
 
 export function toPrice(result: [BigNumber, BigNumber]): Price {
@@ -269,12 +269,12 @@ export async function placeOrders(
         await easyAuction
             .connect(
                 hre.waffle.provider.getWallets()[
-                    sellOrder.userId.toNumber() - 1
+                    sellOrder.ownerId.toNumber() - 1
                 ]
             )
             .placeOrders(
-                [sellOrder.amountToBuy],
-                [sellOrder.amountToBid],
+                [sellOrder.orderTokenOut],
+                [sellOrder.orderTokenIn],
                 [queueStartElement]
             );
     }
