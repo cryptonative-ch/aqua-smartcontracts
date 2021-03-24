@@ -52,7 +52,7 @@ contract TemplateLauncher is CloneFactory {
             "TemplateLauncher: INVALID_TEMPLATE"
         );
         newAuction = _deployTemplate(_templateId);
-        ITemplate(newAuction).init(_data);
+        //ITemplate(newAuction).init(_data);
         return address(newAuction);
     }
 
@@ -69,7 +69,7 @@ contract TemplateLauncher is CloneFactory {
 
     /// @dev allows to register a template by paying a fee
     /// @param _template address of template to be added
-    function addTemplate(address _template) external payable {
+    function addTemplate(address _template) external payable returns (uint256){
         require(
             !restrictedTemplates ||
                 msg.sender == IMesaFactory(factory).templateManager(),
@@ -87,6 +87,7 @@ contract TemplateLauncher is CloneFactory {
         templates[templateId] = _template;
         templateToId[_template] = templateId;
         emit TemplateAdded(_template, templateId);
+        return templateId;
     }
 
     /// @dev allows the templateManager to unregister a template
