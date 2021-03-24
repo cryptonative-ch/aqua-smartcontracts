@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../interfaces/IAuctionLauncher.sol";
 import "../libraries/TransferHelper.sol";
 import "../interfaces/IMesaFactory.sol";
-import "../interfaces/IWETH.sol";
+import "../interfaces/IWETH10.sol";
 
 interface IAuction {
     function initAuction(
@@ -27,7 +26,7 @@ contract EasyAuctionTemplate {
 
     string public constant templateName = "EasyAuctionTemplate";
     IAuction public auction;
-    IWETH public WETH;
+    IWETH10 public WETH;
     IAuctionLauncher public auctionLauncher;
     IMesaFactory public mesaFactory;
     uint256 public auctionTemplateId;
@@ -48,7 +47,7 @@ contract EasyAuctionTemplate {
         address _auctionLauncher,
         uint256 _auctionTemplateId
     ) public {
-        WETH = IWETH(_WETH);
+        WETH = IWETH10(_WETH);
         auctionLauncher = IAuctionLauncher(_auctionLauncher);
         mesaFactory = IMesaFactory(
             IAuctionLauncher(_auctionLauncher).factory()

@@ -22,10 +22,10 @@ module.exports = {
         },
     },
     paths: {
-      artifacts: "build/artifacts",
-      cache: "build/cache",
-      deploy: "src/deploy",
-      sources: "contracts",
+        artifacts: "build/artifacts",
+        cache: "build/cache",
+        deploy: "src/deploy",
+        sources: "contracts",
     },
     solidity: {
         compilers: [

@@ -249,11 +249,7 @@ contract EasyAuction {
                 emit NewOrder(ownerId, _ordersTokenOut[i], _ordersTokenIn[i]);
             }
         }
-        tokenIn.safeTransferFrom(
-            msg.sender,
-            address(this),
-            sumOrdersTokenIn
-        ); //[1]
+        tokenIn.safeTransferFrom(msg.sender, address(this), sumOrdersTokenIn); //[1]
     }
 
     function cancelOrders(bytes32[] memory _orders)
@@ -263,9 +259,7 @@ contract EasyAuction {
         uint64 ownerId = getUserId(msg.sender);
         uint256 claimableAmount = 0;
         uint64 graceDuration =
-            endDate != 0
-                ? endDate.sub(gracePeriodStartDate).toUint64()
-                : 0;
+            endDate != 0 ? endDate.sub(gracePeriodStartDate).toUint64() : 0;
         for (uint256 i = 0; i < _orders.length; i++) {
             // Note: we keep the back pointer of the deleted element so that
             // it can be used as a reference point to insert a new node.
@@ -277,8 +271,11 @@ contract EasyAuction {
             );
             bool success = orders.removeKeepHistory(_orders[i]);
             if (success) {
-                (uint64 ownerIdOfIter, uint96 orderTokenOut, uint96 orderTokenIn) =
-                    _orders[i].decodeOrder();
+                (
+                    uint64 ownerIdOfIter,
+                    uint96 orderTokenOut,
+                    uint96 orderTokenIn
+                ) = _orders[i].decodeOrder();
                 require(
                     ownerIdOfIter == ownerId,
                     "Only the user can cancel his orders"
@@ -314,7 +311,8 @@ contract EasyAuction {
         // is not more than initially sold amount
         (, uint96 orderTokenOut, uint96 orderTokenIn) = iterOrder.decodeOrder();
         require(
-            sumBidAmount.mul(orderTokenOut) < totalTokenOutAmount.mul(orderTokenIn),
+            sumBidAmount.mul(orderTokenOut) <
+                totalTokenOutAmount.mul(orderTokenIn),
             "too many orders summed up"
         );
 
@@ -375,8 +373,7 @@ contract EasyAuction {
         uint256 orderTokenOut;
         uint256 orderTokenIn;
         uint96 fillVolumeOfAuctioneerOrder = fullAuctionAmountToSell;
-        uint64 graceDuration =
-            endDate.sub(gracePeriodStartDate).toUint64();
+        uint64 graceDuration = endDate.sub(gracePeriodStartDate).toUint64();
         // Sum order up, until fullAuctionAmountToSell is fully bought or queue end is reached
         do {
             nextOrder = orders.next(nextOrder);
@@ -477,10 +474,7 @@ contract EasyAuction {
     function claimFromParticipantOrder(bytes32[] memory _orders)
         public
         atStageFinished()
-        returns (
-            uint256 sumTokenOutAmount,
-            uint256 sumTokenInAmount
-        )
+        returns (uint256 sumTokenOutAmount, uint256 sumTokenInAmount)
     {
         for (uint256 i = 0; i < _orders.length; i++) {
             // Note: we don't need to keep any information about the node since
@@ -522,9 +516,7 @@ contract EasyAuction {
                         );
                     } else {
                         //[24]
-                        sumTokenInAmount = sumTokenInAmount.add(
-                            orderTokenIn
-                        );
+                        sumTokenInAmount = sumTokenInAmount.add(orderTokenIn);
                     }
                 }
             }
@@ -560,11 +552,7 @@ contract EasyAuction {
                 fillVolumeOfAuctioneerOrder.mul(priceDenominator).div(
                     priceNumerator
                 );
-            sendOutTokens(
-                tokenOutAmount,
-                tokenInAmount,
-                auctioneerId
-            ); //[5]
+            sendOutTokens(tokenOutAmount, tokenInAmount, auctioneerId); //[5]
             sendOutTokens(
                 feeAmount.mul(fillVolumeOfAuctioneerOrder).div(
                     fullAuctionAmountToSell
@@ -626,8 +614,7 @@ contract EasyAuction {
             "cannot set endDate before gracePeriodEndDate"
         );
         require(
-            _endDate >= gracePeriodStartDate &&
-                _endDate <= gracePeriodEndDate,
+            _endDate >= gracePeriodStartDate && _endDate <= gracePeriodEndDate,
             "endDate must be between grace period"
         );
         endDate = _endDate;

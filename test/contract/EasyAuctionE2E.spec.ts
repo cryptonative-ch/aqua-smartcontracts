@@ -18,10 +18,7 @@ describe("EasyAuction", async () => {
     });
 
     it("e2e - places a lot of sellOrders, such that the second last order is the clearingOrder and calculates the price to test gas usage of settleAuction", async () => {
-        const {
-            tokenIn,
-            tokenOut,
-        } = await createTokensAndMintAndApprove(
+        const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
             easyAuction,
             [user_1, user_2],
             hre

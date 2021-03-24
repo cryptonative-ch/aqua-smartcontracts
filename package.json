@@ -13,7 +13,6 @@
     "prettier": "prettier 'contracts/**/*.sol' -w && prettier '**/*.ts' -w",
     "coverage": "yarn hardhat coverage",
     "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --auction-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --weth 0xc778417e063141139fce010982780140aa0cd5ab --verify"
-    
   },
   "repository": {
     "type": "git"
@@ -26,6 +25,7 @@
     "dotenv": "^8.2.0",
     "dxswap-core": "git://github.com/levelkdev/dxswap-core.git#v0.3.1",
     "dxswap-periphery": "git://github.com/levelkdev/dxswap-periphery.git#v0.3.2",
+    "erc3156": "^0.4.8",
     "ethers": "^5.0.19",
     "hardhat-gas-reporter": "^1.0.4",
     "solc": "0.6.8"

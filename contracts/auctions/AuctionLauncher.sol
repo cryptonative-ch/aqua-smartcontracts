@@ -96,7 +96,6 @@ contract AuctionLauncher is CloneFactory {
             uint128(auctions.length)
         );
         auctions.push(address(newAuction));
-        //IMesaFactory(factory).addAuction(address(newAuction), _templateId);
         emit AuctionLaunched(address(newAuction), _templateId);
         return address(newAuction);
     }
@@ -113,7 +112,7 @@ contract AuctionLauncher is CloneFactory {
 
         auctionTemplateId++;
         auctionTemplates[auctionTemplateId] = _template;
-        auctionauctionTemplateToId[_template] = auctionTemplateId;
+        auctionTemplateToId[_template] = auctionTemplateId;
         emit TemplateAdded(_template, auctionTemplateId);
         return auctionTemplateId;
     }
