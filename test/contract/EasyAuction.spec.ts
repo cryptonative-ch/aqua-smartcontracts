@@ -53,8 +53,6 @@ describe.skip("EasyAuction", async () => {
                     ethers.utils.parseEther("1"),
                     0,
                     0,
-                    60 * 30,
-                    60 * 30,
                     false
                 )
             ).to.be.revertedWith(
@@ -77,8 +75,6 @@ describe.skip("EasyAuction", async () => {
                     ethers.utils.parseEther("1"),
                     1,
                     0,
-                    60 * 30,
-                    60 * 30,
                     false
                 )
             ).to.be.revertedWith("cannot auction zero tokens");
@@ -99,8 +95,6 @@ describe.skip("EasyAuction", async () => {
                     0,
                     1,
                     0,
-                    60 * 30,
-                    60 * 30,
                     false
                 )
             ).to.be.revertedWith("tokens cannot be auctioned for free");
@@ -121,8 +115,6 @@ describe.skip("EasyAuction", async () => {
                     ethers.utils.parseEther("1"),
                     1,
                     0,
-                    60 * 30,
-                    60 * 30,
                     false
                 )
             ).to.be.revertedWith("time periods are not configured correctly");
@@ -146,8 +138,6 @@ describe.skip("EasyAuction", async () => {
                 ethers.utils.parseEther("1"),
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             expect(await easyAuction.tokenOut()).to.equal(tokenIn.address);
@@ -269,8 +259,6 @@ describe.skip("EasyAuction", async () => {
                 ethers.utils.parseEther("1"),
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await expect(
@@ -302,8 +290,6 @@ describe.skip("EasyAuction", async () => {
                 ethers.utils.parseEther("1"),
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await expect(() =>
@@ -339,8 +325,6 @@ describe.skip("EasyAuction", async () => {
                 ethers.utils.parseEther("1"),
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             const balanceBeforeOrderPlacement = await tokenIn.balanceOf(
@@ -393,8 +377,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 ethers.utils.parseEther("1").div(1000),
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await expect(
@@ -419,8 +401,6 @@ describe.skip("EasyAuction", async () => {
                 ethers.utils.parseEther("1"),
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             const orderTokenIn = ethers.utils.parseEther("1").add(1);
@@ -478,8 +458,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -515,8 +493,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -563,8 +539,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -622,8 +596,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -669,8 +641,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -724,8 +694,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -771,8 +739,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -828,8 +794,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -870,8 +834,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -918,8 +880,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -964,8 +924,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1016,8 +974,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1088,8 +1044,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
 
@@ -1170,8 +1124,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1252,8 +1204,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1306,8 +1256,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1367,8 +1315,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1430,8 +1376,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1488,8 +1432,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1539,8 +1481,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 ethers.utils.parseEther("5"),
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1597,8 +1537,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 ethers.utils.parseEther("5"),
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1638,8 +1576,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1687,8 +1623,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1746,8 +1680,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 ethers.utils.parseEther("5"),
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1790,8 +1722,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1844,8 +1774,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1925,8 +1853,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -1978,8 +1904,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2035,8 +1959,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2089,8 +2011,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2141,8 +2061,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2206,8 +2124,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2255,8 +2171,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 true
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2313,8 +2227,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2366,8 +2278,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2407,8 +2317,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2453,8 +2361,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2493,8 +2399,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2532,8 +2436,6 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await placeOrders(easyAuction, sellOrders, hre);
@@ -2567,139 +2469,12 @@ describe.skip("EasyAuction", async () => {
                 initialAuctionOrder.orderTokenIn,
                 1,
                 0,
-                60 * 20,
-                60 * 40,
                 false
             );
             await closeAuction(easyAuction);
             expect(
                 await easyAuction.callStatic.getSecondsRemainingInBatch()
             ).to.be.equal("0");
-        });
-    });
-    describe("setAuctionEndDate", async () => {
-        it("canot set endDate before gracePeriodEndDate", async () => {
-            const initialAuctionOrder = {
-                orderTokenIn: ethers.utils.parseEther("1"),
-                orderTokenOut: ethers.utils.parseEther("1"),
-                ownerId: BigNumber.from(0),
-            };
-            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-                easyAuction,
-                [user_1, user_2],
-                hre
-            );
-
-            await easyAuction.initAuction(
-                tokenIn.address,
-                tokenOut.address,
-                60 * 60,
-                initialAuctionOrder.orderTokenOut,
-                initialAuctionOrder.orderTokenIn,
-                1,
-                0,
-                60 * 20,
-                60 * 40,
-                false
-            );
-            await expect(
-                easyAuction.setAuctionEndDate((await getCurrentTime()) - 10)
-            ).to.be.revertedWith(
-                "cannot set endDate before gracePeriodEndDate"
-            );
-        });
-        it("canot set endDate out of grace period", async () => {
-            const initialAuctionOrder = {
-                orderTokenIn: ethers.utils.parseEther("1"),
-                orderTokenOut: ethers.utils.parseEther("1"),
-                ownerId: BigNumber.from(0),
-            };
-            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-                easyAuction,
-                [user_1, user_2],
-                hre
-            );
-
-            const currentTime = await getCurrentTime();
-            await easyAuction.initAuction(
-                tokenIn.address,
-                tokenOut.address,
-                60 * 60,
-                initialAuctionOrder.orderTokenOut,
-                initialAuctionOrder.orderTokenIn,
-                1,
-                0,
-                60 * 20,
-                60 * 40,
-                false
-            );
-            await increaseTime(3601);
-            await expect(
-                easyAuction.setAuctionEndDate(currentTime)
-            ).to.be.revertedWith("endDate must be between grace period");
-            await expect(
-                easyAuction.setAuctionEndDate((await getCurrentTime()) + 10)
-            ).to.be.revertedWith("endDate must be between grace period");
-        });
-        it("set endDate after grace period ends", async () => {
-            const initialAuctionOrder = {
-                orderTokenIn: ethers.utils.parseEther("1"),
-                orderTokenOut: ethers.utils.parseEther("1"),
-                ownerId: BigNumber.from(0),
-            };
-            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-                easyAuction,
-                [user_1, user_2],
-                hre
-            );
-
-            await easyAuction.initAuction(
-                tokenIn.address,
-                tokenOut.address,
-                60 * 60,
-                initialAuctionOrder.orderTokenOut,
-                initialAuctionOrder.orderTokenIn,
-                1,
-                0,
-                60 * 20,
-                60 * 40,
-                false
-            );
-            await increaseTime(3601);
-            const endDate = (await getCurrentTime()) - 10;
-            await easyAuction.setAuctionEndDate(endDate);
-            expect(await easyAuction.endDate()).to.equal(endDate);
-        });
-        it("can not set auction endDate twice", async () => {
-            const initialAuctionOrder = {
-                orderTokenIn: ethers.utils.parseEther("1"),
-                orderTokenOut: ethers.utils.parseEther("1"),
-                ownerId: BigNumber.from(0),
-            };
-            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-                easyAuction,
-                [user_1, user_2],
-                hre
-            );
-
-            await easyAuction.initAuction(
-                tokenIn.address,
-                tokenOut.address,
-                60 * 60,
-                initialAuctionOrder.orderTokenOut,
-                initialAuctionOrder.orderTokenIn,
-                1,
-                0,
-                60 * 20,
-                60 * 40,
-                false
-            );
-            await increaseTime(3601);
-            const endDate = (await getCurrentTime()) - 10;
-            await easyAuction.setAuctionEndDate(endDate);
-            await expect(
-                easyAuction.setAuctionEndDate((await getCurrentTime()) - 5)
-            ).to.be.revertedWith("auction end date already set");
         });
     });
     // describe("claimsFee", async () => {

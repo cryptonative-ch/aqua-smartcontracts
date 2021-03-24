@@ -20,7 +20,7 @@ contract EasyAuction {
 
     modifier atStageOrderPlacement() {
         require(
-            block.timestamp < gracePeriodEndDate,
+            block.timestamp < endDate,
             "no longer in order placement phase"
         );
         _;
@@ -28,7 +28,7 @@ contract EasyAuction {
 
     modifier atStageOrderPlacementAndCancelation() {
         require(
-            block.timestamp < orderCancellationEndDate || endDate != 0,
+            block.timestamp < orderCancellationEndDate,
             "no longer in order placement and cancelation phase"
         );
         _;
@@ -38,7 +38,8 @@ contract EasyAuction {
         {
             uint256 endDate = endDate;
             require(
-                endDate != 0 && clearingPriceOrder == bytes32(0),
+                block.timestamp >= endDate &&
+                clearingPriceOrder == bytes32(0),
                 "Auction not in solution submission phase"
             );
         }
@@ -70,8 +71,7 @@ contract EasyAuction {
         IERC20 indexed _tokenIn,
         IERC20 indexed _tokenOut,
         uint256 orderCancellationEndDate,
-        uint256 gracePeriodStartDate,
-        uint256 gracePeriodEndDate,
+        uint256 endDate,
         uint96 _totalTokenOutAmount,
         uint96 _minBidAmountToReceive,
         uint256 minimumBiddingAmountPerOrder,
@@ -100,8 +100,6 @@ contract EasyAuction {
     bool public isAtomicClosureAllowed;
     uint256 public feeNumerator;
     uint256 public minSellThreshold;
-    uint256 public gracePeriodStartDate;
-    uint256 public gracePeriodEndDate;
 
     IterableOrderedOrderSet.Data internal orders;
     IdToAddressBiMap.Data private registeredUsers;
@@ -121,12 +119,11 @@ contract EasyAuction {
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _orderCancelationPeriodDuration,
+        uint256 _duration,
         uint96 _totalTokenOutAmount, // total amount to sell
         uint96 _minBidAmountToReceive, // Minimum amount of biding token to receive at final point
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minSellThreshold,
-        uint256 _gracePeriodStartDuration,
-        uint256 _gracePeriodDuration,
         bool _isAtomicClosureAllowed
     ) public {
         uint64 ownerId = getUserId(msg.sender);
@@ -149,23 +146,18 @@ contract EasyAuction {
             "minimumBiddingAmountPerOrder is not allowed to be zero"
         );
 
-        gracePeriodStartDate = block.timestamp.add(_gracePeriodStartDuration);
-        gracePeriodEndDate = gracePeriodStartDate.add(_gracePeriodDuration);
-        uint256 _duration = _gracePeriodStartDuration.add(_gracePeriodDuration);
-        require(
-            _orderCancelationPeriodDuration <= _duration,
-            "time periods are not configured correctly"
-        );
         orders.initializeEmptyList();
 
         uint256 cancellationEndDate =
             block.timestamp + _orderCancelationPeriodDuration;
 
+        endDate = block.timestamp + _duration;
+
         tokenIn = _tokenIn;
         tokenOut = _tokenOut;
         orderCancellationEndDate = cancellationEndDate;
         auctionStartedDate = block.timestamp;
-        endDate = 0;
+
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             ownerId,
             _totalTokenOutAmount,
@@ -184,8 +176,7 @@ contract EasyAuction {
             _tokenIn,
             _tokenOut,
             orderCancellationEndDate,
-            gracePeriodStartDate,
-            gracePeriodEndDate,
+            endDate,
             _totalTokenOutAmount,
             _minBidAmountToReceive,
             _minimumBiddingAmountPerOrder,
@@ -214,14 +205,6 @@ contract EasyAuction {
 
         uint256 sumOrdersTokenIn = 0;
         ownerId = getUserId(msg.sender);
-        bytes32 extraInfo = bytes32(0);
-        if (block.timestamp > gracePeriodStartDate) {
-            extraInfo = IterableOrderedOrderSet.encodeOrder(
-                block.timestamp.sub(gracePeriodStartDate).toUint64(),
-                0,
-                0
-            );
-        }
         for (uint256 i = 0; i < _ordersTokenOut.length; i++) {
             require(
                 _ordersTokenOut[i].mul(minAmountToReceive) <
@@ -241,8 +224,7 @@ contract EasyAuction {
                         _ordersTokenOut[i],
                         _ordersTokenIn[i]
                     ),
-                    _prevOrders[i],
-                    extraInfo
+                    _prevOrders[i]
                 );
             if (success) {
                 sumOrdersTokenIn = sumOrdersTokenIn.add(_ordersTokenIn[i]);
@@ -258,17 +240,9 @@ contract EasyAuction {
     {
         uint64 ownerId = getUserId(msg.sender);
         uint256 claimableAmount = 0;
-        uint64 graceDuration =
-            endDate != 0 ? endDate.sub(gracePeriodStartDate).toUint64() : 0;
         for (uint256 i = 0; i < _orders.length; i++) {
-            // Note: we keep the back pointer of the deleted element so that
-            // it can be used as a reference point to insert a new node.
-            (uint64 periodFromGraceStart, , ) =
-                orders.extraInfo[_orders[i]].decodeOrder();
-            require(
-                graceDuration == 0 || periodFromGraceStart > graceDuration,
-                "Unable to cancel"
-            );
+        // Note: we keep the back pointer of the deleted element so that
+        // it can be used as a reference point to insert a new node.
             bool success = orders.removeKeepHistory(_orders[i]);
             if (success) {
                 (
@@ -351,7 +325,6 @@ contract EasyAuction {
                 _ordersTokenOut[0],
                 _ordersTokenIn[0]
             );
-        orders.extraInfo[_order] = bytes32(0);
         settleAuction();
     }
 
@@ -373,17 +346,11 @@ contract EasyAuction {
         uint256 orderTokenOut;
         uint256 orderTokenIn;
         uint96 fillVolumeOfAuctioneerOrder = fullAuctionAmountToSell;
-        uint64 graceDuration = endDate.sub(gracePeriodStartDate).toUint64();
         // Sum order up, until fullAuctionAmountToSell is fully bought or queue end is reached
         do {
             nextOrder = orders.next(nextOrder);
             if (nextOrder == IterableOrderedOrderSet.QUEUE_END) {
                 break;
-            }
-            (uint64 periodFromGraceStart, , ) =
-                orders.extraInfo[nextOrder].decodeOrder();
-            if (periodFromGraceStart > graceDuration) {
-                continue;
             }
             currentOrder = nextOrder;
             (, orderTokenOut, orderTokenIn) = currentOrder.decodeOrder();
@@ -597,26 +564,14 @@ contract EasyAuction {
     }
 
     function getSecondsRemainingInBatch() public view returns (uint256) {
-        if (gracePeriodEndDate <= block.timestamp) {
+        if (endDate <= block.timestamp) {
             return 0;
         }
-        return gracePeriodEndDate.sub(block.timestamp);
+        return endDate.sub(block.timestamp);
     }
 
     function containsOrder(bytes32 _order) public view returns (bool) {
         return orders.contains(_order);
     }
 
-    function setAuctionEndDate(uint256 _endDate) external {
-        require(endDate == 0, "auction end date already set");
-        require(
-            block.timestamp >= gracePeriodEndDate,
-            "cannot set endDate before gracePeriodEndDate"
-        );
-        require(
-            _endDate >= gracePeriodStartDate && _endDate <= gracePeriodEndDate,
-            "endDate must be between grace period"
-        );
-        endDate = _endDate;
-    }
 }

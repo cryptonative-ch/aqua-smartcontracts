@@ -8,7 +8,6 @@ export async function closeAuction(instance: Contract): Promise<void> {
         await instance.getSecondsRemainingInBatch()
     ).toNumber();
     await increaseTime(time_remaining + 1);
-    await instance.setAuctionEndDate((await getCurrentTime()) - 10);
 }
 
 export async function claimFromAllOrders(
