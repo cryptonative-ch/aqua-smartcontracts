@@ -115,7 +115,7 @@ contract TemplateLauncher is CloneFactory {
     }
 
     /// @dev allows to switch on/off public template registrations
-    /// @param restrictedTemplates turns on/off the option
+    /// @param _restrictedTemplates turns on/off the option
     function updateTemplateRestriction(bool _restrictedTemplates) external {
         require(msg.sender == IMesaFactory(factory).templateManager(), "TemplateLauncher: FORBIDDEN");
         restrictedTemplates = _restrictedTemplates;
