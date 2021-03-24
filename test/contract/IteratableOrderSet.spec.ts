@@ -130,15 +130,13 @@ describe("IterableOrderedOrderSet", function () {
         expect(
             await set.callStatic.insertAt(
                 BYTES32_TWO,
-                BYTES32_ONE,
-                BYTES32_ZERO
+                BYTES32_ONE
             )
         ).to.equal(true);
         expect(
             await set.callStatic.insertAt(
                 BYTES32_TWO,
-                BYTES32_THREE,
-                BYTES32_ZERO
+                BYTES32_THREE
             )
         ).to.equal(false);
     });
@@ -149,8 +147,7 @@ describe("IterableOrderedOrderSet", function () {
         expect(
             await set.callStatic.insertAt(
                 BYTES32_TWO,
-                BYTES32_ONE,
-                BYTES32_ZERO
+                BYTES32_ONE
             )
         ).to.equal(false);
     });
@@ -159,8 +156,7 @@ describe("IterableOrderedOrderSet", function () {
         expect(
             await set.callStatic.insertAt(
                 BYTES32_TWO,
-                BYTES32_THREE,
-                BYTES32_ZERO
+                BYTES32_THREE
             )
         ).to.equal(false);
     });
@@ -169,8 +165,7 @@ describe("IterableOrderedOrderSet", function () {
         await expect(
             set.callStatic.insertAt(
                 queueStartElement,
-                queueStartElement,
-                BYTES32_ZERO
+                queueStartElement
             )
         ).to.be.revertedWith("Inserting element is not valid");
     });
@@ -178,8 +173,7 @@ describe("IterableOrderedOrderSet", function () {
         await expect(
             set.callStatic.insertAt(
                 queueLastElement,
-                queueStartElement,
-                BYTES32_ZERO
+                queueStartElement
             )
         ).to.be.revertedWith("Inserting element is not valid");
     });
@@ -280,11 +274,10 @@ describe("IterableOrderedOrderSet", function () {
             expect(
                 await set.callStatic.insertAt(
                     BYTES32_THREE,
-                    BYTES32_TWO,
-                    BYTES32_ZERO
+                    BYTES32_TWO
                 )
             ).to.equal(true);
-            await set.insertAt(BYTES32_THREE, BYTES32_TWO, BYTES32_ZERO);
+            await set.insertAt(BYTES32_THREE, BYTES32_TWO);
 
             const first = await set.first();
             const second = await set.next(first);
@@ -319,7 +312,7 @@ describe("IterableOrderedOrderSet", function () {
             expect(await set.nextMap(BYTES32_THREE)).to.equal(
                 ethers.constants.Zero
             );
-            await set.insertAt(BYTES32_FOUR, BYTES32_TWO, BYTES32_ZERO);
+            await set.insertAt(BYTES32_FOUR, BYTES32_TWO);
             // 1 ─> 4 ─> 5
             // └──> 2
             // └──> 3
@@ -357,7 +350,7 @@ describe("IterableOrderedOrderSet", function () {
             expect(await set.nextMap(BYTES32_TWO)).to.equal(
                 ethers.constants.Zero
             );
-            await set.insertAt(BYTES32_FOUR, BYTES32_THREE, BYTES32_ZERO);
+            await set.insertAt(BYTES32_FOUR, BYTES32_THREE);
             // 1 ─> 4 ─> 5
             // └──> 2
             //      └──> 3
@@ -393,7 +386,7 @@ describe("IterableOrderedOrderSet", function () {
             expect(await set.prevMap(BYTES32_THREE)).to.equal(BYTES32_ONE);
             expect(await set.nextMap(BYTES32_THREE)).to.equal(BYTES32_FIVE);
 
-            await set.insertAt(BYTES32_FOUR, BYTES32_TWO, BYTES32_ZERO);
+            await set.insertAt(BYTES32_FOUR, BYTES32_TWO);
             // 1 ─> 3 ─> 4 ─> 5
             // └──> 2
             expect(await set.prevMap(BYTES32_FOUR)).to.equal(BYTES32_THREE);

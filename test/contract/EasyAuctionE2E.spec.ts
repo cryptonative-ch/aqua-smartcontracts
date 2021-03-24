@@ -28,12 +28,11 @@ describe("EasyAuction", async () => {
             tokenIn.address,
             tokenOut.address,
             60 * 60,
+            60 * 60,
             ethers.utils.parseEther("1000"),
             ethers.utils.parseEther("1000"),
             1,
             0,
-            60 * 20,
-            60 * 40,
             false
         );
 
