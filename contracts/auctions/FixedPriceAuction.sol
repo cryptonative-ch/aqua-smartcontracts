@@ -56,6 +56,17 @@ contract FixedPriceAuction {
 
     constructor() public {}
 
+    /// @dev internal setup function to initialize the template, called by init()
+    /// @param _tokenIn token to make the bid in
+    /// @param _tokenOut token to buy
+    /// @param _tokenPrice fixed token price 
+    /// @param _tokensForSale amount of tokens to be sold
+    /// @param _startDate start date
+    /// @param _endDate end date
+    /// @param _allocationMin minimum tokenOut to buy
+    /// @param _allocationMax maximum tokenOut to buy
+    /// @param _minimumRaise minimum amount an project is expected to raise
+    /// @param _owner owner of the sale
     function initAuction(
         IERC20 _tokenIn,
         IERC20 _tokenOut,
@@ -105,6 +116,8 @@ contract FixedPriceAuction {
         );
     }
 
+    /// @dev init function expexted to be called by AuctionLauncher to init the sale
+    /// @param _data encoded init params
     function init(bytes calldata _data) public {
         (
             IERC20 _tokenIn,
@@ -148,6 +161,8 @@ contract FixedPriceAuction {
         );
     }
 
+    /// @dev reserve tokens for a fixed price
+    /// @param amount of tokenIn to buy at a fixed price
     function buyTokens(uint256 amount) public {
         require(!isClosed, "FixedPriceAuction: auction closed");
         require(amount >= allocationMin, "FixedPriceAuction: amount to low");
@@ -166,6 +181,7 @@ contract FixedPriceAuction {
         emit NewPurchase(msg.sender, amount);
     }
 
+    /// @dev close sale if minRaise is reached
     function closeAuction() public {
         require(!isClosed, "FixedPriceAuction: already closed");
         require(
@@ -180,7 +196,7 @@ contract FixedPriceAuction {
         emit AuctionClosed();
     }
 
-    // realease tokenIn back to investors if minRaise not reached
+    /// @dev realease tokenIn back to investors if minimumRaise not reached
     function releaseTokens() public {
         require(minimumRaise > 0, "FixedPriceAuction: no minumumRaise");
         require(
@@ -189,7 +205,7 @@ contract FixedPriceAuction {
         );
         require(
             tokensPurchased[msg.sender] > 0,
-            "FixedPriceAuction: no tokens to release"
+            "FixedPriceAuction: no tokens purchased by this investor"
         );
         require(
             tokensSold < minimumRaise,
@@ -203,7 +219,7 @@ contract FixedPriceAuction {
         emit NewTokenRelease(msg.sender, tokensAmount);
     }
 
-    // let investors claim their auctioned tokens
+    /// @dev let investors claim their auctioned tokens
     function claimTokens() public {
         require(isClosed, "FixedPriceAuction: auction not closed");
         require(
@@ -220,6 +236,7 @@ contract FixedPriceAuction {
         emit NewTokenClaim(msg.sender, purchasedTokens);
     }
 
+    /// @dev withdraw collected funds
     function _withdrawFunds() internal {
         require(isClosed, "FixedPriceAuction: auction not closed");
 
@@ -230,10 +247,22 @@ contract FixedPriceAuction {
         );
     }
 
-    function withdrawFunds(bytes calldata _data) external onlyOwner() {
+    /// @dev withdraw collected funds
+    // version with calldata see below
+    function withdrawFunds() external onlyOwner() {
         _withdrawFunds();
     }
 
+
+    /// @dev withdraw collected funds
+    /// @param _data encoded params for future use with auctionLauncher
+    function withdrawFundsWithParams(bytes calldata _data) external onlyOwner() {
+        bytes calldata data = _data; //?? don't know if this is the right type,
+        _withdrawFunds();
+    }
+
+    /// @dev withdraw tokenOut which have no been sold
+    // ??? why not onlyOwner as in withdrawFunds. so everbody cancal this? (Thats okey in fact)
     function withdrawUnsoldFunds() external {
         require(isClosed, "FixedPriceAuction: auction not closed");
 
@@ -244,6 +273,10 @@ contract FixedPriceAuction {
         );
     }
 
+    /// @dev withdraw any ERC20 token by owner
+    /// @param token ERC20 token address
+    /// @param amount Amount to withdraw
+    // ??? to unstuck token which are sent to the contract by accident
     function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
@@ -252,6 +285,9 @@ contract FixedPriceAuction {
         TransferHelper.safeTransfer(token, owner, amount);
     }
 
+    /// @dev withdraw ETH token by owner
+    /// @param amount ETH amount to withdraw
+    // ??? to unstuck ETH which are sent to the contract by accident
     function ETHWithdraw(uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
@@ -260,10 +296,12 @@ contract FixedPriceAuction {
         TransferHelper.safeTransferETH(owner, amount);
     }
 
+    /// @dev to get remaining token at any point of the sale
     function tokensRemaining() public view returns (uint256) {
         return tokensForSale.sub(tokensSold);
     }
 
+    /// @dev to get the remaining time of the sale in seconds
     function secondsRemainingInAuction() public view returns (uint256) {
         if (endDate < block.timestamp) {
             return 0;
