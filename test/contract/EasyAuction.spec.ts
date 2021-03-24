@@ -28,7 +28,7 @@ import {
 // https://jamboard.google.com/d/1DMgMYCQQzsSLKPq_hlK3l32JNBbRdIhsOrLB1oHaEYY/edit?usp=sharing
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-describe("EasyAuction", async () => {
+describe.skip("EasyAuction", async () => {
     const [user_1, user_2, user_3] = waffle.provider.getWallets();
     let easyAuction: Contract;
     beforeEach(async () => {
@@ -38,10 +38,7 @@ describe("EasyAuction", async () => {
     });
     describe("initAuction", async () => {
         it("throws if minimumBiddingAmountPerOrder is zero", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -65,10 +62,7 @@ describe("EasyAuction", async () => {
             );
         });
         it("throws if auctioned amount is zero", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -90,10 +84,7 @@ describe("EasyAuction", async () => {
             ).to.be.revertedWith("cannot auction zero tokens");
         });
         it("throws if auction is a giveaway", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -115,10 +106,7 @@ describe("EasyAuction", async () => {
             ).to.be.revertedWith("tokens cannot be auctioned for free");
         });
         it("throws if auction periods do not make sense", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -140,10 +128,7 @@ describe("EasyAuction", async () => {
             ).to.be.revertedWith("time periods are not configured correctly");
         });
         it("initAuction stores the parameters correctly", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -165,12 +150,8 @@ describe("EasyAuction", async () => {
                 60 * 40,
                 false
             );
-            expect(await easyAuction.tokenOut()).to.equal(
-                tokenIn.address
-            );
-            expect(await easyAuction.tokenIn()).to.equal(
-                tokenIn.address
-            );
+            expect(await easyAuction.tokenOut()).to.equal(tokenIn.address);
+            expect(await easyAuction.tokenIn()).to.equal(tokenIn.address);
             expect(await easyAuction.initialAuctionOrder()).to.equal(
                 encodeOrder({
                     ownerId: BigNumber.from(1),
@@ -198,9 +179,9 @@ describe("EasyAuction", async () => {
             );
             expect(await easyAuction.volumeClearingPriceOrder()).to.be.equal(0);
 
-            expect(
-                await tokenOut.balanceOf(easyAuction.address)
-            ).to.equal(ethers.utils.parseEther("2"));
+            expect(await tokenOut.balanceOf(easyAuction.address)).to.equal(
+                ethers.utils.parseEther("2")
+            );
         });
     });
     describe("getUserId", async () => {
@@ -269,10 +250,7 @@ describe("EasyAuction", async () => {
         //   ).to.be.revertedWith("no longer in order placement phase");
         // });
         it("one can not place orders, with a worser or same rate", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -305,10 +283,7 @@ describe("EasyAuction", async () => {
             ).to.be.revertedWith("limit price not better than mimimal offer");
         });
         it("does not withdraw funds, if orders are placed twice", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -342,17 +317,10 @@ describe("EasyAuction", async () => {
                     [ethers.utils.parseEther("1")],
                     [queueStartElement]
                 )
-            ).to.changeTokenBalances(
-                tokenOut,
-                [user_1],
-                [BigNumber.from(0)]
-            );
+            ).to.changeTokenBalances(tokenOut, [user_1], [BigNumber.from(0)]);
         });
         it("places a new order and checks that tokens were transferred", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -405,10 +373,7 @@ describe("EasyAuction", async () => {
                 },
             ];
 
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -435,10 +400,7 @@ describe("EasyAuction", async () => {
             ).to.be.revertedWith("order too small");
         });
         it("fails, if transfers are failing", async () => {
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -496,10 +458,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -536,10 +495,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -588,10 +544,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -649,10 +602,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -699,10 +649,7 @@ describe("EasyAuction", async () => {
                 },
             ];
 
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -757,10 +704,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(3),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -807,10 +751,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -867,10 +808,7 @@ describe("EasyAuction", async () => {
                 },
             ];
 
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -912,10 +850,7 @@ describe("EasyAuction", async () => {
                 ownerId: BigNumber.from(0),
             };
 
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -963,10 +898,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1012,10 +944,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1067,10 +996,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(3),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -1142,10 +1068,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(3),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -1227,10 +1150,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(3),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -1312,10 +1232,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1369,10 +1286,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1433,10 +1347,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1499,10 +1410,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1560,10 +1468,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1614,10 +1519,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1668,10 +1570,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(3),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2, user_3],
                 hre
@@ -1720,10 +1619,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1771,10 +1667,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1833,10 +1726,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1880,10 +1770,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1937,10 +1824,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -1979,9 +1863,7 @@ describe("EasyAuction", async () => {
                         .sub(initialAuctionOrder.orderTokenIn)
                 )
                 .sub(1);
-            expect(receivedAmounts.tokenOutAmount).to.equal(
-                settledBuyAmount
-            );
+            expect(receivedAmounts.tokenOutAmount).to.equal(settledBuyAmount);
             expect(receivedAmounts.tokenInAmount).to.equal(
                 sellOrders[1].orderTokenIn
                     .sub(
@@ -2023,10 +1905,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2079,10 +1958,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2139,10 +2015,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2196,10 +2069,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2251,10 +2121,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2319,10 +2186,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2371,10 +2235,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2432,10 +2293,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2488,10 +2346,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2532,10 +2387,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2581,10 +2433,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2624,10 +2473,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(2),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2666,10 +2512,7 @@ describe("EasyAuction", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
@@ -2704,10 +2547,7 @@ describe("EasyAuction", async () => {
                 orderTokenOut: ethers.utils.parseEther("1"),
                 ownerId: BigNumber.from(0),
             };
-            const {
-                tokenIn,
-                tokenOut,
-            } = await createTokensAndMintAndApprove(
+            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
                 easyAuction,
                 [user_1, user_2],
                 hre
