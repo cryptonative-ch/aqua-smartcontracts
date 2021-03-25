@@ -176,7 +176,7 @@ contract FixedPriceAuction {
             "FixedPriceAuction: auction deadline passed"
         );
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
-        tokensPurchased[msg.sender] = amount;
+        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
         tokensSold = tokensSold.add(amount);
         emit NewPurchase(msg.sender, amount);
     }
