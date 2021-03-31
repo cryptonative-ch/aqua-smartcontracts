@@ -11,13 +11,13 @@ contract MesaFactory {
         address templateLauncher,
         uint256 templateFee,
         uint256 feeNumerator,
-        uint256 auctionFee
+        uint256 saleFee
     );
 
     event TemplateLaunched(address indexed template, uint256 templateId);
     event SetFeeTo(address indexed feeTo);
     event SetFeeNumerator(uint256 indexed feeNumerator);
-    event SetAuctionFee(uint256 indexed auctionFee);
+    event SetSaleFee(uint256 indexed saleFee);
     event SetTemplateFee(uint256 indexed templateFee);
     event SetFeeManager(address indexed feeManager);
     event SetTemplateManager(address indexed templateManager);
@@ -25,13 +25,13 @@ contract MesaFactory {
 
     uint256 public immutable feeDenominator = 1000;
     uint256 public feeNumerator;
-    uint256 public auctionFee;
+    uint256 public saleFee;
     address public feeTo;
     address public feeManager;
     address public templateManager;
     address public templateLauncher;
     uint256 public templateFee;
-    address[] public allAuctions;
+    address[] public allSales;
     uint256 public templateId;
     bool initalized = false;
 
@@ -44,7 +44,7 @@ contract MesaFactory {
     /// @param _templateLauncher address of the template launcher used to launch projects
     /// @param _templateFee fixed amount of native currency (ETH) to be paid for adding a template
     /// @param _feeNumerator fee that is token on depositing tokens
-    /// @param _auctionFee fixed amount of native currency (ETH) to be paid for launch a project
+    /// @param _saleFee fixed amount of native currency (ETH) to be paid for launch a project
     function initalize(
         address _feeManager,
         address _feeTo,
@@ -52,7 +52,7 @@ contract MesaFactory {
         address _templateLauncher,
         uint256 _templateFee,
         uint256 _feeNumerator,
-        uint256 _auctionFee
+        uint256 _saleFee
     ) public {
         require(!initalized, "MesaFactory: ALREADY_INITIALIZED");
         feeManager = _feeManager;
@@ -61,7 +61,7 @@ contract MesaFactory {
         templateManager = _templateManager;
         templateLauncher = _templateLauncher;
         templateFee = _templateFee;
-        auctionFee = _auctionFee;
+        saleFee = _saleFee;
 
         emit FactoryInitialized(
             _feeManager,
@@ -70,7 +70,7 @@ contract MesaFactory {
             _templateLauncher,
             _templateFee,
             _feeNumerator,
-            _auctionFee
+            _saleFee
         );
     }
 
@@ -80,14 +80,14 @@ contract MesaFactory {
     function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
         payable
-        returns (address newAuction)
+        returns (address newSale)
     {
-        newAuction = ITemplateLauncher(templateLauncher).launchTemplate.value(msg.value)(
+        newSale = ITemplateLauncher(templateLauncher).launchTemplate.value(msg.value)(
             _templateId,
             _data
         );
-        emit TemplateLaunched(newAuction, _templateId);
-        allAuctions.push(newAuction);
+        emit TemplateLaunched(newSale, _templateId);
+        allSales.push(newSale);
     }
 
     /// @dev governance function to change the fee recipient
@@ -106,12 +106,12 @@ contract MesaFactory {
         emit SetFeeNumerator(_feeNumerator);
     }
 
-    /// @dev governance function to change the auction fee
-    /// @param _auctionFee new auction fee amount
-    function setAuctionFee(uint256 _auctionFee) external {
+    /// @dev governance function to change the sale fee
+    /// @param _saleFee new sale fee amount
+    function setSaleFee(uint256 _saleFee) external {
         require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
-        auctionFee = _auctionFee;
-        emit SetAuctionFee(_auctionFee);
+        saleFee = _saleFee;
+        emit SetSaleFee(_saleFee);
     }
 
     /// @dev governance function to change the template fee
@@ -146,7 +146,7 @@ contract MesaFactory {
         emit SetTemplateLauncher(_templateLauncher);
     }
 
-    function numberOfAuctions() external view returns (uint256) {
-        return allAuctions.length;
+    function numberOfSales() external view returns (uint256) {
+        return allSales.length;
     }
 }

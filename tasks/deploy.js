@@ -12,7 +12,7 @@ task(
   )
   .addParam("feeNumerator", "Amount of fees")
   .addParam("weth", "Address of WETH")
-  .addParam("auctionFee", "Fixed fee to create auctions")
+  .addParam("saleFee", "Fixed fee to create auctions")
   .addParam("templateManager", "The address which is able to manage templates")
   .addParam("templateFee", "The fee which is taken to register a template")
   .addFlag(
@@ -24,7 +24,7 @@ task(
         feeManager,
         feeTo,
         feeNumerator,
-        auctionFee,
+        saleFee,
         templateManager,
         templateFee,
         verify,
@@ -40,11 +40,11 @@ task(
 
       const mesaFactory = await MesaFactory.new();
 
-      const AuctionLauncher = hre.artifacts.require(
-          "contracts/auctions/AuctionLauncher.sol:AuctionLauncher"
+      const SaleLauncher = hre.artifacts.require(
+          "contracts/sale/SaleLauncher.sol:SaleLauncher"
       );
 
-      const auctionLauncher = await AuctionLauncher.new(
+      const saleLauncher = await SaleLauncher.new(
         mesaFactory.address,
       );
 
@@ -64,7 +64,7 @@ task(
         templateLauncher.address,
         templateFee,
         feeNumerator,
-        auctionFee
+        saleFee
       );
 
       // Deploy EasyAuction
@@ -73,18 +73,18 @@ task(
       );
       const easyAuction = await EasyAuction.new();
 
-       // Deploy FixedPriceAuction
-       const FixedPriceAuction = hre.artifacts.require(
-        "FixedPriceAuction"
+       // Deploy FixedPriceSale
+       const FixedPriceSale = hre.artifacts.require(
+        "FixedPriceSale"
       );
-      const fixedPriceAuction = await FixedPriceAuction.new();
+      const fixedPriceSale = await FixedPriceSale.new();
 
-      // Register EasyAuction & FixedPriceAuction in AuctionLauncher
-      const auctionLaunch1 = await auctionLauncher.addTemplate(easyAuction.address);
-      const auctionLaunch2 = await auctionLauncher.addTemplate(fixedPriceAuction.address);
+      // Register EasyAuction & FixedPriceSale in SaleLauncher
+      const saleLaunch1 = await saleLauncher.addTemplate(easyAuction.address);
+      const saleLaunch2 = await saleLauncher.addTemplate(fixedPriceSale.address);
 
-      const auction1 = auctionLaunch1.receipt.logs[0].args.templateId;
-      const auction2 = auctionLaunch2.receipt.logs[0].args.templateId;
+      const sale1 = saleLaunch1.receipt.logs[0].args.templateId;
+      const sale2 = saleLaunch2.receipt.logs[0].args.templateId;
 
       // Deploy EasyAuctionTemplate
       const EasyAuctionTemplate = hre.artifacts.require(
@@ -93,8 +93,8 @@ task(
       
       const easyAuctionTemplate = await EasyAuctionTemplate.new(
          weth,
-         auctionLauncher.address,
-         auction1
+         saleLauncher.address,
+         sale1
       );
       
       // Register EasyAuctionTemplate on TemplateLauncher
@@ -111,11 +111,11 @@ task(
           });
 
           await hre.run("verify", {
-            address: fixedPriceAuction.address,
+            address: fixedPriceSale.address,
           });
 
           await hre.run("verify:verify", {
-            address: auctionLauncher.address,
+            address: saleLauncher.address,
             constructorArguments: [mesaFactory.address,],
           });
 
@@ -128,7 +128,7 @@ task(
             address: easyAuctionTemplate.address,
             constructorArguments: [
               weth,
-              auctionLauncher.address,
+              saleLauncher.address,
               "1",
             ],
           });
@@ -141,7 +141,7 @@ task(
       );
 
       console.log(
-          `AuctionLauncher deployed at address ${auctionLauncher.address}`
+          `SaleLauncher deployed at address ${saleLauncher.address}`
       );
 
       console.log(`TemplateLauncher deployed at address ${templateLauncher.address}`);

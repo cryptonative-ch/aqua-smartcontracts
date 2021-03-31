@@ -3,60 +3,58 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../interfaces/IAuction.sol";
+import "../interfaces/ISale.sol";
 import "../interfaces/IMesaFactory.sol";
 import "../libraries/TransferHelper.sol";
 import "../utils/cloneFactory.sol";
 
-contract AuctionLauncher is CloneFactory {
+contract SaleLauncher is CloneFactory {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    struct Auction {
+    struct Sale {
         bool exists;
         uint64 templateId;
         uint128 index;
     }
 
-    address[] public auctions;
-    uint256 public auctionTemplateId;
-    mapping(uint256 => address) private auctionTemplates;
-    mapping(address => uint256) private auctionauctionTemplateToId;
-    mapping(address => Auction) public auctionInfo;
+    address[] public sales;
+    uint256 public saleTemplateId;
+    mapping(uint256 => address) private saleTemplates;
+    mapping(address => uint256) private saleTemplateToId;
+    mapping(address => Sale) public saleInfo;
 
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
-    event AuctionLaunched(address indexed auction, uint256 templateId);
-    event AuctionInitialized(
-        address indexed auction,
+    event SaleLaunched(address indexed sale, uint256 templateId);
+    event SaleInitialized(
+        address indexed sale,
         uint256 templateId,
         bytes data
     );
 
     address public factory;
 
-    mapping(address => uint256) private auctionTemplateToId;
-
     constructor(address _factory) public {
         factory = _factory;
     }
 
-    function createAuction(
+    function createSale(
         uint256 _templateId,
         address _token,
         uint256 _tokenSupply,
         bytes calldata _data
-    ) external payable returns (address newAuction) {
+    ) external payable returns (address newSale) {
         require(
-            msg.value >= IMesaFactory(factory).auctionFee(),
-            "AuctionCreator: AUCTION_FEE_NOT_PROVIDED"
+            msg.value >= IMesaFactory(factory).saleFee(),
+            "SaleLauncher: SALE_FEE_NOT_PROVIDED"
         );
         require(
-            auctionTemplates[_templateId] != address(0),
-            "AuctionCreator: INVALID_TEMPLATE"
+            saleTemplates[_templateId] != address(0),
+            "SaleLauncher: INVALID_TEMPLATE"
         );
 
-        newAuction = _deployAuction(_templateId);
+        newSale = _deploySale(_templateId);
 
         if (_tokenSupply > 0) {
             uint256 feeDenominator = IMesaFactory(factory).feeDenominator();
@@ -73,59 +71,59 @@ contract AuctionLauncher is CloneFactory {
                 address(this),
                 depositAmount
             );
-            TransferHelper.safeApprove(_token, newAuction, _tokenSupply);
+            TransferHelper.safeApprove(_token, newSale, _tokenSupply);
             TransferHelper.safeTransfer(
                 _token,
                 IMesaFactory(factory).feeTo(),
                 depositAmount.sub(_tokenSupply)
             );
         }
-        //IAuction(newAuction).initAuction(_data);
-        emit AuctionInitialized(newAuction, _templateId, _data);
-        return address(newAuction);
+        //ISale(newSale).initSale(_data);
+        emit SaleInitialized(newSale, _templateId, _data);
+        return address(newSale);
     }
 
-    function _deployAuction(uint256 _templateId)
+    function _deploySale(uint256 _templateId)
         internal
-        returns (address newAuction)
+        returns (address newSale)
     {
-        newAuction = createClone(auctionTemplates[_templateId]);
-        auctionInfo[address(newAuction)] = Auction(
+        newSale = createClone(saleTemplates[_templateId]);
+        saleInfo[address(newSale)] = Sale(
             true,
             uint64(_templateId),
-            uint128(auctions.length)
+            uint128(sales.length)
         );
-        auctions.push(address(newAuction));
-        emit AuctionLaunched(address(newAuction), _templateId);
-        return address(newAuction);
+        sales.push(address(newSale));
+        emit SaleLaunched(address(newSale), _templateId);
+        return address(newSale);
     }
 
     function addTemplate(address _template) external returns (uint256) {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
-            "AuctionCreator: FORBIDDEN"
+            "SaleLauncher: FORBIDDEN"
         );
         require(
-            auctionTemplateToId[_template] == 0,
-            "AuctionCreator: TEMPLATE_DUPLICATE"
+            saleTemplateToId[_template] == 0,
+            "SaleLauncher: TEMPLATE_DUPLICATE"
         );
 
-        auctionTemplateId++;
-        auctionTemplates[auctionTemplateId] = _template;
-        auctionTemplateToId[_template] = auctionTemplateId;
-        emit TemplateAdded(_template, auctionTemplateId);
-        return auctionTemplateId;
+        saleTemplateId++;
+        saleTemplates[saleTemplateId] = _template;
+        saleTemplateToId[_template] = saleTemplateId;
+        emit TemplateAdded(_template, saleTemplateId);
+        return saleTemplateId;
     }
 
     function removeTemplate(uint256 _templateId) external {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
-            "AuctionCreator: FORBIDDEN"
+            "SaleLauncher: FORBIDDEN"
         );
-        require(auctionTemplates[_templateId] != address(0));
-        address template = auctionTemplates[_templateId];
-        auctionTemplates[_templateId] = address(0);
-        delete auctionTemplateToId[template];
+        require(saleTemplates[_templateId] != address(0));
+        address template = saleTemplates[_templateId];
+        saleTemplates[_templateId] = address(0);
+        delete saleTemplateToId[template];
         emit TemplateRemoved(template, _templateId);
     }
 
@@ -134,11 +132,11 @@ contract AuctionLauncher is CloneFactory {
         view
         returns (address template)
     {
-        return auctionTemplates[_templateId];
+        return saleTemplates[_templateId];
     }
 
     function getTemplateId(address _template) public view returns (uint256) {
-        return auctionTemplateToId[_template];
+        return saleTemplateToId[_template];
     }
 
     function getDepositAmountWithFees(uint256 _tokenSupply)
@@ -154,7 +152,7 @@ contract AuctionLauncher is CloneFactory {
             );
     }
 
-    function numberOfAuctions() public view returns (uint256) {
-        return auctions.length;
+    function numberOfSales() public view returns (uint256) {
+        return sales.length;
     }
 }

@@ -21,7 +21,7 @@ contract TemplateLauncher is CloneFactory {
     mapping(address => uint256) private templateToId;
     mapping(address => Template) public templateInfo;
 
-    event TemplateLaunched(address indexed auction, uint256 templateId);
+    event TemplateLaunched(address indexed sale, uint256 templateId);
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
@@ -44,7 +44,7 @@ contract TemplateLauncher is CloneFactory {
     {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
         require(
-            msg.value >= IMesaFactory(factory).auctionFee(),
+            msg.value >= IMesaFactory(factory).saleFee(),
             "TemplateLauncher: AUCTION_FEE_NOT_PROVIDED"
         );
         require(

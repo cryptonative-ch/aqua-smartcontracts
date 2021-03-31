@@ -7,7 +7,7 @@ import { mineBlock, expandTo18Decimals } from "./utilities";
 
 describe("TemplateLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
-    let auctionLauncher: Contract;
+    let saleLauncher: Contract;
     let mesaFactory: Contract;
     let templateLauncher: Contract;
     let weth: Contract;
@@ -93,11 +93,11 @@ describe("TemplateLauncher", async () => {
             0
         );
 
-        const AuctionLauncher = await ethers.getContractFactory(
-            "AuctionLauncher"
+        const SaleLauncher = await ethers.getContractFactory(
+            "SaleLauncher"
         );
 
-        auctionLauncher = await AuctionLauncher.deploy(mesaFactory.address);
+        saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
 
         const WETH = await ethers.getContractFactory("WETH10");
 
@@ -114,17 +114,17 @@ describe("TemplateLauncher", async () => {
 
         easyAuctionTemplate = await EasyAuctionTemplate.deploy(
             weth.address,
-            auctionLauncher.address,
+            saleLauncher.address,
             1
         );
 
         easyAuctionTemplateDefault = await EasyAuctionTemplate.deploy(
             weth.address,
-            auctionLauncher.address,
+            saleLauncher.address,
             1
         );
 
-        defaultTemplate = await auctionLauncher.addTemplate(
+        defaultTemplate = await saleLauncher.addTemplate(
             easyAuctionTemplateDefault.address
         );
     });
@@ -281,7 +281,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("throws if trying to launch template without providing fee", async () => {
-            await mesaFactory.setAuctionFee(500);
+            await mesaFactory.setSaleFee(500);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -302,7 +302,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("allows to launch a template through factory", async () => {
-          await mesaFactory.setAuctionFee(500);
+          await mesaFactory.setSaleFee(500);
 
           await templateLauncher.addTemplate(
             easyAuctionTemplateDefault.address
