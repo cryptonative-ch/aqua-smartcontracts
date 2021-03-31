@@ -5,9 +5,9 @@ import "@nomiclabs/hardhat-ethers";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
 
-describe("AuctionLauncher", async () => {
+describe("SaleLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
-    let auctionLauncher: Contract;
+    let saleLauncher: Contract;
     let mesaFactory: Contract;
     let templateLauncher: Contract;
     let weth: Contract;
@@ -93,11 +93,11 @@ describe("AuctionLauncher", async () => {
             0
         );
 
-        const AuctionLauncher = await ethers.getContractFactory(
-            "AuctionLauncher"
+        const SaleLauncher = await ethers.getContractFactory(
+            "SaleLauncher"
         );
 
-        auctionLauncher = await AuctionLauncher.deploy(mesaFactory.address);
+        saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
 
         const WETH = await ethers.getContractFactory("WETH10");
 
@@ -114,57 +114,57 @@ describe("AuctionLauncher", async () => {
 
         easyAuctionTemplate = await EasyAuctionTemplate.deploy(
             weth.address,
-            auctionLauncher.address,
+            saleLauncher.address,
             1
         );
 
         easyAuctionTemplateDefault = await EasyAuctionTemplate.deploy(
             weth.address,
-            auctionLauncher.address,
+            saleLauncher.address,
             1
         );
 
-        defaultTemplate = await auctionLauncher.addTemplate(
+        defaultTemplate = await saleLauncher.addTemplate(
             easyAuctionTemplateDefault.address
         );
     });
     describe("adding templates", async () => {
         it("throws if template added by non-admin", async () => {
             await expect(
-                auctionLauncher
+                saleLauncher
                     .connect(user_2)
                     .addTemplate(easyAuctionTemplate.address)
-            ).to.be.revertedWith("AuctionCreator: FORBIDDEN");
+            ).to.be.revertedWith("SaleLauncher: FORBIDDEN");
         });
 
         it("throws if template is added twice", async () => {
-            await auctionLauncher.addTemplate(easyAuctionTemplate.address);
+            await saleLauncher.addTemplate(easyAuctionTemplate.address);
             await expect(
-                auctionLauncher.addTemplate(easyAuctionTemplate.address)
-            ).to.be.revertedWith("AuctionCreator: TEMPLATE_DUPLICATE");
+                saleLauncher.addTemplate(easyAuctionTemplate.address)
+            ).to.be.revertedWith("SaleLauncher: TEMPLATE_DUPLICATE");
         });
 
         it("allows template manager to add new templates", async () => {
             expect(
-                await auctionLauncher.getTemplateId(easyAuctionTemplate.address)
+                await saleLauncher.getTemplateId(easyAuctionTemplate.address)
             ).to.be.equal(0);
 
             await expect(
-                auctionLauncher.addTemplate(easyAuctionTemplate.address)
+                saleLauncher.addTemplate(easyAuctionTemplate.address)
             )
-                .to.emit(auctionLauncher, "TemplateAdded")
+                .to.emit(saleLauncher, "TemplateAdded")
                 .withArgs(easyAuctionTemplate.address, 2);
 
             expect(
-                await auctionLauncher.getTemplateId(easyAuctionTemplate.address)
+                await saleLauncher.getTemplateId(easyAuctionTemplate.address)
             ).to.be.equal(2);
 
-            expect(await auctionLauncher.getTemplate(2)).to.be.equal(
+            expect(await saleLauncher.getTemplate(2)).to.be.equal(
                 easyAuctionTemplate.address
             );
 
             expect(
-                await auctionLauncher.getDepositAmountWithFees(10000)
+                await saleLauncher.getDepositAmountWithFees(10000)
             ).to.be.equal(10000);
         });
     });
@@ -172,19 +172,19 @@ describe("AuctionLauncher", async () => {
     describe("removing templates", async () => {
         it("throws if template removed by non-admin", async () => {
             await expect(
-                auctionLauncher.connect(user_2).removeTemplate(1)
-            ).to.be.revertedWith("AuctionCreator: FORBIDDEN");
+                saleLauncher.connect(user_2).removeTemplate(1)
+            ).to.be.revertedWith("SaleLauncher: FORBIDDEN");
         });
 
         it("allows template manager to remove templates", async () => {
-            await auctionLauncher.addTemplate(easyAuctionTemplate.address);
-            await expect(auctionLauncher.removeTemplate(2))
-                .to.emit(auctionLauncher, "TemplateRemoved")
+            await saleLauncher.addTemplate(easyAuctionTemplate.address);
+            await expect(saleLauncher.removeTemplate(2))
+                .to.emit(saleLauncher, "TemplateRemoved")
                 .withArgs(easyAuctionTemplate.address, 2);
         });
     });
 
-    describe("launching auctions", async () => {
+    describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
             const initData = await encodeInitData(
                 tokenA.address,
@@ -200,17 +200,17 @@ describe("AuctionLauncher", async () => {
             );
 
             await expect(
-                auctionLauncher.createAuction(
+                saleLauncher.createSale(
                     3,
                     tokenA.address,
                     10000,
                     initData
                 )
-            ).to.be.revertedWith("AuctionCreator: INVALID_TEMPLATE");
+            ).to.be.revertedWith("SaleLauncher: INVALID_TEMPLATE");
         });
 
-        it("throws if trying to launch auction without providing auction fee", async () => {
-            await mesaFactory.setAuctionFee(500);
+        it("throws if trying to launch sales without providing sales fee", async () => {
+            await mesaFactory.setSaleFee(500);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -226,19 +226,19 @@ describe("AuctionLauncher", async () => {
             );
 
             await expect(
-                auctionLauncher.createAuction(
+                saleLauncher.createSale(
                     1,
                     tokenA.address,
                     10000,
                     initData
                 )
-            ).to.be.revertedWith("AuctionCreator: AUCTION_FEE_NOT_PROVIDED");
+            ).to.be.revertedWith("SaleLauncher: SALE_FEE_NOT_PROVIDED");
         });
 
-        it("allows to create new auctions", async () => {
-            await mesaFactory.setAuctionFee(500);
+        it("allows to create new sales", async () => {
+            await mesaFactory.setSaleFee(500);
 
-            expect(await auctionLauncher.numberOfAuctions()).to.be.equal(0);
+            expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -253,9 +253,9 @@ describe("AuctionLauncher", async () => {
                 templateManager.address
             );
 
-            await tokenA.approve(auctionLauncher.address, 10000);
+            await tokenA.approve(saleLauncher.address, 10000);
 
-            await auctionLauncher.createAuction(
+            await saleLauncher.createSale(
                 1,
                 tokenA.address,
                 10000,
@@ -265,7 +265,7 @@ describe("AuctionLauncher", async () => {
                 }
             );
 
-            expect(await auctionLauncher.numberOfAuctions()).to.be.equal(1);
+            expect(await saleLauncher.numberOfSales()).to.be.equal(1);
         });
     });
 });

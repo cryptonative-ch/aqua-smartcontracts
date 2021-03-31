@@ -4,16 +4,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../interfaces/IAuctionCreator.sol";
 import "../libraries/TransferHelper.sol";
 
-contract FixedPriceAuction {
+contract FixedPriceSale {
     using SafeERC20 for IERC20;
     using SafeMath for uint64;
     using SafeMath for uint96;
     using SafeMath for uint256;
 
-    event AuctionInitalized(
+    event SaleInitalized(
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 tokenPrice,
@@ -31,9 +30,9 @@ contract FixedPriceAuction {
 
     event NewTokenRelease(address indexed buyer, uint256 indexed amount);
 
-    event AuctionClosed();
+    event SaleClosed();
 
-    string public constant templateName = "FixedPriceAuction";
+    string public constant templateName = "FixedPriceSale";
     address public owner;
     IERC20 public tokenIn;
     IERC20 public tokenOut;
@@ -50,7 +49,7 @@ contract FixedPriceAuction {
     mapping(address => uint256) public tokensPurchased;
 
     modifier onlyOwner {
-        require(msg.sender == owner, "FixedPriceAuction: FORBIDDEN");
+        require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
     }
 
@@ -67,7 +66,7 @@ contract FixedPriceAuction {
     /// @param _allocationMax maximum tokenOut to buy
     /// @param _minimumRaise minimum amount an project is expected to raise
     /// @param _owner owner of the sale
-    function initAuction(
+    function initSale(
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _tokenPrice,
@@ -79,16 +78,16 @@ contract FixedPriceAuction {
         uint256 _minimumRaise,
         address _owner
     ) internal {
-        require(_tokenIn != _tokenOut, "FixedPriceAuction: invalid tokens");
-        require(_tokenPrice > 0, "FixedPriceAuction: invalid tokenPrice");
-        require(_tokensForSale > 0, "FixedPriceAuction: invalid tokensForSale");
+        require(_tokenIn != _tokenOut, "FixedPriceSale: invalid tokens");
+        require(_tokenPrice > 0, "FixedPriceSale: invalid tokenPrice");
+        require(_tokensForSale > 0, "FixedPriceSale: invalid tokensForSale");
         require(
             _startDate > block.timestamp || _startDate == 0,
-            "FixedPriceAuction: invalid startDate"
+            "FixedPriceSale: invalid startDate"
         );
         require(
             _endDate > _startDate || _endDate == 0,
-            "FixedPriceAuction: invalid endDate"
+            "FixedPriceSale: invalid endDate"
         );
         tokenIn = _tokenIn;
         tokenOut = _tokenOut;
@@ -103,7 +102,7 @@ contract FixedPriceAuction {
         isClosed = false;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
 
-        emit AuctionInitalized(
+        emit SaleInitalized(
             _tokenIn,
             _tokenOut,
             _tokenPrice,
@@ -116,7 +115,7 @@ contract FixedPriceAuction {
         );
     }
 
-    /// @dev init function expexted to be called by AuctionLauncher to init the sale
+    /// @dev init function expexted to be called by SaleLauncher to init the sale
     /// @param _data encoded init params
     function init(bytes calldata _data) public {
         (
@@ -147,7 +146,7 @@ contract FixedPriceAuction {
                 )
             );
 
-        initAuction(
+        initSale(
             _tokenIn,
             _tokenOut,
             _tokenPrice,
@@ -164,16 +163,16 @@ contract FixedPriceAuction {
     /// @dev reserve tokens for a fixed price
     /// @param amount of tokenIn to buy at a fixed price
     function buyTokens(uint256 amount) public {
-        require(!isClosed, "FixedPriceAuction: auction closed");
-        require(amount >= allocationMin, "FixedPriceAuction: amount to low");
+        require(!isClosed, "FixedPriceSale: sale closed");
+        require(amount >= allocationMin, "FixedPriceSale: amount to low");
         require(
             allocationMax == 0 ||
                 tokensPurchased[msg.sender].add(amount) <= allocationMax,
-            "FixedPriceAuction: allocationMax reached"
+            "FixedPriceSale: allocationMax reached"
         );
         require(
             block.timestamp < endDate,
-            "FixedPriceAuction: auction deadline passed"
+            "FixedPriceSale: deadline passed"
         );
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
         tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
@@ -182,34 +181,34 @@ contract FixedPriceAuction {
     }
 
     /// @dev close sale if minRaise is reached
-    function closeAuction() public {
-        require(!isClosed, "FixedPriceAuction: already closed");
+    function closeSale() public {
+        require(!isClosed, "FixedPriceSale: already closed");
         require(
             block.timestamp > endDate,
-            "FixedPriceAuction: endDate not passed"
+            "FixedPriceSale: endDate not passed"
         );
         require(
             tokensSold >= minimumRaise,
-            "FixedPriceAuction: minumumRaise not reached"
+            "FixedPriceSale: minumumRaise not reached"
         );
         isClosed = true;
-        emit AuctionClosed();
+        emit SaleClosed();
     }
 
     /// @dev realease tokenIn back to investors if minimumRaise not reached
     function releaseTokens() public {
-        require(minimumRaise > 0, "FixedPriceAuction: no minumumRaise");
+        require(minimumRaise > 0, "FixedPriceSale: no minumumRaise");
         require(
             block.timestamp > endDate,
-            "FixedPriceAuction: endDate not passed"
+            "FixedPriceSale: endDate not passed"
         );
         require(
             tokensPurchased[msg.sender] > 0,
-            "FixedPriceAuction: no tokens purchased by this investor"
+            "FixedPriceSale: no tokens purchased by this investor"
         );
         require(
             tokensSold < minimumRaise,
-            "FixedPriceAuction: minumumRaise reached"
+            "FixedPriceSale: minumumRaise reached"
         );
 
         uint256 tokensAmount = tokensPurchased[msg.sender];
@@ -219,12 +218,12 @@ contract FixedPriceAuction {
         emit NewTokenRelease(msg.sender, tokensAmount);
     }
 
-    /// @dev let investors claim their auctioned tokens
+    /// @dev let investors claim their purchased tokens
     function claimTokens() public {
-        require(isClosed, "FixedPriceAuction: auction not closed");
+        require(isClosed, "FixedPriceSale: sale not closed");
         require(
             tokensPurchased[msg.sender] > 0,
-            "FixedPriceAuction: no tokens to claim"
+            "FixedPriceSale: no tokens to claim"
         );
         uint256 purchasedTokens = tokensPurchased[msg.sender];
         tokensPurchased[msg.sender] = 0;
@@ -238,7 +237,7 @@ contract FixedPriceAuction {
 
     /// @dev withdraw collected funds
     function _withdrawFunds() internal {
-        require(isClosed, "FixedPriceAuction: auction not closed");
+        require(isClosed, "FixedPriceSale: sale not closed");
 
         TransferHelper.safeTransfer(
             address(tokenIn),
@@ -255,7 +254,7 @@ contract FixedPriceAuction {
 
 
     /// @dev withdraw collected funds
-    /// @param _data encoded params for future use with auctionLauncher
+    /// @param _data encoded params for future use with saleLauncher
     function withdrawFundsWithParams(bytes calldata _data) external onlyOwner() {
         bytes calldata data = _data; //?? don't know if this is the right type,
         _withdrawFunds();
@@ -264,7 +263,7 @@ contract FixedPriceAuction {
     /// @dev withdraw tokenOut which have no been sold
     // ??? why not onlyOwner as in withdrawFunds. so everbody cancal this? (Thats okey in fact)
     function withdrawUnsoldFunds() external {
-        require(isClosed, "FixedPriceAuction: auction not closed");
+        require(isClosed, "FixedPriceSale: sale not closed");
 
         TransferHelper.safeTransfer(
             address(tokenOut),
@@ -280,7 +279,7 @@ contract FixedPriceAuction {
     function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
-            "FixedPriceAuction: auction not ended"
+            "FixedPriceSale: sale not ended"
         );
         TransferHelper.safeTransfer(token, owner, amount);
     }
@@ -291,7 +290,7 @@ contract FixedPriceAuction {
     function ETHWithdraw(uint256 amount) external onlyOwner() {
         require(
             block.timestamp > endDate,
-            "FixedPriceAuction: auction not ended"
+            "FixedPriceSale: sale not ended"
         );
         TransferHelper.safeTransferETH(owner, amount);
     }
@@ -302,7 +301,7 @@ contract FixedPriceAuction {
     }
 
     /// @dev to get the remaining time of the sale in seconds
-    function secondsRemainingInAuction() public view returns (uint256) {
+    function secondsRemainingInSale() public view returns (uint256) {
         if (endDate < block.timestamp) {
             return 0;
         }

@@ -5,10 +5,10 @@ import hre, { ethers, waffle } from "hardhat";
 import { mineBlock, expandTo18Decimals } from "./utilities";
 import "@nomiclabs/hardhat-ethers";
 
-describe("FixedPriceAuction", async () => {
+describe("FixedPriceSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
-    let fixedPriceAuction: Contract;
-    let auctionIntialized: Contract;
+    let fixedPriceSale: Contract;
+    let saleIntialized: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let currentBlockNumber, currentBlock;
@@ -68,21 +68,21 @@ describe("FixedPriceAuction", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const FixedPriceAuction = await ethers.getContractFactory(
-            "FixedPriceAuction"
+        const FixedPriceSale = await ethers.getContractFactory(
+            "FixedPriceSale"
         );
 
         const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
 
-        fixedPriceAuction = await FixedPriceAuction.deploy();
-        auctionIntialized = await FixedPriceAuction.deploy();
+        fixedPriceSale = await FixedPriceSale.deploy();
+        saleIntialized = await FixedPriceSale.deploy();
 
         tokenA = await ERC20.deploy("tokenA", "tokA");
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
         await tokenA.mint(user_1.address, BigNumber.from(10).pow(30));
         await tokenB.mint(user_1.address, BigNumber.from(10).pow(30));
-        await tokenB.approve(auctionIntialized.address, defaultTokensForSale);
+        await tokenB.approve(saleIntialized.address, defaultTokensForSale);
 
         const initData = await encodeInitData(
             tokenA.address,
@@ -97,9 +97,9 @@ describe("FixedPriceAuction", async () => {
             user_1.address
         );
 
-        await auctionIntialized.init(initData);
+        await saleIntialized.init(initData);
     });
-    describe("initiate auction", async () => {
+    describe("initiate sale", async () => {
         it("throws if token is used for both tokenIn and tokenOut", async () => {
             const initData = await encodeInitData(
                 tokenA.address,
@@ -114,8 +114,8 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData)).to.be.revertedWith(
-                "FixedPriceAuction: invalid tokens"
+            await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
+                "FixedPriceSale: invalid tokens"
             );
         });
 
@@ -133,8 +133,8 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData)).to.be.revertedWith(
-                "FixedPriceAuction: invalid tokenPrice"
+            await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
+                "FixedPriceSale: invalid tokenPrice"
             );
         });
 
@@ -152,8 +152,8 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData)).to.be.revertedWith(
-                "FixedPriceAuction: invalid tokensForSale"
+            await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
+                "FixedPriceSale: invalid tokensForSale"
             );
         });
 
@@ -171,8 +171,8 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData)).to.be.revertedWith(
-                "FixedPriceAuction: invalid startDate"
+            await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
+                "FixedPriceSale: invalid startDate"
             );
         });
 
@@ -190,13 +190,13 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData)).to.be.revertedWith(
-                "FixedPriceAuction: invalid endDate"
+            await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
+                "FixedPriceSale: invalid endDate"
             );
         });
 
-        it("initializes auction", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("initializes sale", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -211,8 +211,8 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await expect(fixedPriceAuction.init(initData))
-                .to.emit(fixedPriceAuction, "AuctionInitalized")
+            await expect(fixedPriceSale.init(initData))
+                .to.emit(fixedPriceSale, "SaleInitalized")
                 .withArgs(
                     tokenA.address,
                     tokenB.address,
@@ -227,7 +227,7 @@ describe("FixedPriceAuction", async () => {
                 .to.emit(tokenB, "Transfer")
                 .withArgs(
                     user_1.address,
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     defaultTokensForSale
                 );
         });
@@ -236,25 +236,25 @@ describe("FixedPriceAuction", async () => {
     describe("purchasig tokens", async () => {
         it("throws trying to purchase less tokens then allocationMin", async () => {
             await expect(
-                auctionIntialized.buyTokens(expandTo18Decimals(1))
-            ).to.be.revertedWith("FixedPriceAuction: amount to low");
+                saleIntialized.buyTokens(expandTo18Decimals(1))
+            ).to.be.revertedWith("FixedPriceSale: amount to low");
         });
 
         it("throws trying to purchase more tokens then allocationMax", async () => {
             await expect(
-                auctionIntialized.buyTokens(expandTo18Decimals(11))
-            ).to.be.revertedWith("FixedPriceAuction: allocationMax reached");
+                saleIntialized.buyTokens(expandTo18Decimals(11))
+            ).to.be.revertedWith("FixedPriceSale: allocationMax reached");
         });
 
         it("throws trying to purchase tokens after endDate", async () => {
-            await mineBlock(defaultEndDate + 100);
+            await mineBlock(defaultEndDate + 1000);
             await expect(
-                auctionIntialized.buyTokens(expandTo18Decimals(10))
-            ).to.be.revertedWith("FixedPriceAuction: auction deadline passed");
+                saleIntialized.buyTokens(expandTo18Decimals(10))
+            ).to.be.revertedWith("FixedPriceSale: deadline passed");
         });
 
-        it("throws trying to purchase after auction is closed", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to purchase after sale is closed", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -269,52 +269,52 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate + 100);
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
             await expect(
-                fixedPriceAuction.buyTokens(expandTo18Decimals(10))
-            ).to.be.revertedWith("FixedPriceAuction: auction closed");
+                fixedPriceSale.buyTokens(expandTo18Decimals(10))
+            ).to.be.revertedWith("FixedPriceSale: sale closed");
         });
 
         it("allows to purchase tokens", async () => {
             await tokenA.approve(
-                auctionIntialized.address,
+                saleIntialized.address,
                 expandTo18Decimals(10)
             );
 
-            expect(await auctionIntialized.tokensRemaining()).to.be.equal(
+            expect(await saleIntialized.tokensRemaining()).to.be.equal(
                 defaultTokensForSale
             );
 
-            await expect(auctionIntialized.buyTokens(expandTo18Decimals(10)))
-                .to.emit(auctionIntialized, "NewPurchase")
+            await expect(saleIntialized.buyTokens(expandTo18Decimals(10)))
+                .to.emit(saleIntialized, "NewPurchase")
                 .withArgs(user_1.address, expandTo18Decimals(10))
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
                     user_1.address,
-                    auctionIntialized.address,
+                    saleIntialized.address,
                     expandTo18Decimals(10)
                 );
 
-            expect(await auctionIntialized.tokensRemaining()).to.be.equal(
+            expect(await saleIntialized.tokensRemaining()).to.be.equal(
                 expandTo18Decimals(1990)
             );
 
             await mineBlock(defaultEndDate - 100);
             expect(
-                await auctionIntialized.secondsRemainingInAuction()
+                await saleIntialized.secondsRemainingInSale()
             ).to.be.equal(100);
 
             await mineBlock(defaultEndDate + 100);
             expect(
-                await auctionIntialized.secondsRemainingInAuction()
+                await saleIntialized.secondsRemainingInSale()
             ).to.be.equal(0);
         });
         it("allows the same investor repeted purchase of tokens", async () => {
 
-            await tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            await tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -329,73 +329,73 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
 
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(9)
             );
 
 
-            expect(await fixedPriceAuction.tokensRemaining()).to.be.equal(
+            expect(await fixedPriceSale.tokensRemaining()).to.be.equal(
                 defaultTokensForSale
             );
 
-            await expect(fixedPriceAuction.buyTokens(expandTo18Decimals(2)))
-                .to.emit(fixedPriceAuction, "NewPurchase")
+            await expect(fixedPriceSale.buyTokens(expandTo18Decimals(2)))
+                .to.emit(fixedPriceSale, "NewPurchase")
                 .withArgs(user_1.address, expandTo18Decimals(2))
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
                     user_1.address,
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     expandTo18Decimals(2)
             );
 
-            await expect(fixedPriceAuction.buyTokens(expandTo18Decimals(3)))
-                .to.emit(fixedPriceAuction, "NewPurchase")
+            await expect(fixedPriceSale.buyTokens(expandTo18Decimals(3)))
+                .to.emit(fixedPriceSale, "NewPurchase")
                 .withArgs(user_1.address, expandTo18Decimals(3))
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
                     user_1.address,
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     expandTo18Decimals(3)
                 );
 
-            await expect(fixedPriceAuction.buyTokens(expandTo18Decimals(4)))
-                .to.emit(fixedPriceAuction, "NewPurchase")
+            await expect(fixedPriceSale.buyTokens(expandTo18Decimals(4)))
+                .to.emit(fixedPriceSale, "NewPurchase")
                 .withArgs(user_1.address, expandTo18Decimals(4))
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
                     user_1.address,
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     expandTo18Decimals(4)
                 );
 
-            expect(await fixedPriceAuction.tokensRemaining()).to.be.equal(
+            expect(await fixedPriceSale.tokensRemaining()).to.be.equal(
                 expandTo18Decimals(1991)
             );
 
             await mineBlock(defaultEndDate - 100);
             expect(
-                await fixedPriceAuction.secondsRemainingInAuction()
+                await fixedPriceSale.secondsRemainingInSale()
             ).to.be.equal(100);
 
             await mineBlock(defaultEndDate + 100);
             expect(
-                await fixedPriceAuction.secondsRemainingInAuction()
+                await fixedPriceSale.secondsRemainingInSale()
             ).to.be.equal(0);
 
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.claimTokens())
-                .to.emit(fixedPriceAuction, "NewTokenClaim")
+            await expect(fixedPriceSale.claimTokens())
+                .to.emit(fixedPriceSale, "NewTokenClaim")
                 .withArgs(user_1.address, expandTo18Decimals(9));
         });
     });
 
-    describe("closing auction", async () => {
-        it("throws trying to close auction twice", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+    describe("closing sale", async () => {
+        it("throws trying to close sale twice", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -410,19 +410,19 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate + 100);
-            await expect(fixedPriceAuction.closeAuction()).to.emit(
-                fixedPriceAuction,
-                "AuctionClosed"
+            await expect(fixedPriceSale.closeSale()).to.emit(
+                fixedPriceSale,
+                "SaleClosed"
             );
-            await expect(fixedPriceAuction.closeAuction()).to.be.revertedWith(
-                "FixedPriceAuction: already closed"
+            await expect(fixedPriceSale.closeSale()).to.be.revertedWith(
+                "FixedPriceSale: already closed"
             );
         });
 
-        it("throws trying to close auction before endDate", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to close sale before endDate", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -437,15 +437,15 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate - 10);
-            await expect(fixedPriceAuction.closeAuction()).to.be.revertedWith(
-                "FixedPriceAuction: endDate not passed"
+            await expect(fixedPriceSale.closeSale()).to.be.revertedWith(
+                "FixedPriceSale: endDate not passed"
             );
         });
 
-        it("throws trying to close auction without minumumRaise reached", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to close sale without minumumRaise reached", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -460,15 +460,15 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate + 100);
-            await expect(fixedPriceAuction.closeAuction()).to.be.revertedWith(
-                "FixedPriceAuction: minumumRaise not reached"
+            await expect(fixedPriceSale.closeSale()).to.be.revertedWith(
+                "FixedPriceSale: minumumRaise not reached"
             );
         });
 
-        it("allows closing auction", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("allows closing sale", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -483,24 +483,24 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
             await mineBlock(defaultEndDate + 100);
 
-            await expect(fixedPriceAuction.closeAuction()).to.emit(
-                fixedPriceAuction,
-                "AuctionClosed"
+            await expect(fixedPriceSale.closeSale()).to.emit(
+                fixedPriceSale,
+                "SaleClosed"
             );
         });
     });
 
-    describe("releasing tokens for auctions not reached raise goal", async () => {
-        it("throws trying to release tokens for auctions without minRaise", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+    describe("releasing tokens for sale not reached raise goal", async () => {
+        it("throws trying to release tokens for sales without minRaise", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -515,19 +515,19 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
-            await expect(fixedPriceAuction.releaseTokens()).to.be.revertedWith(
-                "FixedPriceAuction: no minumumRaise"
+            await expect(fixedPriceSale.releaseTokens()).to.be.revertedWith(
+                "FixedPriceSale: no minumumRaise"
             );
         });
-        it("throws trying to release tokens for auctions before endDate passed", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to release tokens for sales before endDate passed", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -542,20 +542,20 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
-            await expect(fixedPriceAuction.releaseTokens()).to.be.revertedWith(
-                "FixedPriceAuction: endDate not passed"
+            await expect(fixedPriceSale.releaseTokens()).to.be.revertedWith(
+                "FixedPriceSale: endDate not passed"
             );
         });
 
-        it("throws trying to release tokens for auctions if no tokens purchased", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to release tokens for sales if no tokens purchased", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -570,15 +570,15 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate + 100);
-            await expect(fixedPriceAuction.releaseTokens()).to.be.revertedWith(
-                "FixedPriceAuction: no tokens purchased by this investor"
+            await expect(fixedPriceSale.releaseTokens()).to.be.revertedWith(
+                "FixedPriceSale: no tokens purchased by this investor"
             );
         });
 
-        it("throws trying to release tokens for auctions if no tokens purchased", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("throws trying to release tokens for sales if no tokens purchased", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -593,21 +593,21 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
 
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
             await mineBlock(defaultEndDate + 100);
-            await expect(fixedPriceAuction.releaseTokens()).to.be.revertedWith(
-                "FixedPriceAuction: minumumRaise reached"
+            await expect(fixedPriceSale.releaseTokens()).to.be.revertedWith(
+                "FixedPriceSale: minumumRaise reached"
             );
         });
 
         it("allows releasing tokens back to investor if minRaise was not reached", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -622,28 +622,28 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
             await mineBlock(defaultEndDate + 100);
-            await expect(fixedPriceAuction.releaseTokens())
-                .to.emit(fixedPriceAuction, "NewTokenRelease")
+            await expect(fixedPriceSale.releaseTokens())
+                .to.emit(fixedPriceSale, "NewTokenRelease")
                 .withArgs(user_1.address, expandTo18Decimals(10));
         });
     });
 
     describe("claiming tokens & withdrawing funds", async () => {
-        it("throws trying to claim tokens for auction is closed", async () => {
-            await expect(auctionIntialized.claimTokens()).to.be.revertedWith(
-                "FixedPriceAuction: auction not closed"
+        it("throws trying to claim tokens for sale is closed", async () => {
+            await expect(saleIntialized.claimTokens()).to.be.revertedWith(
+                "FixedPriceSale: sale not closed"
             );
         });
 
         it("throws trying to claim tokens without purchase", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -658,17 +658,17 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await mineBlock(defaultEndDate + 100);
-            await fixedPriceAuction.closeAuction();
-            await expect(fixedPriceAuction.claimTokens()).to.be.revertedWith(
-                "FixedPriceAuction: no tokens to claim"
+            await fixedPriceSale.closeSale();
+            await expect(fixedPriceSale.claimTokens()).to.be.revertedWith(
+                "FixedPriceSale: no tokens to claim"
             );
         });
 
-        it("allows claiming tokens after auction closing with 3 purchase", async () => {
+        it("allows claiming tokens after sale closing with 3 purchase", async () => {
             
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -683,25 +683,25 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(2));
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(3));
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(4));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(2));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(3));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(4));
 
             await mineBlock(defaultEndDate + 100);
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.claimTokens())
-                .to.emit(fixedPriceAuction, "NewTokenClaim")
+            await expect(fixedPriceSale.claimTokens())
+                .to.emit(fixedPriceSale, "NewTokenClaim")
                 .withArgs(user_1.address, expandTo18Decimals(9));
         });
 
-        it("allows claiming tokens after auction closing", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+        it("allows claiming tokens after sale closing", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -716,22 +716,22 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
             await mineBlock(defaultEndDate + 100);
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.claimTokens())
-                .to.emit(fixedPriceAuction, "NewTokenClaim")
+            await expect(fixedPriceSale.claimTokens())
+                .to.emit(fixedPriceSale, "NewTokenClaim")
                 .withArgs(user_1.address, expandTo18Decimals(10));
         });
         it("allows withdrawing unsold tokens", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -746,34 +746,34 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
             await mineBlock(defaultEndDate + 100);
 
             await expect(
-                fixedPriceAuction.withdrawUnsoldFunds()
-            ).to.be.revertedWith("FixedPriceAuction: auction not closed");
+                fixedPriceSale.withdrawUnsoldFunds()
+            ).to.be.revertedWith("FixedPriceSale: sale not closed");
 
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            const remainingTokes = await fixedPriceAuction.tokensRemaining();
+            const remainingTokes = await fixedPriceSale.tokensRemaining();
 
-            await expect(fixedPriceAuction.withdrawUnsoldFunds())
+            await expect(fixedPriceSale.withdrawUnsoldFunds())
                 .to.emit(tokenB, "Transfer")
                 .withArgs(
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     user_1.address,
                     remainingTokes
                 );
         });
 
         it("allows withdrawing funds", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -788,25 +788,25 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
             await mineBlock(defaultEndDate + 100);
 
             await expect(
-                fixedPriceAuction.withdrawFunds()
-            ).to.be.revertedWith("FixedPriceAuction: auction not closed");
+                fixedPriceSale.withdrawFunds()
+            ).to.be.revertedWith("FixedPriceSale: sale not closed");
 
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.withdrawFunds())
+            await expect(fixedPriceSale.withdrawFunds())
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     user_1.address,
                     expandTo18Decimals(10)
                 );
@@ -814,7 +814,7 @@ describe("FixedPriceAuction", async () => {
 
 
         it("allows withdrawing funds with params", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const calldata = "0x";
 
@@ -831,32 +831,32 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
 
             await mineBlock(defaultEndDate + 100);
 
             await expect(
-                fixedPriceAuction.withdrawFundsWithParams(calldata)
-            ).to.be.revertedWith("FixedPriceAuction: auction not closed");
+                fixedPriceSale.withdrawFundsWithParams(calldata)
+            ).to.be.revertedWith("FixedPriceSale: sale not closed");
 
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.withdrawFundsWithParams(calldata))
+            await expect(fixedPriceSale.withdrawFundsWithParams(calldata))
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     user_1.address,
                     expandTo18Decimals(10)
                 );
         });
 
         it("allows only owner to withdraw ERC20", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -871,47 +871,47 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
             await tokenA.transfer(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
 
             await expect(
-                fixedPriceAuction.ERC20Withdraw(
+                fixedPriceSale.ERC20Withdraw(
                     tokenA.address,
                     expandTo18Decimals(1)
                 )
-            ).to.be.revertedWith("FixedPriceAuction: auction not ended");
+            ).to.be.revertedWith("FixedPriceSale: sale not ended");
 
             await mineBlock(defaultEndDate + 100);
 
             await expect(
-                fixedPriceAuction
+                fixedPriceSale
                     .connect(user_2)
                     .ERC20Withdraw(tokenA.address, expandTo18Decimals(1))
-            ).to.be.revertedWith("FixedPriceAuction: FORBIDDEN");
+            ).to.be.revertedWith("FixedPriceSale: FORBIDDEN");
 
             await expect(
-                fixedPriceAuction.ERC20Withdraw(
+                fixedPriceSale.ERC20Withdraw(
                     tokenA.address,
                     expandTo18Decimals(1)
                 )
             )
                 .to.emit(tokenA, "Transfer")
                 .withArgs(
-                    fixedPriceAuction.address,
+                    fixedPriceSale.address,
                     user_1.address,
                     expandTo18Decimals(1)
                 );
         });
 
         it("allows only owner to withdraw ETH", async () => {
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -926,26 +926,26 @@ describe("FixedPriceAuction", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
 
             await user_1.sendTransaction({
-                to: fixedPriceAuction.address,
+                to: fixedPriceSale.address,
                 value: expandTo18Decimals(10),
             });
 
             await expect(
-                fixedPriceAuction.ETHWithdraw(expandTo18Decimals(1))
-            ).to.be.revertedWith("FixedPriceAuction: auction not ended");
+                fixedPriceSale.ETHWithdraw(expandTo18Decimals(1))
+            ).to.be.revertedWith("FixedPriceSale: sale not ended");
 
             await mineBlock(defaultEndDate + 100);
 
             await expect(
-                fixedPriceAuction
+                fixedPriceSale
                     .connect(user_2)
                     .ETHWithdraw(expandTo18Decimals(1))
-            ).to.be.revertedWith("FixedPriceAuction: FORBIDDEN");
+            ).to.be.revertedWith("FixedPriceSale: FORBIDDEN");
             const balanceBefore = await user_1.getBalance();
-            await fixedPriceAuction.ETHWithdraw(expandTo18Decimals(1));
+            await fixedPriceSale.ETHWithdraw(expandTo18Decimals(1));
             expect(await user_1.getBalance()).to.be.above(balanceBefore);
         });
     });

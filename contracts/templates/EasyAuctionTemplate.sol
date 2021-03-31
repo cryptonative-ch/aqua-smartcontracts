@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../interfaces/IAuctionLauncher.sol";
+import "../interfaces/ISaleLauncher.sol";
 import "../libraries/TransferHelper.sol";
 import "../interfaces/IMesaFactory.sol";
 import "../interfaces/IWETH10.sol";
@@ -27,7 +27,7 @@ contract EasyAuctionTemplate {
     string public constant templateName = "EasyAuctionTemplate";
     IAuction public auction;
     IWETH10 public WETH;
-    IAuctionLauncher public auctionLauncher;
+    ISaleLauncher public saleLauncher;
     IMesaFactory public mesaFactory;
     uint256 public auctionTemplateId;
     bool initialized = false;
@@ -44,13 +44,13 @@ contract EasyAuctionTemplate {
 
     constructor(
         address _WETH,
-        address _auctionLauncher,
+        address _saleLauncher,
         uint256 _auctionTemplateId
     ) public {
         WETH = IWETH10(_WETH);
-        auctionLauncher = IAuctionLauncher(_auctionLauncher);
+        saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(
-            IAuctionLauncher(_auctionLauncher).factory()
+            ISaleLauncher(_saleLauncher).factory()
         );
         auctionTemplateId = _auctionTemplateId;
     }
@@ -94,7 +94,7 @@ contract EasyAuctionTemplate {
             );
 
         uint256 depositAmount =
-            auctionLauncher.getDepositAmountWithFees(_tokenOutSupply);
+            saleLauncher.getDepositAmountWithFees(_tokenOutSupply);
 
         initialized = true;
 
@@ -106,17 +106,17 @@ contract EasyAuctionTemplate {
             depositAmount
         );
 
-        // approve deposited tokens on auctionLauncher
+        // approve deposited tokens on saleLauncher
         TransferHelper.safeApprove(
             _tokenOut,
-            address(auctionLauncher),
+            address(saleLauncher),
             depositAmount
         );
 
         // deploys & initializes new auction
 
         /*
-        newAuction = auctionLauncher.createAuction(
+        newAuction = saleLauncher.createAuction(
             auctionTemplateId,
             _tokenOut,
             _tokenOutSupply,
