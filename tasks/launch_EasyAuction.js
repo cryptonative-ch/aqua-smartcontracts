@@ -1,6 +1,6 @@
 const { task } = require("hardhat/config");
 
-task("launchEasyAuction", "Starts a new auction from EasyAuction template")
+task("launchFairSale", "Starts a new auction from FairSale template")
         .addParam(
             "auctioningToken",
             "The ERC20's address of the token that should be sold"
@@ -51,7 +51,7 @@ task("launchEasyAuction", "Starts a new auction from EasyAuction template")
             const [caller] = await hardhatRuntime.ethers.getSigners();
             console.log("Using the account:", caller.address);
 
-            const easyAuction = await getEasyAuctionContract(hardhatRuntime);
+            const fairSale = await getFairSaleContract(hardhatRuntime);
             const biddingToken = await hardhatRuntime.ethers.getContractAt(
                 "ERC20",
                 taskArgs.biddingToken
@@ -77,23 +77,23 @@ task("launchEasyAuction", "Starts a new auction from EasyAuction template")
                 await biddingToken.callStatic.decimals()
             );
 
-            console.log("Using EasyAuction deployed to:", easyAuction.address);
+            console.log("Using FairSale deployed to:", fairSale.address);
 
             const allowance = await auctioningToken.callStatic.allowance(
                 caller.address,
-                easyAuction.address
+                fairSale.address
             );
             if (sellAmountsInAtoms.gt(allowance)) {
                 console.log("Approving tokens:");
                 const tx = await auctioningToken
                     .connect(caller)
-                    .approve(easyAuction.address, sellAmountsInAtoms);
+                    .approve(fairSale.address, sellAmountsInAtoms);
                 await tx.wait();
                 console.log("Done");
             }
 
             console.log("Starting Auction:");
-            const tx = await easyAuction
+            const tx = await fairSale
                 .connect(caller)
                 .initiateAuction(
                     auctioningToken.address,

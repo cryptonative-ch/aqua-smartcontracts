@@ -11,8 +11,8 @@ describe("SaleLauncher", async () => {
     let mesaFactory: Contract;
     let templateLauncher: Contract;
     let weth: Contract;
-    let easyAuctionTemplate: Contract;
-    let easyAuctionTemplateDefault: Contract;
+    let fairSaleTemplate: Contract;
+    let fairSaleTemplateDefault: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let defaultTemplate: String;
@@ -108,24 +108,24 @@ describe("SaleLauncher", async () => {
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const EasyAuctionTemplate = await ethers.getContractFactory(
-            "EasyAuctionTemplate"
+        const FairSaleTemplate = await ethers.getContractFactory(
+            "FairSaleTemplate"
         );
 
-        easyAuctionTemplate = await EasyAuctionTemplate.deploy(
+        fairSaleTemplate = await FairSaleTemplate.deploy(
             weth.address,
             saleLauncher.address,
             1
         );
 
-        easyAuctionTemplateDefault = await EasyAuctionTemplate.deploy(
+        fairSaleTemplateDefault = await FairSaleTemplate.deploy(
             weth.address,
             saleLauncher.address,
             1
         );
 
         defaultTemplate = await saleLauncher.addTemplate(
-            easyAuctionTemplateDefault.address
+            fairSaleTemplateDefault.address
         );
     });
     describe("adding templates", async () => {
@@ -133,34 +133,34 @@ describe("SaleLauncher", async () => {
             await expect(
                 saleLauncher
                     .connect(user_2)
-                    .addTemplate(easyAuctionTemplate.address)
+                    .addTemplate(fairSaleTemplate.address)
             ).to.be.revertedWith("SaleLauncher: FORBIDDEN");
         });
 
         it("throws if template is added twice", async () => {
-            await saleLauncher.addTemplate(easyAuctionTemplate.address);
+            await saleLauncher.addTemplate(fairSaleTemplate.address);
             await expect(
-                saleLauncher.addTemplate(easyAuctionTemplate.address)
+                saleLauncher.addTemplate(fairSaleTemplate.address)
             ).to.be.revertedWith("SaleLauncher: TEMPLATE_DUPLICATE");
         });
 
         it("allows template manager to add new templates", async () => {
             expect(
-                await saleLauncher.getTemplateId(easyAuctionTemplate.address)
+                await saleLauncher.getTemplateId(fairSaleTemplate.address)
             ).to.be.equal(0);
 
             await expect(
-                saleLauncher.addTemplate(easyAuctionTemplate.address)
+                saleLauncher.addTemplate(fairSaleTemplate.address)
             )
                 .to.emit(saleLauncher, "TemplateAdded")
-                .withArgs(easyAuctionTemplate.address, 2);
+                .withArgs(fairSaleTemplate.address, 2);
 
             expect(
-                await saleLauncher.getTemplateId(easyAuctionTemplate.address)
+                await saleLauncher.getTemplateId(fairSaleTemplate.address)
             ).to.be.equal(2);
 
             expect(await saleLauncher.getTemplate(2)).to.be.equal(
-                easyAuctionTemplate.address
+                fairSaleTemplate.address
             );
 
             expect(
@@ -177,10 +177,10 @@ describe("SaleLauncher", async () => {
         });
 
         it("allows template manager to remove templates", async () => {
-            await saleLauncher.addTemplate(easyAuctionTemplate.address);
+            await saleLauncher.addTemplate(fairSaleTemplate.address);
             await expect(saleLauncher.removeTemplate(2))
                 .to.emit(saleLauncher, "TemplateRemoved")
-                .withArgs(easyAuctionTemplate.address, 2);
+                .withArgs(fairSaleTemplate.address, 2);
         });
     });
 

@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers";
 import { ethers } from "ethers";
 import { task, types } from "hardhat/config";
 
-import { getEasyAuctionContract } from "./utils";
+import { getFairSaleContract } from "./utils";
 
 const initiateAuction: () => void = () => {
     task("initiateAuction", "Starts a new auction")
@@ -57,7 +57,7 @@ const initiateAuction: () => void = () => {
             const [caller] = await hardhatRuntime.ethers.getSigners();
             console.log("Using the account:", caller.address);
 
-            const easyAuction = await getEasyAuctionContract(hardhatRuntime);
+            const fairSale = await getFairSaleContract(hardhatRuntime);
             const biddingToken = await hardhatRuntime.ethers.getContractAt(
                 "ERC20",
                 taskArgs.biddingToken
@@ -83,23 +83,23 @@ const initiateAuction: () => void = () => {
                 await biddingToken.callStatic.decimals()
             );
 
-            console.log("Using EasyAuction deployed to:", easyAuction.address);
+            console.log("Using FairSale deployed to:", fairSale.address);
 
             const allowance = await auctioningToken.callStatic.allowance(
                 caller.address,
-                easyAuction.address
+                fairSale.address
             );
             if (sellAmountsInAtoms.gt(allowance)) {
                 console.log("Approving tokens:");
                 const tx = await auctioningToken
                     .connect(caller)
-                    .approve(easyAuction.address, sellAmountsInAtoms);
+                    .approve(fairSale.address, sellAmountsInAtoms);
                 await tx.wait();
                 console.log("Done");
             }
 
             console.log("Starting Auction:");
-            const tx = await easyAuction
+            const tx = await fairSale
                 .connect(caller)
                 .initiateAuction(
                     auctioningToken.address,

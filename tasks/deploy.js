@@ -67,11 +67,11 @@ task(
         saleFee
       );
 
-      // Deploy EasyAuction
-      const EasyAuction = hre.artifacts.require(
-        "EasyAuction"
+      // Deploy FairSale
+      const FairSale = hre.artifacts.require(
+        "FairSale"
       );
-      const easyAuction = await EasyAuction.new();
+      const fairSale = await FairSale.new();
 
        // Deploy FixedPriceSale
        const FixedPriceSale = hre.artifacts.require(
@@ -79,26 +79,26 @@ task(
       );
       const fixedPriceSale = await FixedPriceSale.new();
 
-      // Register EasyAuction & FixedPriceSale in SaleLauncher
-      const saleLaunch1 = await saleLauncher.addTemplate(easyAuction.address);
+      // Register FairSale & FixedPriceSale in SaleLauncher
+      const saleLaunch1 = await saleLauncher.addTemplate(fairSale.address);
       const saleLaunch2 = await saleLauncher.addTemplate(fixedPriceSale.address);
 
       const sale1 = saleLaunch1.receipt.logs[0].args.templateId;
       const sale2 = saleLaunch2.receipt.logs[0].args.templateId;
 
-      // Deploy EasyAuctionTemplate
-      const EasyAuctionTemplate = hre.artifacts.require(
-        "EasyAuctionTemplate"
+      // Deploy FairSaleTemplate
+      const FairSaleTemplate = hre.artifacts.require(
+        "FairSaleTemplate"
       );
       
-      const easyAuctionTemplate = await EasyAuctionTemplate.new(
+      const fairSaleTemplate = await FairSaleTemplate.new(
          weth,
          saleLauncher.address,
          sale1
       );
       
-      // Register EasyAuctionTemplate on TemplateLauncher
-      await templateLauncher.addTemplate(easyAuctionTemplate.address);
+      // Register FairSaleTemplate on TemplateLauncher
+      await templateLauncher.addTemplate(fairSaleTemplate.address);
 
       if (verify) {
 
@@ -107,7 +107,7 @@ task(
           });
 
           await hre.run("verify", {
-            address: easyAuction.address,
+            address: fairSale.address,
           });
 
           await hre.run("verify", {
@@ -125,7 +125,7 @@ task(
           });
 
           await hre.run("verify:verify", {
-            address: easyAuctionTemplate.address,
+            address: fairSaleTemplate.address,
             constructorArguments: [
               weth,
               saleLauncher.address,

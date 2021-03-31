@@ -11,8 +11,8 @@ describe("TemplateLauncher", async () => {
     let mesaFactory: Contract;
     let templateLauncher: Contract;
     let weth: Contract;
-    let easyAuctionTemplate: Contract;
-    let easyAuctionTemplateDefault: Contract;
+    let fairSaleTemplate: Contract;
+    let fairSaleTemplateDefault: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let defaultTemplate: String;
@@ -108,24 +108,24 @@ describe("TemplateLauncher", async () => {
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const EasyAuctionTemplate = await ethers.getContractFactory(
-            "EasyAuctionTemplate"
+        const FairSaleTemplate = await ethers.getContractFactory(
+            "FairSaleTemplate"
         );
 
-        easyAuctionTemplate = await EasyAuctionTemplate.deploy(
+        fairSaleTemplate = await FairSaleTemplate.deploy(
             weth.address,
             saleLauncher.address,
             1
         );
 
-        easyAuctionTemplateDefault = await EasyAuctionTemplate.deploy(
+        fairSaleTemplateDefault = await FairSaleTemplate.deploy(
             weth.address,
             saleLauncher.address,
             1
         );
 
         defaultTemplate = await saleLauncher.addTemplate(
-            easyAuctionTemplateDefault.address
+            fairSaleTemplateDefault.address
         );
     });
     describe("adding templates", async () => {
@@ -133,17 +133,17 @@ describe("TemplateLauncher", async () => {
             await expect(
                 templateLauncher
                     .connect(user_2)
-                    .addTemplate(easyAuctionTemplateDefault.address)
+                    .addTemplate(fairSaleTemplateDefault.address)
             ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
         });
 
         it("throws if template is added twice", async () => {
             await templateLauncher.addTemplate(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
 
             await expect(
-                templateLauncher.addTemplate(easyAuctionTemplateDefault.address)
+                templateLauncher.addTemplate(fairSaleTemplateDefault.address)
             ).to.be.revertedWith("TemplateLauncher: TEMPLATE_DUPLICATE");
         });
 
@@ -151,7 +151,7 @@ describe("TemplateLauncher", async () => {
             await mesaFactory.setTemplateFee(500);
 
             await expect(
-                templateLauncher.addTemplate(easyAuctionTemplateDefault.address)
+                templateLauncher.addTemplate(fairSaleTemplateDefault.address)
             ).to.be.revertedWith("TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED");
         });
 
@@ -162,12 +162,12 @@ describe("TemplateLauncher", async () => {
             await expect(
                 templateLauncher
                     .connect(user_2)
-                    .addTemplate(easyAuctionTemplateDefault.address, {
+                    .addTemplate(fairSaleTemplateDefault.address, {
                         value: 500,
                     })
             )
                 .to.emit(templateLauncher, "TemplateAdded")
-                .withArgs(easyAuctionTemplateDefault.address, 1);
+                .withArgs(fairSaleTemplateDefault.address, 1);
         });
 
         it("allows template manager to add new templates if restriction is turned on", async () => {
@@ -175,28 +175,28 @@ describe("TemplateLauncher", async () => {
 
             expect(
                 await templateLauncher.getTemplateId(
-                    easyAuctionTemplateDefault.address
+                    fairSaleTemplateDefault.address
                 )
             ).to.be.equal(0);
 
             await expect(
                 templateLauncher.addTemplate(
-                    easyAuctionTemplateDefault.address,
+                    fairSaleTemplateDefault.address,
                     {
                         value: 500,
                     }
                 )
             )
                 .to.emit(templateLauncher, "TemplateAdded")
-                .withArgs(easyAuctionTemplateDefault.address, 1);
+                .withArgs(fairSaleTemplateDefault.address, 1);
 
             expect(
                 await templateLauncher.getTemplateId(
-                    easyAuctionTemplateDefault.address
+                    fairSaleTemplateDefault.address
                 )
             ).to.be.equal(1);
             expect(await templateLauncher.getTemplate(1)).to.be.equal(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
         });
     });
@@ -204,7 +204,7 @@ describe("TemplateLauncher", async () => {
     describe("removing templates", async () => {
         it("throws if trying to remove a template by othen then template manager", async () => {
             await templateLauncher.addTemplate(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
             await expect(
                 templateLauncher.connect(user_2).removeTemplate(1)
@@ -213,18 +213,18 @@ describe("TemplateLauncher", async () => {
 
         it("allows template manager to remove templates", async () => {
             await templateLauncher.addTemplate(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
             await expect(templateLauncher.removeTemplate(1))
                 .to.emit(templateLauncher, "TemplateRemoved")
-                .withArgs(easyAuctionTemplateDefault.address, 1);
+                .withArgs(fairSaleTemplateDefault.address, 1);
         });
     });
 
     describe("verifying templates", async () => {
         it("throws if trying to verify a template by othen then template manager", async () => {
             await templateLauncher.addTemplate(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
             await expect(
                 templateLauncher.connect(user_2).verifyTemplate(1)
@@ -233,11 +233,11 @@ describe("TemplateLauncher", async () => {
 
         it("allows template manager to verify templates", async () => {
             await templateLauncher.addTemplate(
-                easyAuctionTemplateDefault.address
+                fairSaleTemplateDefault.address
             );
             await expect(templateLauncher.verifyTemplate(1))
                 .to.emit(templateLauncher, "TemplateVerified")
-                .withArgs(easyAuctionTemplateDefault.address, 1);
+                .withArgs(fairSaleTemplateDefault.address, 1);
         });
     });
 
@@ -305,7 +305,7 @@ describe("TemplateLauncher", async () => {
           await mesaFactory.setSaleFee(500);
 
           await templateLauncher.addTemplate(
-            easyAuctionTemplateDefault.address
+            fairSaleTemplateDefault.address
           );
 
           const initData = await encodeInitData(
