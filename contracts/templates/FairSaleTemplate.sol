@@ -21,10 +21,10 @@ interface IAuction {
     ) external;
 }
 
-contract EasyAuctionTemplate {
+contract FairSaleTemplate {
     using SafeMath for uint256;
 
-    string public constant templateName = "EasyAuctionTemplate";
+    string public constant templateName = "FairSaleTemplate";
     IAuction public auction;
     IWETH10 public WETH;
     ISaleLauncher public saleLauncher;
@@ -74,7 +74,7 @@ contract EasyAuctionTemplate {
         uint256 _minRaise,
         address _tokenSupplier
     ) internal returns (address newAuction) {
-        require(!initialized, "EasyAuctionTemplate: ALEADY_INITIALIZED");
+        require(!initialized, "FairSaleTemplate: ALEADY_INITIALIZED");
 
         uint256 orderCancelationPeriodDuration = 100;
         uint256 minimumBiddingAmountPerOrder = 100;

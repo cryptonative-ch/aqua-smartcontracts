@@ -4,7 +4,7 @@ import { task } from "hardhat/config";
 
 import { calculateClearingPrice } from "../priceCalculation";
 
-import { getEasyAuctionContract } from "./utils";
+import { getFairSaleContract } from "./utils";
 
 const clearAuction: () => void = () => {
     task("clearAuction", "Provides the clearing price to an auction")
@@ -12,11 +12,11 @@ const clearAuction: () => void = () => {
         .setAction(async (taskArgs, hardhatRuntime) => {
             const [caller] = await hardhatRuntime.ethers.getSigners();
             console.log("Using the account:", caller.address);
-            const easyAuction = await getEasyAuctionContract(hardhatRuntime);
+            const fairSale = await getFairSaleContract(hardhatRuntime);
             //Todo: Compare current time against auction end time and throw error
-            const price = await calculateClearingPrice(easyAuction);
+            const price = await calculateClearingPrice(fairSale);
             console.log("Clearing price will be:", price);
-            const tx = await easyAuction
+            const tx = await fairSale
                 .connect(caller)
                 .settleAuction(taskArgs.auctionId);
             const txResult = await tx.wait();
