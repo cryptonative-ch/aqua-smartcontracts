@@ -10,9 +10,9 @@ const deployEasyContract: DeployFunction = async function (
     const { deployer } = await getNamedAccounts();
     const { deploy } = deployments;
 
-    const { fairSale } = contractNames;
+    const { easyAuction } = contractNames;
 
-    await deploy(fairSale, {
+    await deploy(easyAuction, {
         from: deployer,
         gasLimit: 8000000,
         args: [],

@@ -8,7 +8,7 @@ import "../libraries/IdToAddressBiMap.sol";
 import "../libraries/SafeCast.sol";
 import "../libraries/IterableOrderedOrderSet.sol";
 
-contract FairSale {
+contract EasyAuction {
     using SafeERC20 for IERC20;
     using SafeMath for uint64;
     using SafeMath for uint96;
@@ -84,7 +84,7 @@ contract FairSale {
     );
     event UserRegistration(address indexed user, uint64 ownerId);
 
-    string public constant templateName = "FairSale";
+    string public constant templateName = "EasyAuction";
     IERC20 public tokenIn;
     IERC20 public tokenOut;
     uint256 public orderCancellationEndDate;
