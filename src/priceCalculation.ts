@@ -66,8 +66,8 @@ export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
     };
 }
 
-export async function getInitialOrder(easyAuction: Contract): Promise<Order> {
-    return decodeOrder(await easyAuction.initialAuctionOrder());
+export async function getInitialOrder(fairSale: Contract): Promise<Order> {
+    return decodeOrder(await fairSale.initialAuctionOrder());
 }
 
 export function hasLowerClearingPrice(order1: Order, order2: Order): number {
@@ -88,12 +88,12 @@ export function hasLowerClearingPrice(order1: Order, order2: Order): number {
 }
 
 export async function calculateClearingPrice(
-    easyAuction: Contract,
+    fairSale: Contract,
     debug = false
 ): Promise<Order> {
     const log = debug ? (...a: any) => console.log(...a) : () => {};
-    const initialOrder = await getInitialOrder(easyAuction);
-    const sellOrders = await getAllSellOrders(easyAuction);
+    const initialOrder = await getInitialOrder(fairSale);
+    const sellOrders = await getAllSellOrders(fairSale);
     sellOrders.sort(function (a: Order, b: Order) {
         return hasLowerClearingPrice(a, b);
     });
@@ -193,11 +193,11 @@ export function findClearingPrice(
 }
 
 export async function getAllSellOrders(
-    easyAuction: Contract
+    fairSale: Contract
 ): Promise<Order[]> {
-    const filterSellOrders = easyAuction.filters.NewOrder(null, null, null);
-    const logs = await easyAuction.queryFilter(filterSellOrders, 0, "latest");
-    const events = logs.map((log: any) => easyAuction.interface.parseLog(log));
+    const filterSellOrders = fairSale.filters.NewOrder(null, null, null);
+    const logs = await fairSale.queryFilter(filterSellOrders, 0, "latest");
+    const events = logs.map((log: any) => fairSale.interface.parseLog(log));
     const sellOrders = events.map((x: any) => {
         const order: Order = {
             ownerId: x.args[0],
@@ -207,14 +207,14 @@ export async function getAllSellOrders(
         return order;
     });
 
-    const filterOrderCancellations = easyAuction.filters.CancellationOrder;
-    const logsForCancellations = await easyAuction.queryFilter(
+    const filterOrderCancellations = fairSale.filters.CancellationOrder;
+    const logsForCancellations = await fairSale.queryFilter(
         filterOrderCancellations(),
         0,
         "latest"
     );
     const eventsForCancellations = logsForCancellations.map((log: any) =>
-        easyAuction.interface.parseLog(log)
+        fairSale.interface.parseLog(log)
     );
     const sellOrdersDeletions = eventsForCancellations.map((x: any) => {
         const order: Order = {
@@ -231,7 +231,7 @@ export async function getAllSellOrders(
 }
 
 export async function createTokensAndMintAndApprove(
-    easyAuction: Contract,
+    fairSale: Contract,
     users: Wallet[],
     hre: HardhatRuntimeEnvironment
 ): Promise<{ tokenIn: Contract; tokenOut: Contract }> {
@@ -243,12 +243,12 @@ export async function createTokensAndMintAndApprove(
         await tokenIn.mint(user.address, BigNumber.from(10).pow(30));
         await tokenIn
             .connect(user)
-            .approve(easyAuction.address, BigNumber.from(10).pow(30));
+            .approve(fairSale.address, BigNumber.from(10).pow(30));
 
         await tokenOut.mint(user.address, BigNumber.from(10).pow(30));
         await tokenOut
             .connect(user)
-            .approve(easyAuction.address, BigNumber.from(10).pow(30));
+            .approve(fairSale.address, BigNumber.from(10).pow(30));
     }
     return { tokenIn: tokenIn, tokenOut: tokenOut };
 }
@@ -261,12 +261,12 @@ export function toPrice(result: [BigNumber, BigNumber]): Price {
 }
 
 export async function placeOrders(
-    easyAuction: Contract,
+    fairSale: Contract,
     sellOrders: Order[],
     hre: HardhatRuntimeEnvironment
 ): Promise<void> {
     for (const sellOrder of sellOrders) {
-        await easyAuction
+        await fairSale
             .connect(
                 hre.waffle.provider.getWallets()[
                     sellOrder.ownerId.toNumber() - 1

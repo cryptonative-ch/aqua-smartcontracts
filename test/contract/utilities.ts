@@ -11,11 +11,11 @@ export async function closeAuction(instance: Contract): Promise<void> {
 }
 
 export async function claimFromAllOrders(
-    easyAuction: Contract,
+    fairSale: Contract,
     orders: Order[]
 ): Promise<void> {
     for (const order of orders) {
-        await easyAuction.claimFromParticipantOrder([encodeOrder(order)]);
+        await fairSale.claimFromParticipantOrder([encodeOrder(order)]);
     }
 }
 
