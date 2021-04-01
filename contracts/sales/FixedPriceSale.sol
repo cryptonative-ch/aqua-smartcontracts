@@ -53,7 +53,7 @@ contract FixedPriceSale {
     mapping(address => uint256) public tokensPurchased;
 
     address[] public orderOwners;
-
+    
     modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
