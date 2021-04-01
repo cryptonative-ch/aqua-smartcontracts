@@ -28,6 +28,8 @@ contract FixedPriceSale {
 
     event NewTokenClaim(address indexed buyer, uint256 indexed amount);
 
+    event distributeAllTokensLeft(uint256 indexed amount);
+
     event NewTokenRelease(address indexed buyer, uint256 indexed amount);
 
     event SaleClosed();
@@ -46,8 +48,12 @@ contract FixedPriceSale {
     uint256 public minimumRaise;
     bool public isClosed;
 
+    uint256 constant numberToDistributionPerBlock = 100;
+
     mapping(address => uint256) public tokensPurchased;
 
+    address[] public orderOwners;
+    
     modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
@@ -175,7 +181,13 @@ contract FixedPriceSale {
             "FixedPriceSale: deadline passed"
         );
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
+
+        if (tokensPurchased[msg.sender] == 0) {
+            orderOwners.push(msg.sender);
+        }
+
         tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
+
         tokensSold = tokensSold.add(amount);
         emit NewPurchase(msg.sender, amount);
     }
@@ -233,6 +245,33 @@ contract FixedPriceSale {
             purchasedTokens
         );
         emit NewTokenClaim(msg.sender, purchasedTokens);
+    }
+
+   /// @dev let everyone distribute token to the investors
+    function distributeAllTokens() public {
+        require(isClosed, "FixedPriceAuction: auction not closed");
+        uint256 _counter = 1;
+        // loop backwards
+        for (uint256 i = orderOwners.length; i > 0; i--) {
+            address _orderOwner = orderOwners[i-1];
+            if (tokensPurchased[_orderOwner] > 0){
+                uint256 _purchasedTokens = tokensPurchased[_orderOwner];
+                tokensPurchased[_orderOwner] = 0;
+                TransferHelper.safeTransfer(address(tokenOut), _orderOwner, _purchasedTokens);
+            }
+            // delete last entry, even if tokensPurchased[_orderOwner] == 0 this okey, because then token has been claimed by claimTokens()
+            orderOwners.pop();
+            if (_counter == numberToDistributionPerBlock){
+                break;
+            }
+            _counter++;
+        } // for
+        emit distributeAllTokensLeft(orderOwners.length);
+    }
+
+    /// @dev count how many orders
+    function ordersCount() public view returns (uint256) {
+        return orderOwners.length;
     }
 
     /// @dev withdraw collected funds
