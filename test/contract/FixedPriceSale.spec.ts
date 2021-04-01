@@ -731,13 +731,13 @@ describe("FixedPriceSale", async () => {
                 .to.emit(fixedPriceSale, "NewTokenClaim")
                 .withArgs(user_1.address, expandTo18Decimals(10));
                 
-            await expect(fixedPriceAuction.distributeAllTokens())
-                .to.emit(fixedPriceAuction, "distributeAllTokensLeft")
+            await expect(fixedPriceSale.distributeAllTokens())
+                .to.emit(fixedPriceSale, "distributeAllTokensLeft")
                 .withArgs('0');
         });
         it("allows distribut all tokens after auction closing with two bidders", async () => {
 
-            tokenB.approve(fixedPriceAuction.address, defaultTokensForSale);
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
                 tokenA.address,
@@ -752,26 +752,26 @@ describe("FixedPriceSale", async () => {
                 user_1.address
             );
 
-            await fixedPriceAuction.init(initData);
+            await fixedPriceSale.init(initData);
 
             await tokenA.approve(
-                fixedPriceAuction.address,
+                fixedPriceSale.address,
                 expandTo18Decimals(10)
             );
 
             await tokenA.mint(user_2.address, BigNumber.from(10).pow(30));
-            await tokenA.connect(user_2).approve(fixedPriceAuction.address, BigNumber.from(10).pow(30));
+            await tokenA.connect(user_2).approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
 
-            await fixedPriceAuction.buyTokens(expandTo18Decimals(10));
-            await fixedPriceAuction.connect(user_2).buyTokens(expandTo18Decimals(3));
-            await fixedPriceAuction.connect(user_2).buyTokens(expandTo18Decimals(4));
+            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
+            await fixedPriceSale.connect(user_2).buyTokens(expandTo18Decimals(3));
+            await fixedPriceSale.connect(user_2).buyTokens(expandTo18Decimals(4));
 
             await mineBlock(defaultEndDate + 100);
 
-            await fixedPriceAuction.closeAuction();
+            await fixedPriceSale.closeSale();
 
-            await expect(fixedPriceAuction.distributeAllTokens())
-                .to.emit(fixedPriceAuction, "distributeAllTokensLeft")
+            await expect(fixedPriceSale.distributeAllTokens())
+                .to.emit(fixedPriceSale, "distributeAllTokensLeft")
                 .withArgs('0');
         });
         it("allows withdrawing unsold tokens", async () => {
