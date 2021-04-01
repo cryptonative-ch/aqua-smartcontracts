@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { DeployResult, DeploymentsExtension } from "hardhat-deploy/types";
 
 export const contractNames = {
-    fairSale: "FairSale",
+    easyAuction: "EasyAuction",
     multiCall: "MultiCall",
 };
 

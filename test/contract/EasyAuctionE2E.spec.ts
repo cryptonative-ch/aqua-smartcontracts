@@ -8,23 +8,23 @@ import {
 
 import { closeAuction } from "./utilities";
 
-describe("FairSale", async () => {
+describe("EasyAuction", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
-    let fairSale: Contract;
+    let easyAuction: Contract;
     beforeEach(async () => {
-        const FairSale = await ethers.getContractFactory("FairSale");
+        const EasyAuction = await ethers.getContractFactory("EasyAuction");
 
-        fairSale = await FairSale.deploy();
+        easyAuction = await EasyAuction.deploy();
     });
 
     it("e2e - places a lot of sellOrders, such that the second last order is the clearingOrder and calculates the price to test gas usage of settleAuction", async () => {
         const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-            fairSale,
+            easyAuction,
             [user_1, user_2],
             hre
         );
         const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-        await fairSale.initAuction(
+        await easyAuction.initAuction(
             tokenIn.address,
             tokenOut.address,
             60 * 60,
@@ -51,10 +51,10 @@ describe("FairSale", async () => {
                     ownerId: BigNumber.from(1),
                 },
             ];
-            await placeOrders(fairSale, sellOrder, hre);
+            await placeOrders(easyAuction, sellOrder, hre);
         }
-        await closeAuction(fairSale);
-        const tx = await fairSale.settleAuction();
+        await closeAuction(easyAuction);
+        const tx = await easyAuction.settleAuction();
         const gasUsed = (await tx.wait()).gasUsed;
 
         console.log("Gas usage for verification", gasUsed.toString());
