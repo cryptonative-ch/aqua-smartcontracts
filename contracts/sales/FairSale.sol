@@ -107,26 +107,37 @@ contract FairSale {
 
     constructor() public {}
 
-    // @dev: intiate a new auction
-    // Warning: In case the auction is expected to raise more than
-    // 2^96 units of the tokenIn, don't start the auction, as
-    // it will not be settlable. This corresponds to about 79
-    // billion DAI.
-    //
-    // Prices between tokenIn and tokenOut are expressed by a
-    // fraction whose components are stored as uint96.
+    /// @dev internal setup function to initialize the template, called by init()
+    ///
+    /// Warning: In case the auction is expected to raise more than
+    /// 2^96 units of the tokenIn, don't start the auction, as
+    /// it will not be settlable. This corresponds to about 79
+    /// billion DAI.
+    ///
+    /// Prices between tokenIn and tokenOut are expressed by a
+    /// fraction whose components are stored as uint96.
+    ///
+    /// @param _tokenIn token to make the bid in
+    /// @param _tokenOut token to buy
+    /// @param _orderCancelationPeriodDuration cancel order is allowed, but only during this duration
+    /// @param _duration amount of tokens to be sold
+    /// @param _totalTokenOutAmount total amount to sell
+    /// @param _minBidAmountToReceive Minimum amount of biding token to receive at final point
+    /// @param _minimumBiddingAmountPerOrder to limit number of orders to reduce gas cost for settelment
+    /// @param _minSellThreshold for the sale, otherwise sale will not happen
+    /// @param _isAtomicClosureAllowed allow atomic closer of the sale
     function initAuction(
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _orderCancelationPeriodDuration,
         uint256 _duration,
-        uint96 _totalTokenOutAmount, // total amount to sell
-        uint96 _minBidAmountToReceive, // Minimum amount of biding token to receive at final point
+        uint96 _totalTokenOutAmount,
+        uint96 _minBidAmountToReceive,
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minSellThreshold,
         bool _isAtomicClosureAllowed
     ) public {
-        uint64 ownerId = getUserId(msg.sender);
+        uint64 auctioneerId = getUserId(msg.sender);
 
         // deposits _totalTokenOutAmount + fees
         _tokenOut.safeTransferFrom(
@@ -159,7 +170,7 @@ contract FairSale {
         auctionStartedDate = block.timestamp;
 
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
-            ownerId,
+            auctioneerId,
             _totalTokenOutAmount,
             _minBidAmountToReceive
         );
@@ -187,6 +198,11 @@ contract FairSale {
     uint256 public constant FEE_DENOMINATOR = 1000;
     uint64 public feeReceiverUserId = 1;
 
+    /// @dev public function to set orders as a list
+    /// @param _ordersTokenOut uint96[] a list of orders, the tokenOut part
+    /// @param _ordersTokenIn uint96[] a list of orders, the tokenIn part
+    /// @param _prevOrders uint96[] a list of previous orders
+    /// @return ownerId uint64
     function placeOrders(
         uint96[] memory _ordersTokenOut,
         uint96[] memory _ordersTokenIn,
@@ -195,6 +211,11 @@ contract FairSale {
         return _placeOrders(_ordersTokenOut, _ordersTokenIn, _prevOrders);
     }
 
+
+    /// @dev internale function to set orders as a list
+    /// @param _ordersTokenOut uint96[] a list of orders, the tokenOut part
+    /// @param _ordersTokenIn uint96[] a list of orders, the tokenIn part
+    /// @param _prevOrders uint96[] a list of previous orders
     function _placeOrders(
         uint96[] memory _ordersTokenOut,
         uint96[] memory _ordersTokenIn,
@@ -234,6 +255,8 @@ contract FairSale {
         tokenIn.safeTransferFrom(msg.sender, address(this), sumOrdersTokenIn); //[1]
     }
 
+    /// @dev cancel orders: will widthdraw tokenIn used in the order
+    /// @param _orders bytes32[] a list of orders to cancel
     function cancelOrders(bytes32[] memory _orders)
         public
         atStageOrderPlacementAndCancelation()
@@ -261,6 +284,8 @@ contract FairSale {
         tokenIn.safeTransfer(msg.sender, claimableAmount); //[2]
     }
 
+    /// @dev ??? @nicoelzer, where is this used ???
+    /// @param iterationSteps uint256
     function precalculateSellAmountSum(uint256 iterationSteps)
         public
         atStageSolutionSubmission()
@@ -294,6 +319,10 @@ contract FairSale {
         interimOrder = iterOrder;
     }
 
+    /// @dev function settling the auction and calculating the price if only one bid is made // ??? nico
+    /// @param _ordersTokenOut uint96[]  order which is at clearing price
+    /// @param _ordersTokenOut uint96[]  order which is at clearing price
+    /// @param _prevOrder uint96[]  order which is at clearing price
     function settleAuctionAtomically(
         uint96[] memory _ordersTokenOut,
         uint96[] memory _ordersTokenIn,
@@ -328,7 +357,8 @@ contract FairSale {
         settleAuction();
     }
 
-    // @dev function settling the auction and calculating the price
+    /// @dev function settling the auction and calculating the price
+    /// @return clearingOrder bytes32 order which is at clearing price
     function settleAuction()
         public
         atStageSolutionSubmission()
@@ -438,6 +468,9 @@ contract FairSale {
         minimumBiddingAmountPerOrder = uint256(0);
     }
 
+    /// @dev claim the bought tokenOut and get the change back in tokenIn  after sale is over
+    /// @param _orders bytes32[] a list of orders to cancel
+    /// @return sumTokenOutAmount uint256, sumTokenInAmount uint256
     function claimFromParticipantOrder(bytes32[] memory _orders)
         public
         atStageFinished()
@@ -492,6 +525,10 @@ contract FairSale {
         sendOutTokens(sumTokenOutAmount, sumTokenInAmount, ownerId); //[3]
     }
 
+    /// @dev processes funds and fees after the sale finished
+    /// @param fillVolumeOfAuctioneerOrder uint256
+    /// @param auctioneerId uint64 id of the address who did initiate the sale
+    /// @param fullAuctionAmountToSell uint96
     function processFeesAndFunds(
         uint256 fillVolumeOfAuctioneerOrder,
         uint64 auctioneerId,
@@ -530,6 +567,10 @@ contract FairSale {
         }
     }
 
+    /// @dev send tokenOut and tokenIn
+    /// @param tokenOutAmount uint256 amount of tokenOut to send  
+    /// @param tokenInAmount uint256 amount of tokenIn to send 
+    /// @param ownerId uint64 id of address of owner
     function sendOutTokens(
         uint256 tokenOutAmount,
         uint256 tokenInAmount,
@@ -544,6 +585,9 @@ contract FairSale {
         }
     }
 
+    /// @dev add address to ownerId/address mapping
+    /// @param user address of a account making a bid 
+    /// @return ownerId uint64 id of address of owner
     function registerUser(address user) public returns (uint64 ownerId) {
         numUsers = numUsers.add(1).toUint64();
         require(
@@ -554,6 +598,9 @@ contract FairSale {
         emit UserRegistration(user, ownerId);
     }
 
+    /// @dev get address from ownerId/address mapping
+    /// @param user address
+    /// @return ownerId uint64 id of address of owner
     function getUserId(address user) public returns (uint64 ownerId) {
         if (registeredUsers.hasAddress(user)) {
             ownerId = registeredUsers.getId(user);
@@ -563,6 +610,8 @@ contract FairSale {
         }
     }
 
+    /// @dev read how much time is left until sale is over
+    /// @return uint256 seconds until end
     function getSecondsRemainingInBatch() public view returns (uint256) {
         if (endDate <= block.timestamp) {
             return 0;
@@ -570,6 +619,9 @@ contract FairSale {
         return endDate.sub(block.timestamp);
     }
 
+    /// @dev test if order is present
+    /// @param _order bytes32
+    /// @return bool
     function containsOrder(bytes32 _order) public view returns (bool) {
         return orders.contains(_order);
     }
