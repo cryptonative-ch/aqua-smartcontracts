@@ -8,8 +8,9 @@ interface ISaleLauncher {
         uint256 _templateId,
         address _token,
         uint256 _tokenSupply,
+        address _tokenSupplier,
         bytes calldata _data
-    ) external view returns (address);
+    ) external payable returns (address);
 
     function getDepositAmountWithFees(uint256 _tokenSupply)
         external

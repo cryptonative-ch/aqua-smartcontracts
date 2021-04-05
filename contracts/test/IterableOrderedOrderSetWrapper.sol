@@ -15,10 +15,7 @@ contract IterableOrderedOrderSetWrapper {
         return data.insert(value, IterableOrderedOrderSet.QUEUE_START);
     }
 
-    function insertAt(
-        bytes32 value,
-        bytes32 at
-    ) public returns (bool) {
+    function insertAt(bytes32 value, bytes32 at) public returns (bool) {
         return data.insert(value, at);
     }
 

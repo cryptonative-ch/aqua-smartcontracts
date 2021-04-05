@@ -5,11 +5,7 @@ import hre, { ethers, waffle } from "hardhat";
 import { mineBlock, expandTo18Decimals } from "./utilities";
 import "@nomiclabs/hardhat-ethers";
 
-
-import {
-    createTokensAndMintAndApprove,
-} from "../../src/priceCalculation";
-
+import { createTokensAndMintAndApprove } from "../../src/priceCalculation";
 
 describe("fixedPriceSaleE2E", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
@@ -69,7 +65,6 @@ describe("fixedPriceSaleE2E", async () => {
     }
 
     beforeEach(async () => {
-
         const FixedPriceSale = await ethers.getContractFactory(
             "FixedPriceSale"
         );
@@ -88,13 +83,21 @@ describe("fixedPriceSaleE2E", async () => {
             await tokenIn.mint(wallet.address, BigNumber.from(10).pow(30));
             await tokenOut.mint(wallet.address, BigNumber.from(10).pow(30));
 
-            await tokenIn.connect(wallet).approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
-            await tokenOut.connect(wallet).approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
+            await tokenIn
+                .connect(wallet)
+                .approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
+            await tokenOut
+                .connect(wallet)
+                .approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
 
-            await tokenIn.connect(wallet).approve(saleIntialized.address, BigNumber.from(10).pow(30));
-            await tokenOut.connect(wallet).approve(saleIntialized.address, BigNumber.from(10).pow(30));
+            await tokenIn
+                .connect(wallet)
+                .approve(saleIntialized.address, BigNumber.from(10).pow(30));
+            await tokenOut
+                .connect(wallet)
+                .approve(saleIntialized.address, BigNumber.from(10).pow(30));
             //console.log(wallet.address);
-        } 
+        }
 
         currentBlockNumber = await ethers.provider.getBlockNumber();
         currentBlock = await ethers.provider.getBlock(currentBlockNumber);
@@ -135,11 +138,13 @@ describe("fixedPriceSaleE2E", async () => {
 
             const distributPerBlock = 100;
             // console.log("distributPerBlock", distributPerBlock);
-            
+
             const accounts = await ethers.getSigners();
             let i = 1;
-            for (let wallet of accounts) { 
-                await fixedPriceSale.connect(wallet).buyTokens(expandTo18Decimals(3));
+            for (let wallet of accounts) {
+                await fixedPriceSale
+                    .connect(wallet)
+                    .buyTokens(expandTo18Decimals(3));
                 if (i == ordersCount) {
                     break;
                 }
@@ -159,12 +164,10 @@ describe("fixedPriceSaleE2E", async () => {
                         .to.emit(fixedPriceSale, "distributeAllTokensLeft")
                         .withArgs(0);
 
-                    expect(await fixedPriceSale.ordersCount()).to.be.equal(
-                        0
-                    );
+                    expect(await fixedPriceSale.ordersCount()).to.be.equal(0);
                     break;
                 }
-                
+
                 await expect(fixedPriceSale.distributeAllTokens())
                     .to.emit(fixedPriceSale, "distributeAllTokensLeft")
                     .withArgs(ordersCount);
@@ -176,7 +179,6 @@ describe("fixedPriceSaleE2E", async () => {
         });
 
         it("Measure Gas Usage", async () => {
-            
             const initData = await encodeInitData(
                 tokenIn.address,
                 tokenOut.address,
@@ -196,8 +198,10 @@ describe("fixedPriceSaleE2E", async () => {
 
             const accounts = await ethers.getSigners();
             let i = 1;
-            for (let wallet of accounts) { 
-                await fixedPriceSale.connect(wallet).buyTokens(expandTo18Decimals(3));
+            for (let wallet of accounts) {
+                await fixedPriceSale
+                    .connect(wallet)
+                    .buyTokens(expandTo18Decimals(3));
                 if (i == ordersCount) {
                     break;
                 }
@@ -207,19 +211,25 @@ describe("fixedPriceSaleE2E", async () => {
             await mineBlock(defaultEndDate + 10000);
             await fixedPriceSale.closeSale();
 
-             while (true) {
+            while (true) {
                 ordersCount = ordersCount - distributPerBlock;
                 //console.log("ordersCount", ordersCount);
 
                 if (ordersCount < 0) {
                     const tx = await fixedPriceSale.distributeAllTokens();
                     const gasUsed = (await tx.wait()).gasUsed;
-                    console.log("Gas usage for distributeAllTokens", gasUsed.toString());
+                    console.log(
+                        "Gas usage for distributeAllTokens",
+                        gasUsed.toString()
+                    );
                     break;
                 }
                 const tx = await fixedPriceSale.distributeAllTokens();
                 const gasUsed = (await tx.wait()).gasUsed;
-                console.log("Gas usage for distributeAllTokens", gasUsed.toString());
+                console.log(
+                    "Gas usage for distributeAllTokens",
+                    gasUsed.toString()
+                );
             }
         }); // it
     });

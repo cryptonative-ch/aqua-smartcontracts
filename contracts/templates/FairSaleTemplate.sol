@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../interfaces/ISaleLauncher.sol";
 import "../libraries/TransferHelper.sol";
 import "../interfaces/IMesaFactory.sol";
-import "../interfaces/IWETH10.sol";
+import "hardhat/console.sol";
 
 interface IAuction {
     function initAuction(
-        IERC20 _auctioningToken,
-        IERC20 _biddingToken,
+        address _auctioningToken,
+        address _biddingToken,
         uint256 _orderCancelationPeriodDuration,
         uint96 _amountToSell,
         uint96 _minBidAmountToReceive,
@@ -26,11 +27,14 @@ contract FairSaleTemplate {
 
     string public constant templateName = "FairSaleTemplate";
     IAuction public auction;
-    IWETH10 public WETH;
     ISaleLauncher public saleLauncher;
     IMesaFactory public mesaFactory;
     uint256 public auctionTemplateId;
     bool initialized = false;
+    address tokenSupplier;
+    address tokenOut;
+    uint256 tokenOutSupply;
+    bytes encodedInitData;
 
     event TemplateInitialized(
         address tokenOut,
@@ -42,20 +46,11 @@ contract FairSaleTemplate {
         uint256 minRaise
     );
 
-    constructor(
-        address _WETH,
-        address _saleLauncher,
-        uint256 _auctionTemplateId
-    ) public {
-        WETH = IWETH10(_WETH);
-        saleLauncher = ISaleLauncher(_saleLauncher);
-        mesaFactory = IMesaFactory(
-            ISaleLauncher(_saleLauncher).factory()
-        );
-        auctionTemplateId = _auctionTemplateId;
-    }
+    constructor() public {}
 
     /// @dev internal setup function to initialize the template, called by init()
+    /// @param _saleLauncher TBD
+    /// @param _auctionTemplateId TBD
     /// @param _tokenOut token to be auctioned
     /// @param _tokenIn token to bid on auction
     /// @param _duration auction duration in seconds
@@ -65,6 +60,8 @@ contract FairSaleTemplate {
     /// @param _minRaise minimum amount an project is expected to raise
     /// @param _tokenSupplier address that deposits the tokens
     function initTemplate(
+        address _saleLauncher,
+        uint256 _auctionTemplateId,
         address _tokenOut,
         address _tokenIn,
         uint256 _duration,
@@ -76,53 +73,30 @@ contract FairSaleTemplate {
     ) internal returns (address newAuction) {
         require(!initialized, "FairSaleTemplate: ALEADY_INITIALIZED");
 
+        saleLauncher = ISaleLauncher(_saleLauncher);
+        mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
+        auctionTemplateId = _auctionTemplateId;
+
         uint256 orderCancelationPeriodDuration = 100;
         uint256 minimumBiddingAmountPerOrder = 100;
         bool isAtomicClosureAllowed = false;
+        tokenSupplier = _tokenSupplier;
+        tokenOut = _tokenOut;
+        tokenOutSupply = _tokenOutSupply;
 
-        bytes memory encodedInitData =
-            abi.encode(
-                _tokenOut,
-                _tokenIn,
-                orderCancelationPeriodDuration,
-                _duration,
-                _tokenOutSupply,
-                _minBuyAmount,
-                minimumBiddingAmountPerOrder,
-                _minRaise,
-                isAtomicClosureAllowed
-            );
-
-        uint256 depositAmount =
-            saleLauncher.getDepositAmountWithFees(_tokenOutSupply);
+        encodedInitData = abi.encode(
+            IERC20(_tokenIn),
+            IERC20(_tokenOut),
+            orderCancelationPeriodDuration,
+            _duration,
+            uint96(_tokenOutSupply),
+            _minBuyAmount,
+            minimumBiddingAmountPerOrder,
+            _minRaise,
+            isAtomicClosureAllowed
+        );
 
         initialized = true;
-
-        // deposits sellAmount + fees
-        TransferHelper.safeTransferFrom(
-            _tokenOut,
-            _tokenSupplier,
-            address(this),
-            depositAmount
-        );
-
-        // approve deposited tokens on saleLauncher
-        TransferHelper.safeApprove(
-            _tokenOut,
-            address(saleLauncher),
-            depositAmount
-        );
-
-        // deploys & initializes new auction
-
-        /*
-        newAuction = saleLauncher.createAuction(
-            auctionTemplateId,
-            _tokenOut,
-            _tokenOutSupply,
-            encodedInitData
-        );
-        */
 
         emit TemplateInitialized(
             _tokenOut,
@@ -135,10 +109,24 @@ contract FairSaleTemplate {
         );
     }
 
+    function createSale() public payable returns (address newSale) {
+        require(msg.sender == tokenSupplier, "FairSaleTemplate: FORBIDDEN");
+
+        newSale = saleLauncher.createSale.value(msg.value)(
+            auctionTemplateId,
+            tokenOut,
+            tokenOutSupply,
+            tokenSupplier,
+            encodedInitData
+        );
+    }
+
     /// @dev setup function expexted to be called by templateLauncher to init the template
     /// @param _data encoded template params
-    function init(bytes calldata _data) public returns (address newAuction) {
+    function init(bytes calldata _data) public returns (address) {
         (
+            address _saleLauncher,
+            uint256 _auctionTemplateId,
             address _tokenOut,
             address _tokenIn,
             uint256 _duration,
@@ -152,6 +140,8 @@ contract FairSaleTemplate {
                 _data,
                 (
                     address,
+                    uint256,
+                    address,
                     address,
                     uint256,
                     uint256,
@@ -164,6 +154,8 @@ contract FairSaleTemplate {
 
         return
             initTemplate(
+                _saleLauncher,
+                _auctionTemplateId,
                 _tokenOut,
                 _tokenIn,
                 _duration,

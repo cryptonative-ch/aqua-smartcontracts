@@ -1,5 +1,4 @@
 const { task } = require("hardhat/config");
-const { ethers } = require("ethers");
 
 task(
   "deploy",
@@ -31,6 +30,8 @@ task(
         weth
       } = taskArguments;
 
+      const [owner, addr1] = await ethers.getSigners();
+
       await hre.run("clean");
       await hre.run("compile");
 
@@ -41,7 +42,7 @@ task(
       const mesaFactory = await MesaFactory.new();
 
       const SaleLauncher = hre.artifacts.require(
-          "contracts/sale/SaleLauncher.sol:SaleLauncher"
+          "contracts/sales/SaleLauncher.sol:SaleLauncher"
       );
 
       const saleLauncher = await SaleLauncher.new(
@@ -91,15 +92,11 @@ task(
         "FairSaleTemplate"
       );
       
-      const fairSaleTemplate = await FairSaleTemplate.new(
-         weth,
-         saleLauncher.address,
-         sale1
-      );
+      const fairSaleTemplate = await FairSaleTemplate.new();
       
       // Register FairSaleTemplate on TemplateLauncher
       await templateLauncher.addTemplate(fairSaleTemplate.address);
-
+      
       if (verify) {
 
           await hre.run("verify", {
@@ -126,11 +123,6 @@ task(
 
           await hre.run("verify:verify", {
             address: fairSaleTemplate.address,
-            constructorArguments: [
-              weth,
-              saleLauncher.address,
-              "1",
-            ],
           });
 
           console.log(`verified contracts successfully`);
@@ -147,7 +139,9 @@ task(
       console.log(`TemplateLauncher deployed at address ${templateLauncher.address}`);
   });
 
-  function encodeInitData(
+  function encodeInitDataFairSale(
+    saleLauncher,
+    auctionTemplateId,
     tokenOut,
     tokenIn,
     duration,
@@ -160,6 +154,8 @@ task(
     return ethers.utils.defaultAbiCoder.encode(
         [
             "address",
+            "uint256",
+            "address",
             "address",
             "uint256",
             "uint256",
@@ -169,6 +165,48 @@ task(
             "address",
         ],
         [
+            saleLauncher,
+            auctionTemplateId,
+            tokenOut,
+            tokenIn,
+            duration,
+            tokenOutSupply,
+            minPrice,
+            minBuyAmount,
+            minRaise,
+            tokenSupplier,
+        ]
+    );
+}
+
+  function encodeInitData(
+    saleLauncher,
+    auctionTemplateId,
+    tokenOut,
+    tokenIn,
+    duration,
+    tokenOutSupply,
+    minPrice,
+    minBuyAmount,
+    minRaise,
+    tokenSupplier
+) {
+    return ethers.utils.defaultAbiCoder.encode(
+        [
+            "address",
+            "uint256",
+            "address",
+            "address",
+            "uint256",
+            "uint256",
+            "uint96",
+            "uint96",
+            "uint256",
+            "address",
+        ],
+        [
+            saleLauncher,
+            auctionTemplateId,
             tokenOut,
             tokenIn,
             duration,

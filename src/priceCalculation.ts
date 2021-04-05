@@ -192,9 +192,7 @@ export function findClearingPrice(
     }
 }
 
-export async function getAllSellOrders(
-    fairSale: Contract
-): Promise<Order[]> {
+export async function getAllSellOrders(fairSale: Contract): Promise<Order[]> {
     const filterSellOrders = fairSale.filters.NewOrder(null, null, null);
     const logs = await fairSale.queryFilter(filterSellOrders, 0, "latest");
     const events = logs.map((log: any) => fairSale.interface.parseLog(log));

@@ -38,8 +38,7 @@ contract FairSale {
         {
             uint256 endDate = endDate;
             require(
-                block.timestamp >= endDate &&
-                clearingPriceOrder == bytes32(0),
+                block.timestamp >= endDate && clearingPriceOrder == bytes32(0),
                 "Auction not in solution submission phase"
             );
         }
@@ -126,7 +125,7 @@ contract FairSale {
     /// @param _minimumBiddingAmountPerOrder to limit number of orders to reduce gas cost for settelment
     /// @param _minSellThreshold for the sale, otherwise sale will not happen
     /// @param _isAtomicClosureAllowed allow atomic closer of the sale
-    function initAuction(
+    function initSale(
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _orderCancelationPeriodDuration,
@@ -136,7 +135,7 @@ contract FairSale {
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minSellThreshold,
         bool _isAtomicClosureAllowed
-    ) public {
+    ) internal {
         uint64 auctioneerId = getUserId(msg.sender);
 
         // deposits _totalTokenOutAmount + fees
@@ -211,7 +210,6 @@ contract FairSale {
         return _placeOrders(_ordersTokenOut, _ordersTokenIn, _prevOrders);
     }
 
-
     /// @dev internale function to set orders as a list
     /// @param _ordersTokenOut uint96[] a list of orders, the tokenOut part
     /// @param _ordersTokenIn uint96[] a list of orders, the tokenIn part
@@ -264,8 +262,8 @@ contract FairSale {
         uint64 ownerId = getUserId(msg.sender);
         uint256 claimableAmount = 0;
         for (uint256 i = 0; i < _orders.length; i++) {
-        // Note: we keep the back pointer of the deleted element so that
-        // it can be used as a reference point to insert a new node.
+            // Note: we keep the back pointer of the deleted element so that
+            // it can be used as a reference point to insert a new node.
             bool success = orders.removeKeepHistory(_orders[i]);
             if (success) {
                 (
@@ -568,8 +566,8 @@ contract FairSale {
     }
 
     /// @dev send tokenOut and tokenIn
-    /// @param tokenOutAmount uint256 amount of tokenOut to send  
-    /// @param tokenInAmount uint256 amount of tokenIn to send 
+    /// @param tokenOutAmount uint256 amount of tokenOut to send
+    /// @param tokenInAmount uint256 amount of tokenIn to send
     /// @param ownerId uint64 id of address of owner
     function sendOutTokens(
         uint256 tokenOutAmount,
@@ -586,7 +584,7 @@ contract FairSale {
     }
 
     /// @dev add address to ownerId/address mapping
-    /// @param user address of a account making a bid 
+    /// @param user address of a account making a bid
     /// @return ownerId uint64 id of address of owner
     function registerUser(address user) public returns (uint64 ownerId) {
         numUsers = numUsers.add(1).toUint64();
@@ -626,4 +624,43 @@ contract FairSale {
         return orders.contains(_order);
     }
 
+    function init(bytes calldata _data) public {
+        (
+            IERC20 _tokenIn,
+            IERC20 _tokenOut,
+            uint256 _orderCancelationPeriodDuration,
+            uint256 _duration,
+            uint96 _totalTokenOutAmount,
+            uint96 _minBidAmountToReceive,
+            uint256 _minimumBiddingAmountPerOrder,
+            uint256 _minSellThreshold,
+            bool _isAtomicClosureAllowed
+        ) =
+            abi.decode(
+                _data,
+                (
+                    IERC20,
+                    IERC20,
+                    uint256,
+                    uint256,
+                    uint96,
+                    uint96,
+                    uint256,
+                    uint256,
+                    bool
+                )
+            );
+
+        initSale(
+            _tokenIn,
+            _tokenOut,
+            _orderCancelationPeriodDuration,
+            _duration,
+            _totalTokenOutAmount,
+            _minBidAmountToReceive,
+            _minimumBiddingAmountPerOrder,
+            _minSellThreshold,
+            _isAtomicClosureAllowed
+        );
+    }
 }

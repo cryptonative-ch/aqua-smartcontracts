@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
+import FairSaleTemplate from "../../build/artifacts/contracts/templates/FairSaleTemplate.sol/FairSaleTemplate.json";
 import "@nomiclabs/hardhat-ethers";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
@@ -10,9 +11,10 @@ describe("TemplateLauncher", async () => {
     let saleLauncher: Contract;
     let mesaFactory: Contract;
     let templateLauncher: Contract;
-    let weth: Contract;
+    let fairSale: Contract;
     let fairSaleTemplate: Contract;
     let fairSaleTemplateDefault: Contract;
+    let newFairSaleTemplate: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let defaultTemplate: String;
@@ -26,7 +28,49 @@ describe("TemplateLauncher", async () => {
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitData(
+    function encodeInitDataFairSale(
+        saleLauncher: string,
+        auctionTemplateId: number,
+        tokenOut: string,
+        tokenIn: string,
+        duration: number,
+        tokenOutSupply: BigNumber,
+        minPrice: BigNumber,
+        minBuyAmount: BigNumber,
+        minRaise: BigNumber,
+        tokenSupplier: string
+    ) {
+        return ethers.utils.defaultAbiCoder.encode(
+            [
+                "address",
+                "uint256",
+                "address",
+                "address",
+                "uint256",
+                "uint256",
+                "uint96",
+                "uint96",
+                "uint256",
+                "address",
+            ],
+            [
+                saleLauncher,
+                auctionTemplateId,
+                tokenOut,
+                tokenIn,
+                duration,
+                tokenOutSupply,
+                minPrice,
+                minBuyAmount,
+                minRaise,
+                tokenSupplier,
+            ]
+        );
+    }
+
+    function encodeInitDataFixedPrice(
+        saleLauncher: string,
+        auctionTemplateId: number,
         tokenIn: string,
         tokenOut: string,
         tokenPrice: BigNumber,
@@ -41,6 +85,8 @@ describe("TemplateLauncher", async () => {
         return ethers.utils.defaultAbiCoder.encode(
             [
                 "address",
+                "uint256",
+                "address",
                 "address",
                 "uint256",
                 "uint256",
@@ -52,6 +98,8 @@ describe("TemplateLauncher", async () => {
                 "address",
             ],
             [
+                saleLauncher,
+                auctionTemplateId,
                 tokenIn,
                 tokenOut,
                 tokenPrice,
@@ -93,15 +141,9 @@ describe("TemplateLauncher", async () => {
             0
         );
 
-        const SaleLauncher = await ethers.getContractFactory(
-            "SaleLauncher"
-        );
+        const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
 
         saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
-
-        const WETH = await ethers.getContractFactory("WETH10");
-
-        weth = await WETH.deploy();
 
         const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
         tokenA = await ERC20.deploy("tokenA", "tokA");
@@ -112,21 +154,14 @@ describe("TemplateLauncher", async () => {
             "FairSaleTemplate"
         );
 
-        fairSaleTemplate = await FairSaleTemplate.deploy(
-            weth.address,
-            saleLauncher.address,
-            1
-        );
+        fairSaleTemplate = await FairSaleTemplate.deploy();
 
-        fairSaleTemplateDefault = await FairSaleTemplate.deploy(
-            weth.address,
-            saleLauncher.address,
-            1
-        );
+        fairSaleTemplateDefault = await FairSaleTemplate.deploy();
 
-        defaultTemplate = await saleLauncher.addTemplate(
-            fairSaleTemplateDefault.address
-        );
+        const FairSale = await ethers.getContractFactory("FairSale");
+        fairSale = await FairSale.deploy();
+
+        defaultTemplate = await saleLauncher.addTemplate(fairSale.address);
     });
     describe("adding templates", async () => {
         it("throws if template added by non-admin & restricted templates are turned on", async () => {
@@ -138,9 +173,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("throws if template is added twice", async () => {
-            await templateLauncher.addTemplate(
-                fairSaleTemplateDefault.address
-            );
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
 
             await expect(
                 templateLauncher.addTemplate(fairSaleTemplateDefault.address)
@@ -180,12 +213,9 @@ describe("TemplateLauncher", async () => {
             ).to.be.equal(0);
 
             await expect(
-                templateLauncher.addTemplate(
-                    fairSaleTemplateDefault.address,
-                    {
-                        value: 500,
-                    }
-                )
+                templateLauncher.addTemplate(fairSaleTemplateDefault.address, {
+                    value: 500,
+                })
             )
                 .to.emit(templateLauncher, "TemplateAdded")
                 .withArgs(fairSaleTemplateDefault.address, 1);
@@ -203,18 +233,14 @@ describe("TemplateLauncher", async () => {
 
     describe("removing templates", async () => {
         it("throws if trying to remove a template by othen then template manager", async () => {
-            await templateLauncher.addTemplate(
-                fairSaleTemplateDefault.address
-            );
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
             await expect(
                 templateLauncher.connect(user_2).removeTemplate(1)
             ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
         });
 
         it("allows template manager to remove templates", async () => {
-            await templateLauncher.addTemplate(
-                fairSaleTemplateDefault.address
-            );
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
             await expect(templateLauncher.removeTemplate(1))
                 .to.emit(templateLauncher, "TemplateRemoved")
                 .withArgs(fairSaleTemplateDefault.address, 1);
@@ -223,18 +249,14 @@ describe("TemplateLauncher", async () => {
 
     describe("verifying templates", async () => {
         it("throws if trying to verify a template by othen then template manager", async () => {
-            await templateLauncher.addTemplate(
-                fairSaleTemplateDefault.address
-            );
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
             await expect(
                 templateLauncher.connect(user_2).verifyTemplate(1)
             ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
         });
 
         it("allows template manager to verify templates", async () => {
-            await templateLauncher.addTemplate(
-                fairSaleTemplateDefault.address
-            );
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
             await expect(templateLauncher.verifyTemplate(1))
                 .to.emit(templateLauncher, "TemplateVerified")
                 .withArgs(fairSaleTemplateDefault.address, 1);
@@ -243,7 +265,9 @@ describe("TemplateLauncher", async () => {
 
     describe("launching auctions", async () => {
         it("throws if trying to launch template not through factory", async () => {
-            const initData = await encodeInitData(
+            const initData = await encodeInitDataFixedPrice(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
                 defaultTokenPrice,
@@ -262,7 +286,9 @@ describe("TemplateLauncher", async () => {
         });
 
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = await encodeInitData(
+            const initData = await encodeInitDataFixedPrice(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
                 defaultTokenPrice,
@@ -283,7 +309,9 @@ describe("TemplateLauncher", async () => {
         it("throws if trying to launch template without providing fee", async () => {
             await mesaFactory.setSaleFee(500);
 
-            const initData = await encodeInitData(
+            const initData = await encodeInitDataFixedPrice(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
                 defaultTokenPrice,
@@ -302,28 +330,46 @@ describe("TemplateLauncher", async () => {
         });
 
         it("allows to launch a template through factory", async () => {
-          await mesaFactory.setSaleFee(500);
+            await mesaFactory.setSaleFee(500);
+            await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
 
-          await templateLauncher.addTemplate(
-            fairSaleTemplateDefault.address
-          );
+            const initData = await encodeInitDataFairSale(
+                saleLauncher.address,
+                1,
+                tokenA.address,
+                tokenB.address,
+                500,
+                expandTo18Decimals(20),
+                expandTo18Decimals(5),
+                expandTo18Decimals(5),
+                expandTo18Decimals(20),
+                templateManager.address
+            );
 
-          const initData = await encodeInitData(
-              tokenA.address,
-              tokenB.address,
-              defaultTokenPrice,
-              defaultTokensForSale,
-              defaultStartDate,
-              defaultEndDate,
-              defaultAllocationMin,
-              defaultAllocationMax,
-              defaultMinimumRaise,
-              templateManager.address
-          );
+            await tokenA.mint(templateManager.address, expandTo18Decimals(50));
+            await tokenA.approve(saleLauncher.address, expandTo18Decimals(50));
 
-          await mesaFactory.launchTemplate(1, initData,{
-            value: 500,
-        })
-      });
+            const launchedTemplate = await mesaFactory.launchTemplate(
+                1,
+                initData,
+                {
+                    value: 500,
+                }
+            );
+
+            const launchedTemplateTx = await ethers.provider.getTransactionReceipt(
+                launchedTemplate.hash
+            );
+
+            newFairSaleTemplate = new ethers.Contract(
+                launchedTemplateTx.logs[1].address,
+                FairSaleTemplate.abi,
+                templateManager
+            );
+
+            await newFairSaleTemplate.createSale({
+                value: 500,
+            });
+        });
     });
 });

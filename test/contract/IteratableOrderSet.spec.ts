@@ -128,16 +128,10 @@ describe("IterableOrderedOrderSet", function () {
         await set.insert(BYTES32_THREE);
 
         expect(
-            await set.callStatic.insertAt(
-                BYTES32_TWO,
-                BYTES32_ONE
-            )
+            await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE)
         ).to.equal(true);
         expect(
-            await set.callStatic.insertAt(
-                BYTES32_TWO,
-                BYTES32_THREE
-            )
+            await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE)
         ).to.equal(false);
     });
 
@@ -145,36 +139,24 @@ describe("IterableOrderedOrderSet", function () {
         await set.insert(BYTES32_THREE);
 
         expect(
-            await set.callStatic.insertAt(
-                BYTES32_TWO,
-                BYTES32_ONE
-            )
+            await set.callStatic.insertAt(BYTES32_TWO, BYTES32_ONE)
         ).to.equal(false);
     });
 
     it("should not allow to insert element with element not in front of other element", async () => {
         expect(
-            await set.callStatic.insertAt(
-                BYTES32_TWO,
-                BYTES32_THREE
-            )
+            await set.callStatic.insertAt(BYTES32_TWO, BYTES32_THREE)
         ).to.equal(false);
     });
 
     it("should not allow to insert queue start element", async () => {
         await expect(
-            set.callStatic.insertAt(
-                queueStartElement,
-                queueStartElement
-            )
+            set.callStatic.insertAt(queueStartElement, queueStartElement)
         ).to.be.revertedWith("Inserting element is not valid");
     });
     it("should not allow to insert queue end element", async () => {
         await expect(
-            set.callStatic.insertAt(
-                queueLastElement,
-                queueStartElement
-            )
+            set.callStatic.insertAt(queueLastElement, queueStartElement)
         ).to.be.revertedWith("Inserting element is not valid");
     });
 
@@ -272,10 +254,7 @@ describe("IterableOrderedOrderSet", function () {
 
             await set.removeKeepHistory(BYTES32_TWO);
             expect(
-                await set.callStatic.insertAt(
-                    BYTES32_THREE,
-                    BYTES32_TWO
-                )
+                await set.callStatic.insertAt(BYTES32_THREE, BYTES32_TWO)
             ).to.equal(true);
             await set.insertAt(BYTES32_THREE, BYTES32_TWO);
 

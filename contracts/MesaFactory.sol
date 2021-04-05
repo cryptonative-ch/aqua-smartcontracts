@@ -82,10 +82,9 @@ contract MesaFactory {
         payable
         returns (address newSale)
     {
-        newSale = ITemplateLauncher(templateLauncher).launchTemplate.value(msg.value)(
-            _templateId,
-            _data
-        );
+        newSale = ITemplateLauncher(templateLauncher).launchTemplate.value(
+            msg.value
+        )(_templateId, _data);
         emit TemplateLaunched(newSale, _templateId);
         allSales.push(newSale);
     }

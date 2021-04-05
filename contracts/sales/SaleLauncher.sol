@@ -7,6 +7,7 @@ import "../interfaces/ISale.sol";
 import "../interfaces/IMesaFactory.sol";
 import "../libraries/TransferHelper.sol";
 import "../utils/cloneFactory.sol";
+import "hardhat/console.sol";
 
 contract SaleLauncher is CloneFactory {
     using SafeERC20 for IERC20;
@@ -27,11 +28,7 @@ contract SaleLauncher is CloneFactory {
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event SaleLaunched(address indexed sale, uint256 templateId);
-    event SaleInitialized(
-        address indexed sale,
-        uint256 templateId,
-        bytes data
-    );
+    event SaleInitialized(address indexed sale, uint256 templateId, bytes data);
 
     address public factory;
 
@@ -43,6 +40,7 @@ contract SaleLauncher is CloneFactory {
         uint256 _templateId,
         address _token,
         uint256 _tokenSupply,
+        address _tokenSupplier,
         bytes calldata _data
     ) external payable returns (address newSale) {
         require(
@@ -67,7 +65,7 @@ contract SaleLauncher is CloneFactory {
 
             TransferHelper.safeTransferFrom(
                 _token,
-                msg.sender,
+                _tokenSupplier,
                 address(this),
                 depositAmount
             );
@@ -78,7 +76,7 @@ contract SaleLauncher is CloneFactory {
                 depositAmount.sub(_tokenSupply)
             );
         }
-        //ISale(newSale).initSale(_data);
+        ISale(newSale).init(_data);
         emit SaleInitialized(newSale, _templateId, _data);
         return address(newSale);
     }

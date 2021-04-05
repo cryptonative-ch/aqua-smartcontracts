@@ -28,9 +28,47 @@ import {
 // https://jamboard.google.com/d/1DMgMYCQQzsSLKPq_hlK3l32JNBbRdIhsOrLB1oHaEYY/edit?usp=sharing
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-describe.skip("FairSale", async () => {
+describe("FairSale", async () => {
     const [user_1, user_2, user_3] = waffle.provider.getWallets();
     let fairSale: Contract;
+
+    function encodeInitDataFairSale(
+        tokenIn: string,
+        tokenOut: string,
+        orderCancelationPeriodDuration: number,
+        duration: number,
+        totalTokenOutAmount: BigNumber,
+        minBidAmountToReceive: BigNumber,
+        minimumBiddingAmountPerOrder: BigNumber,
+        minSellThreshold: BigNumber,
+        isAtomicClosureAllowed: boolean
+    ) {
+        return ethers.utils.defaultAbiCoder.encode(
+            [
+                "address",
+                "address",
+                "uint256",
+                "uint256",
+                "uint96",
+                "uint96",
+                "uint256",
+                "uint256",
+                "bool",
+            ],
+            [
+                tokenIn,
+                tokenOut,
+                orderCancelationPeriodDuration,
+                duration,
+                totalTokenOutAmount,
+                minBidAmountToReceive,
+                minimumBiddingAmountPerOrder,
+                minSellThreshold,
+                isAtomicClosureAllowed,
+            ]
+        );
+    }
+
     beforeEach(async () => {
         const FairSale = await ethers.getContractFactory("FairSale");
 
@@ -44,18 +82,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await expect(
-                fairSale.initAuction(
-                    tokenIn.address,
-                    tokenOut.address,
-                    60 * 60,
-                    ethers.utils.parseEther("1"),
-                    ethers.utils.parseEther("1"),
-                    0,
-                    0,
-                    false
-                )
-            ).to.be.revertedWith(
+            const initData = encodeInitDataFairSale(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                60 * 60,
+                ethers.utils.parseEther("1"),
+                ethers.utils.parseEther("1"),
+                BigNumber.from(0),
+                BigNumber.from(0),
+                false
+            );
+
+            await expect(fairSale.init(initData)).to.be.revertedWith(
                 "minimumBiddingAmountPerOrder is not allowed to be zero"
             );
         });
@@ -66,18 +105,21 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await expect(
-                fairSale.initAuction(
-                    tokenIn.address,
-                    tokenOut.address,
-                    60 * 60,
-                    0,
-                    ethers.utils.parseEther("1"),
-                    1,
-                    0,
-                    false
-                )
-            ).to.be.revertedWith("cannot auction zero tokens");
+            const initData = encodeInitDataFairSale(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                60 * 60,
+                BigNumber.from(0),
+                ethers.utils.parseEther("1"),
+                BigNumber.from(1),
+                BigNumber.from(0),
+                false
+            );
+
+            await expect(fairSale.init(initData)).to.be.revertedWith(
+                "cannot auction zero tokens"
+            );
         });
         it("throws if auction is a giveaway", async () => {
             const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
@@ -86,38 +128,21 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await expect(
-                fairSale.initAuction(
-                    tokenIn.address,
-                    tokenOut.address,
-                    60 * 60,
-                    ethers.utils.parseEther("1"),
-                    0,
-                    1,
-                    0,
-                    false
-                )
-            ).to.be.revertedWith("tokens cannot be auctioned for free");
-        });
-        it("throws if auction periods do not make sense", async () => {
-            const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
-                fairSale,
-                [user_1, user_2],
-                hre
+            const initData = encodeInitDataFairSale(
+                tokenIn.address,
+                tokenOut.address,
+                60 * 60,
+                60 * 60,
+                ethers.utils.parseEther("1"),
+                BigNumber.from(0),
+                BigNumber.from(1),
+                BigNumber.from(0),
+                false
             );
 
-            await expect(
-                fairSale.initAuction(
-                    tokenIn.address,
-                    tokenOut.address,
-                    60 * 60 + 1,
-                    ethers.utils.parseEther("1"),
-                    ethers.utils.parseEther("1"),
-                    1,
-                    0,
-                    false
-                )
-            ).to.be.revertedWith("time periods are not configured correctly");
+            await expect(fairSale.init(initData)).to.be.revertedWith(
+                "tokens cannot be auctioned for free"
+            );
         });
         it("initAuction stores the parameters correctly", async () => {
             const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
@@ -130,17 +155,21 @@ describe.skip("FairSale", async () => {
             ethers.provider.send("evm_setNextBlockTimestamp", [
                 timestampForMining,
             ]);
-            fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 ethers.utils.parseEther("2"),
                 ethers.utils.parseEther("1"),
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
-            expect(await fairSale.tokenOut()).to.equal(tokenIn.address);
+
+            fairSale.init(initData);
+            expect(await fairSale.tokenOut()).to.equal(tokenOut.address);
             expect(await fairSale.tokenIn()).to.equal(tokenIn.address);
             expect(await fairSale.initialAuctionOrder()).to.equal(
                 encodeOrder({
@@ -149,22 +178,18 @@ describe.skip("FairSale", async () => {
                     orderTokenIn: ethers.utils.parseEther("1"),
                 })
             );
-            expect(await fairSale.endDate()).to.be.equal(0);
+            expect(await fairSale.endDate()).to.be.equal(
+                timestampForMining + 3600
+            );
             expect(await fairSale.orderCancellationEndDate()).to.be.equal(
                 timestampForMining + 3600
             );
             expect(await fairSale.auctionStartedDate()).to.be.equal(
                 timestampForMining
             );
-            expect(await fairSale.gracePeriodStartDate()).to.be.equal(
-                timestampForMining + 1200
+            expect(await fairSale.minimumBiddingAmountPerOrder()).to.be.equal(
+                1
             );
-            expect(await fairSale.gracePeriodEndDate()).to.be.equal(
-                timestampForMining + 3600
-            );
-            expect(
-                await fairSale.minimumBiddingAmountPerOrder()
-            ).to.be.equal(1);
             expect(await fairSale.interimSumBidAmount()).to.be.equal(0);
             await expect(await fairSale.clearingPriceOrder()).to.equal(
                 encodeOrder({
@@ -251,16 +276,20 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 ethers.utils.parseEther("2"),
                 ethers.utils.parseEther("1"),
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            fairSale.init(initData);
             await expect(
                 fairSale.placeOrders(
                     [ethers.utils.parseEther("2").add(1)],
@@ -282,16 +311,20 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 ethers.utils.parseEther("2"),
                 ethers.utils.parseEther("1"),
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            fairSale.init(initData);
             await expect(() =>
                 fairSale.placeOrders(
                     [ethers.utils.parseEther("2").sub(1)],
@@ -299,7 +332,7 @@ describe.skip("FairSale", async () => {
                     [queueStartElement]
                 )
             ).to.changeTokenBalances(
-                tokenOut,
+                tokenIn,
                 [user_1],
                 [ethers.utils.parseEther("-1")]
             );
@@ -309,7 +342,7 @@ describe.skip("FairSale", async () => {
                     [ethers.utils.parseEther("1")],
                     [queueStartElement]
                 )
-            ).to.changeTokenBalances(tokenOut, [user_1], [BigNumber.from(0)]);
+            ).to.changeTokenBalances(tokenIn, [user_1], [BigNumber.from(0)]);
         });
         it("places a new order and checks that tokens were transferred", async () => {
             const { tokenIn, tokenOut } = await createTokensAndMintAndApprove(
@@ -317,16 +350,20 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 ethers.utils.parseEther("2"),
                 ethers.utils.parseEther("1"),
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            fairSale.init(initData);
             const balanceBeforeOrderPlacement = await tokenIn.balanceOf(
                 user_1.address
             );
@@ -369,16 +406,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
+                60 * 60,
                 60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
                 ethers.utils.parseEther("1").div(1000),
-                0,
+                BigNumber.from(0),
                 false
             );
+
+            fairSale.init(initData);
             await expect(
                 fairSale.placeOrders(
                     sellOrders.map((buyOrder) => buyOrder.orderTokenOut),
@@ -393,16 +433,20 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 ethers.utils.parseEther("2"),
                 ethers.utils.parseEther("1"),
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            fairSale.init(initData);
             const orderTokenIn = ethers.utils.parseEther("1").add(1);
             const orderTokenOut = ethers.utils.parseEther("1");
             await tokenIn.approve(
@@ -450,16 +494,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await expect(
@@ -485,16 +532,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -531,16 +581,20 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            await fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
 
@@ -588,16 +642,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
 
@@ -633,21 +690,23 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
 
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
 
             await fairSale.settleAuction();
 
@@ -686,21 +745,23 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
 
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
 
             await fairSale.settleAuction();
 
@@ -731,21 +792,23 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
 
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.equal(
@@ -786,21 +849,23 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
 
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.equal(
@@ -826,19 +891,21 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
 
+            await fairSale.init(initData);
+
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.equal(
@@ -872,20 +939,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
             expect(await fairSale.clearingPriceOrder()).to.equal(
                 encodeOrder({
@@ -916,20 +985,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.equal(
@@ -966,20 +1037,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.eql(
@@ -989,20 +1062,16 @@ describe.skip("FairSale", async () => {
                 sellOrders[1].orderTokenIn
             );
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
-                tokenIn,
+                tokenOut,
                 [user_2],
                 [sellOrders[0].orderTokenIn]
             );
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
             ).to.changeTokenBalances(
-                tokenIn,
+                tokenOut,
                 [user_3],
                 [sellOrders[1].orderTokenIn]
             );
@@ -1036,21 +1105,23 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
 
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.eql(
@@ -1059,30 +1130,27 @@ describe.skip("FairSale", async () => {
             expect(await fairSale.volumeClearingPriceOrder()).to.equal(
                 sellOrders[1].orderTokenIn
             );
+
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
-            ).to.changeTokenBalances(
-                tokenIn,
-                [user_1],
-                [sellOrders[0].orderTokenOut]
-            );
-            await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
-            ).to.changeTokenBalances(
-                tokenIn,
-                [user_2],
-                [sellOrders[1].orderTokenOut]
-            );
-            await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[2]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
                 tokenOut,
+                [user_1],
+                [sellOrders[0].orderTokenIn]
+            );
+
+            await expect(() =>
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
+            ).to.changeTokenBalances(
+                tokenOut,
+                [user_2],
+                [sellOrders[1].orderTokenIn]
+            );
+
+            await expect(() =>
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[2])])
+            ).to.changeTokenBalances(
+                tokenIn,
                 [user_3],
                 [sellOrders[2].orderTokenIn]
             );
@@ -1116,20 +1184,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.equal(
@@ -1139,29 +1209,23 @@ describe.skip("FairSale", async () => {
                 sellOrders[1].orderTokenIn
             );
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
-                tokenIn,
+                tokenOut,
                 [user_2],
                 [sellOrders[0].orderTokenIn]
             );
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
             ).to.changeTokenBalances(
-                tokenOut,
+                tokenIn,
                 [user_3],
                 [sellOrders[1].orderTokenIn]
             );
             await expect(() =>
-                fairSale.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[2]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[2])])
             ).to.changeTokenBalances(
-                tokenIn,
+                tokenOut,
                 [user_3],
                 [sellOrders[2].orderTokenIn]
             );
@@ -1196,20 +1260,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.eql(
@@ -1248,20 +1314,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             // this is the additional step
             await fairSale.precalculateSellAmountSum(1);
 
@@ -1307,20 +1375,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             // this is the additional step
             await fairSale.precalculateSellAmountSum(1);
 
@@ -1368,20 +1438,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             await fairSale.settleAuction();
 
             expect(await fairSale.clearingPriceOrder()).to.be.equal(
@@ -1424,20 +1496,22 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             const price = await calculateClearingPrice(fairSale);
 
             await fairSale.settleAuction();
@@ -1473,28 +1547,28 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
+                BigNumber.from(1),
                 ethers.utils.parseEther("5"),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
-            await fairSale.setAuctionEndDate((await getCurrentTime()) - 10);
             const price = await calculateClearingPrice(fairSale);
 
             await fairSale.settleAuction();
             expect(price).to.eql(initialAuctionOrder);
 
-            expect(await fairSale.minSellThresholdNotReached()).to.equal(
-                true
-            );
+            expect(await fairSale.minSellThresholdNotReached()).to.equal(true);
         });
     });
     describe("claimFromAuctioneerOrder", async () => {
@@ -1529,23 +1603,25 @@ describe.skip("FairSale", async () => {
             // await fairSale
             //   .connect(user_1)
             //   .setFeeParameters(feeNumerator, feeReceiver.address);
-            await fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
+                BigNumber.from(1),
                 ethers.utils.parseEther("5"),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
 
-            expect(await fairSale.minSellThresholdNotReached()).to.equal(
-                true
-            );
+            expect(await fairSale.minSellThresholdNotReached()).to.equal(true);
             expect(await tokenOut.balanceOf(user_1.address)).to.be.equal(
                 tokenOutBalanceBeforeAuction
             );
@@ -1568,16 +1644,19 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-            await fairSale.initAuction(
+
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             const price = await calculateClearingPrice(fairSale);
@@ -1590,11 +1669,7 @@ describe.skip("FairSale", async () => {
             );
             await expect(callPromise)
                 .to.emit(tokenIn, "Transfer")
-                .withArgs(
-                    fairSale.address,
-                    user_1.address,
-                    price.orderTokenIn
-                );
+                .withArgs(fairSale.address, user_1.address, price.orderTokenIn);
         });
         it("checks the claimed amounts for a partially matched initialAuctionOrder and buyOrder", async () => {
             const initialAuctionOrder = {
@@ -1615,16 +1690,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             const callPromise = fairSale.settleAuction();
@@ -1672,16 +1750,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
+                BigNumber.from(1),
                 ethers.utils.parseEther("5"),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -1690,7 +1771,7 @@ describe.skip("FairSale", async () => {
                     sellOrders.map((order) => encodeOrder(order))
                 )
             ).to.changeTokenBalances(
-                tokenOut,
+                tokenIn,
                 [user_2],
                 [sellOrders[0].orderTokenIn.add(sellOrders[1].orderTokenIn)]
             );
@@ -1714,16 +1795,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -1765,17 +1849,19 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             const price = await calculateClearingPrice(fairSale);
@@ -1845,16 +1931,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -1896,16 +1985,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             const price = await calculateClearingPrice(fairSale);
@@ -1951,16 +2043,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -2002,17 +2097,19 @@ describe.skip("FairSale", async () => {
                 [user_1, user_2],
                 hre
             );
-
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -2053,16 +2150,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2116,16 +2216,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2163,16 +2266,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 true
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2219,16 +2325,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -2270,16 +2379,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(fairSale.cancelOrders([encodeOrder(sellOrders[0])]))
@@ -2309,16 +2421,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
@@ -2353,16 +2468,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             // removes the order
@@ -2391,16 +2509,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -2428,16 +2549,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2461,16 +2585,19 @@ describe.skip("FairSale", async () => {
                 hre
             );
 
-            await fairSale.initAuction(
+            const initData = encodeInitDataFairSale(
                 tokenIn.address,
                 tokenOut.address,
                 60 * 60,
+                60 * 60,
                 initialAuctionOrder.orderTokenOut,
                 initialAuctionOrder.orderTokenIn,
-                1,
-                0,
+                BigNumber.from(1),
+                BigNumber.from(0),
                 false
             );
+
+            await fairSale.init(initData);
             await closeAuction(fairSale);
             expect(
                 await fairSale.callStatic.getSecondsRemainingInBatch()

@@ -1,11 +1,12 @@
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "solidity-coverage";
-import "hardhat-deploy";
-import dotenv from "dotenv";
-
-// Load environment variables.
-dotenv.config();
+require("@nomiclabs/hardhat-truffle5");
+require("solidity-coverage");
+require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-waffle");
+require("hardhat-gas-reporter");
+require("./tasks/deploy");
+require("./tasks/launch_FairSale");
+require("./tasks/launch_FixedPriceSale");
+require("dotenv").config();
 
 module.exports = {
     networks: {
@@ -21,13 +22,13 @@ module.exports = {
             accounts: [process.env.PRIVATE_KEY],
         },
         hardhat: {
-                accounts: {
-                    count: 128
-                },
+            accounts: {
+                count: 128,
+            },
         },
     },
     mocha: {
-        timeout: '600s',
+        timeout: "600s",
     },
     paths: {
         artifacts: "build/artifacts",

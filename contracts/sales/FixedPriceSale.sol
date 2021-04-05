@@ -53,7 +53,7 @@ contract FixedPriceSale {
     mapping(address => uint256) public tokensPurchased;
 
     address[] public orderOwners;
-    
+
     modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
@@ -64,7 +64,7 @@ contract FixedPriceSale {
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _tokenIn token to make the bid in
     /// @param _tokenOut token to buy
-    /// @param _tokenPrice fixed token price 
+    /// @param _tokenPrice fixed token price
     /// @param _tokensForSale amount of tokens to be sold
     /// @param _startDate start date
     /// @param _endDate end date
@@ -176,10 +176,7 @@ contract FixedPriceSale {
                 tokensPurchased[msg.sender].add(amount) <= allocationMax,
             "FixedPriceSale: allocationMax reached"
         );
-        require(
-            block.timestamp < endDate,
-            "FixedPriceSale: deadline passed"
-        );
+        require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
 
         if (tokensPurchased[msg.sender] == 0) {
@@ -247,21 +244,25 @@ contract FixedPriceSale {
         emit NewTokenClaim(msg.sender, purchasedTokens);
     }
 
-   /// @dev let everyone distribute token to the investors
+    /// @dev let everyone distribute token to the investors
     function distributeAllTokens() public {
         require(isClosed, "FixedPriceAuction: auction not closed");
         uint256 _counter = 1;
         // loop backwards
         for (uint256 i = orderOwners.length; i > 0; i--) {
-            address _orderOwner = orderOwners[i-1];
-            if (tokensPurchased[_orderOwner] > 0){
+            address _orderOwner = orderOwners[i - 1];
+            if (tokensPurchased[_orderOwner] > 0) {
                 uint256 _purchasedTokens = tokensPurchased[_orderOwner];
                 tokensPurchased[_orderOwner] = 0;
-                TransferHelper.safeTransfer(address(tokenOut), _orderOwner, _purchasedTokens);
+                TransferHelper.safeTransfer(
+                    address(tokenOut),
+                    _orderOwner,
+                    _purchasedTokens
+                );
             }
             // delete last entry, even if tokensPurchased[_orderOwner] == 0 this okey, because then token has been claimed by claimTokens()
             orderOwners.pop();
-            if (_counter == numberToDistributionPerBlock){
+            if (_counter == numberToDistributionPerBlock) {
                 break;
             }
             _counter++;
@@ -291,10 +292,12 @@ contract FixedPriceSale {
         _withdrawFunds();
     }
 
-
     /// @dev withdraw collected funds
     /// @param _data encoded params for future use with saleLauncher
-    function withdrawFundsWithParams(bytes calldata _data) external onlyOwner() {
+    function withdrawFundsWithParams(bytes calldata _data)
+        external
+        onlyOwner()
+    {
         bytes calldata data = _data; //?? don't know if this is the right type,
         _withdrawFunds();
     }
@@ -316,10 +319,7 @@ contract FixedPriceSale {
     /// @param amount Amount to withdraw
     // ??? to unstuck token which are sent to the contract by accident
     function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
-        require(
-            block.timestamp > endDate,
-            "FixedPriceSale: sale not ended"
-        );
+        require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
         TransferHelper.safeTransfer(token, owner, amount);
     }
 
@@ -327,10 +327,7 @@ contract FixedPriceSale {
     /// @param amount ETH amount to withdraw
     // ??? to unstuck ETH which are sent to the contract by accident
     function ETHWithdraw(uint256 amount) external onlyOwner() {
-        require(
-            block.timestamp > endDate,
-            "FixedPriceSale: sale not ended"
-        );
+        require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
         TransferHelper.safeTransferETH(owner, amount);
     }
 

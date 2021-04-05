@@ -1,5 +1,6 @@
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
+import { expandTo18Decimals } from "./utilities";
 
 import {
     createTokensAndMintAndApprove,
@@ -11,6 +12,44 @@ import { closeAuction } from "./utilities";
 describe("FairSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
     let fairSale: Contract;
+
+    function encodeInitDataFairSale(
+        tokenIn: string,
+        tokenOut: string,
+        orderCancelationPeriodDuration: number,
+        duration: number,
+        totalTokenOutAmount: BigNumber,
+        minBidAmountToReceive: BigNumber,
+        minimumBiddingAmountPerOrder: BigNumber,
+        minSellThreshold: BigNumber,
+        isAtomicClosureAllowed: boolean
+    ) {
+        return ethers.utils.defaultAbiCoder.encode(
+            [
+                "address",
+                "address",
+                "uint256",
+                "uint256",
+                "uint96",
+                "uint96",
+                "uint256",
+                "uint256",
+                "bool",
+            ],
+            [
+                tokenIn,
+                tokenOut,
+                orderCancelationPeriodDuration,
+                duration,
+                totalTokenOutAmount,
+                minBidAmountToReceive,
+                minimumBiddingAmountPerOrder,
+                minSellThreshold,
+                isAtomicClosureAllowed,
+            ]
+        );
+    }
+
     beforeEach(async () => {
         const FairSale = await ethers.getContractFactory("FairSale");
 
@@ -24,17 +63,20 @@ describe("FairSale", async () => {
             hre
         );
         const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-        await fairSale.initAuction(
+
+        const initData = await await encodeInitDataFairSale(
             tokenIn.address,
             tokenOut.address,
             60 * 60,
             60 * 60,
             ethers.utils.parseEther("1000"),
             ethers.utils.parseEther("1000"),
-            1,
-            0,
+            BigNumber.from(1),
+            BigNumber.from(0),
             false
         );
+
+        await fairSale.init(initData);
 
         for (let i = 2; i < nrTests; i++) {
             const sellOrder = [

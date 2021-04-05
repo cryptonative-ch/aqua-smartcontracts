@@ -3,14 +3,13 @@ import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 
-import { mineBlock, expandTo18Decimals } from "./utilities";
+import { expandTo18Decimals } from "./utilities";
 
 describe("SaleLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
     let saleLauncher: Contract;
     let mesaFactory: Contract;
     let templateLauncher: Contract;
-    let weth: Contract;
     let fairSaleTemplate: Contract;
     let fairSaleTemplateDefault: Contract;
     let tokenA: Contract;
@@ -26,42 +25,42 @@ describe("SaleLauncher", async () => {
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitData(
-        tokenIn: string,
+    function encodeInitDataFairSale(
+        saleLauncher: string,
+        auctionTemplateId: number,
         tokenOut: string,
-        tokenPrice: BigNumber,
-        tokensForSale: BigNumber,
-        startDate: number,
-        endDate: number,
-        allocationMin: BigNumber,
-        allocationMax: BigNumber,
-        minimumRaise: BigNumber,
-        owner: string
+        tokenIn: string,
+        duration: number,
+        tokenOutSupply: BigNumber,
+        minPrice: BigNumber,
+        minBuyAmount: BigNumber,
+        minRaise: BigNumber,
+        tokenSupplier: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
                 "address",
+                "uint256",
+                "address",
                 "address",
                 "uint256",
                 "uint256",
-                "uint256",
-                "uint256",
-                "uint256",
-                "uint256",
+                "uint96",
+                "uint96",
                 "uint256",
                 "address",
             ],
             [
-                tokenIn,
+                saleLauncher,
+                auctionTemplateId,
                 tokenOut,
-                tokenPrice,
-                tokensForSale,
-                startDate,
-                endDate,
-                allocationMin,
-                allocationMax,
-                minimumRaise,
-                owner,
+                tokenIn,
+                duration,
+                tokenOutSupply,
+                minPrice,
+                minBuyAmount,
+                minRaise,
+                tokenSupplier,
             ]
         );
     }
@@ -93,15 +92,9 @@ describe("SaleLauncher", async () => {
             0
         );
 
-        const SaleLauncher = await ethers.getContractFactory(
-            "SaleLauncher"
-        );
+        const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
 
         saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
-
-        const WETH = await ethers.getContractFactory("WETH10");
-
-        weth = await WETH.deploy();
 
         const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
         tokenA = await ERC20.deploy("tokenA", "tokA");
@@ -112,17 +105,9 @@ describe("SaleLauncher", async () => {
             "FairSaleTemplate"
         );
 
-        fairSaleTemplate = await FairSaleTemplate.deploy(
-            weth.address,
-            saleLauncher.address,
-            1
-        );
+        fairSaleTemplate = await FairSaleTemplate.deploy();
 
-        fairSaleTemplateDefault = await FairSaleTemplate.deploy(
-            weth.address,
-            saleLauncher.address,
-            1
-        );
+        fairSaleTemplateDefault = await FairSaleTemplate.deploy();
 
         defaultTemplate = await saleLauncher.addTemplate(
             fairSaleTemplateDefault.address
@@ -149,9 +134,7 @@ describe("SaleLauncher", async () => {
                 await saleLauncher.getTemplateId(fairSaleTemplate.address)
             ).to.be.equal(0);
 
-            await expect(
-                saleLauncher.addTemplate(fairSaleTemplate.address)
-            )
+            await expect(saleLauncher.addTemplate(fairSaleTemplate.address))
                 .to.emit(saleLauncher, "TemplateAdded")
                 .withArgs(fairSaleTemplate.address, 2);
 
@@ -186,16 +169,16 @@ describe("SaleLauncher", async () => {
 
     describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = await encodeInitData(
+            const initData = await await encodeInitDataFairSale(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                defaultMinimumRaise,
+                500,
+                expandTo18Decimals(20),
+                expandTo18Decimals(5),
+                expandTo18Decimals(5),
+                expandTo18Decimals(20),
                 templateManager.address
             );
 
@@ -204,6 +187,7 @@ describe("SaleLauncher", async () => {
                     3,
                     tokenA.address,
                     10000,
+                    templateManager.address,
                     initData
                 )
             ).to.be.revertedWith("SaleLauncher: INVALID_TEMPLATE");
@@ -212,16 +196,16 @@ describe("SaleLauncher", async () => {
         it("throws if trying to launch sales without providing sales fee", async () => {
             await mesaFactory.setSaleFee(500);
 
-            const initData = await encodeInitData(
+            const initData = await await encodeInitDataFairSale(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                defaultMinimumRaise,
+                500,
+                expandTo18Decimals(20),
+                expandTo18Decimals(5),
+                expandTo18Decimals(5),
+                expandTo18Decimals(20),
                 templateManager.address
             );
 
@@ -230,6 +214,7 @@ describe("SaleLauncher", async () => {
                     1,
                     tokenA.address,
                     10000,
+                    templateManager.address,
                     initData
                 )
             ).to.be.revertedWith("SaleLauncher: SALE_FEE_NOT_PROVIDED");
@@ -240,16 +225,16 @@ describe("SaleLauncher", async () => {
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
-            const initData = await encodeInitData(
+            const initData = await encodeInitDataFairSale(
+                saleLauncher.address,
+                1,
                 tokenA.address,
                 tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                defaultMinimumRaise,
+                500,
+                expandTo18Decimals(20),
+                expandTo18Decimals(5),
+                expandTo18Decimals(5),
+                expandTo18Decimals(20),
                 templateManager.address
             );
 
@@ -259,6 +244,7 @@ describe("SaleLauncher", async () => {
                 1,
                 tokenA.address,
                 10000,
+                templateManager.address,
                 initData,
                 {
                     value: 500,
