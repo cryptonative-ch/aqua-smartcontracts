@@ -1,32 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../interfaces/ISaleLauncher.sol";
-import "../libraries/TransferHelper.sol";
 import "../interfaces/IMesaFactory.sol";
-import "hardhat/console.sol";
-
-interface IAuction {
-    function initAuction(
-        address _auctioningToken,
-        address _biddingToken,
-        uint256 _orderCancelationPeriodDuration,
-        uint96 _amountToSell,
-        uint96 _minBidAmountToReceive,
-        uint256 _minimumBiddingAmountPerOrder,
-        uint256 _minFundingThreshold,
-        uint256 _gracePeriodStartDuration,
-        uint256 _gracePeriodDuration,
-        bool _isAtomicClosureAllowed
-    ) external;
-}
 
 contract FairSaleTemplate {
-    using SafeMath for uint256;
-
     string public constant templateName = "FairSaleTemplate";
-    IAuction public auction;
     ISaleLauncher public saleLauncher;
     IMesaFactory public mesaFactory;
     uint256 public auctionTemplateId;
@@ -111,7 +90,6 @@ contract FairSaleTemplate {
 
     function createSale() public payable returns (address newSale) {
         require(msg.sender == tokenSupplier, "FairSaleTemplate: FORBIDDEN");
-
         newSale = saleLauncher.createSale.value(msg.value)(
             auctionTemplateId,
             tokenOut,

@@ -7,7 +7,6 @@ import "../interfaces/ISale.sol";
 import "../interfaces/IMesaFactory.sol";
 import "../libraries/TransferHelper.sol";
 import "../utils/cloneFactory.sol";
-import "hardhat/console.sol";
 
 contract SaleLauncher is CloneFactory {
     using SafeERC20 for IERC20;
