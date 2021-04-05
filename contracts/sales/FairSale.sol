@@ -66,7 +66,7 @@ contract FairSale {
         uint96 orderTokenIn
     );
     event NewUser(uint64 indexed ownerId, address indexed userAddress);
-    event InitializedAuction(
+    event InitializedSale(
         IERC20 indexed _tokenIn,
         IERC20 indexed _tokenOut,
         uint256 orderCancellationEndDate,
@@ -76,7 +76,7 @@ contract FairSale {
         uint256 minimumBiddingAmountPerOrder,
         uint256 minSellThreshold
     );
-    event AuctionCleared(
+    event SaleCleared(
         uint96 auctionedTokens,
         uint96 soldBiddingTokens,
         bytes32 clearingOrder
@@ -182,7 +182,7 @@ contract FairSale {
         isAtomicClosureAllowed = _isAtomicClosureAllowed;
         minSellThreshold = _minSellThreshold;
 
-        emit InitializedAuction(
+        emit InitializedSale(
             _tokenIn,
             _tokenOut,
             orderCancellationEndDate,
@@ -454,7 +454,7 @@ contract FairSale {
             auctioneerId,
             fullAuctionAmountToSell
         );
-        emit AuctionCleared(
+        emit SaleCleared(
             fillVolumeOfAuctioneerOrder,
             uint96(currentBidSum),
             clearingOrder
