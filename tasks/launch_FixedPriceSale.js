@@ -1,9 +1,6 @@
 const { task } = require("hardhat/config");
 
-task(
-    "launchFixedPriceSale",
-    "Starts a new sale from FixedPriceSale template"
-)
+task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
     .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
     .addParam("saleTemplateId", "The id of Mesa FairSale Template")
     .addParam(
