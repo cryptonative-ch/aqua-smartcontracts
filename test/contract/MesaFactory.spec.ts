@@ -84,10 +84,12 @@ describe("MesaFactory", async () => {
         });
 
         it("only templateManager can update templateLauncher", async () => {
+          
             await expect(
                 mesaFactory.connect(user_2).setTemplateLauncher(user_2.address)
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
+            expect(await mesaFactory.numberOfSales()).to.be.equal(0);
             await expect(mesaFactory.setTemplateLauncher(user_2.address))
                 .to.emit(mesaFactory, "SetTemplateLauncher")
                 .withArgs(user_2.address);

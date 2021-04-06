@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
-import FairSaleTemplate from "../../build/artifacts/contracts/templates/FairSaleTemplate.sol/FairSaleTemplate.json";
 import "@nomiclabs/hardhat-ethers";
 
 import { expandTo18Decimals } from "./utilities";
@@ -13,7 +12,6 @@ let tokenA: Contract;
 let tokenB: Contract;
 let fixedPriceSaleTemplate: Contract;
 let fixedPriceSale: Contract;
-let defaultTemplate: String;
 let currentBlockNumber, currentBlock;
 
 const defaultTokenPrice = expandTo18Decimals(10);
@@ -103,7 +101,7 @@ beforeEach(async () => {
 
     const FixedPriceSale = await ethers.getContractFactory("FixedPriceSale");
     fixedPriceSale = await FixedPriceSale.deploy();
-    defaultTemplate = await saleLauncher.addTemplate(fixedPriceSale.address);
+    await saleLauncher.addTemplate(fixedPriceSale.address);
 
     const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
     tokenA = await ERC20.deploy("tokenA", "tokA");
@@ -114,7 +112,7 @@ describe("FixedPriceSaleTemplate", async () => {
     it("can only initialize once", async () => {
         const initData = encodeInitDataFixedPrice(
             saleLauncher.address,
-            2,
+            1,
             templateManager.address,
             tokenA.address,
             tokenB.address,

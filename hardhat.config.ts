@@ -7,6 +7,7 @@ require("./tasks/deploy");
 require("./tasks/launch_FairSale");
 require("./tasks/launch_FixedPriceSale");
 require("dotenv").config();
+const yargsInteractive = require("yargs-interactive");
 
 module.exports = {
     networks: {
