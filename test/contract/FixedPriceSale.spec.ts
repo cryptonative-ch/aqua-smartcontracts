@@ -855,48 +855,6 @@ describe("FixedPriceSale", async () => {
                 );
         });
 
-        it("allows withdrawing funds with params", async () => {
-            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
-
-            const calldata = "0x";
-
-            const initData = await encodeInitData(
-                tokenA.address,
-                tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                expandTo18Decimals(0),
-                user_1.address
-            );
-
-            await fixedPriceSale.init(initData);
-            await tokenA.approve(
-                fixedPriceSale.address,
-                expandTo18Decimals(10)
-            );
-            await fixedPriceSale.buyTokens(expandTo18Decimals(10));
-
-            await mineBlock(defaultEndDate + 100);
-
-            await expect(
-                fixedPriceSale.withdrawFundsWithParams(calldata)
-            ).to.be.revertedWith("FixedPriceSale: sale not closed");
-
-            await fixedPriceSale.closeSale();
-
-            await expect(fixedPriceSale.withdrawFundsWithParams(calldata))
-                .to.emit(tokenA, "Transfer")
-                .withArgs(
-                    fixedPriceSale.address,
-                    user_1.address,
-                    expandTo18Decimals(10)
-                );
-        });
-
         it("allows only owner to withdraw ERC20", async () => {
             tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 

@@ -23,10 +23,8 @@ task("launchFairSale", "Starts a new auction from FairSale template")
     .addParam(
         "minBuyAmount",
         "The amount of biddingToken to be bought at least for selling sellAmount in atoms"
-    ).addParam(
-      "minRaise",
-      "minimum amount an project is expected to raise"
-  )
+    )
+    .addParam("minRaise", "minimum amount an project is expected to raise")
     .addParam("tokenSupplier", "address that deposits the selling tokens")
     .setAction(async (taskArguments, hre) => {
         const {
@@ -59,7 +57,6 @@ task("launchFairSale", "Starts a new auction from FairSale template")
             factoryAddress
         );
 
-
         const initData = await encodeInitDataFairSale(
             saleLauncher,
             auctionTemplateId,
@@ -82,7 +79,6 @@ task("launchFairSale", "Starts a new auction from FairSale template")
             "Launched Template succesfully! Trasaction: " +
                 launchTemplateTx.hash
         );
-
     });
 
 function encodeInitDataFairSale(

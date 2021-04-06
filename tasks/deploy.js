@@ -69,7 +69,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         const saleTemplate2 = await saleLauncher.addTemplate(
             fixedPriceSale.address
         );
-        
+
         // Deploy FairSaleTemplate
         const FairSaleTemplate = hre.artifacts.require("FairSaleTemplate");
         const fairSaleTemplate = await FairSaleTemplate.new();

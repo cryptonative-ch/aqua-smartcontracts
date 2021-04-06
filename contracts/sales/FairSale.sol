@@ -282,7 +282,6 @@ contract FairSale {
         tokenIn.safeTransfer(msg.sender, claimableAmount); //[2]
     }
 
-    /// @dev ??? @nicoelzer, where is this used ???
     /// @param iterationSteps uint256
     function precalculateSellAmountSum(uint256 iterationSteps)
         public
@@ -317,7 +316,7 @@ contract FairSale {
         interimOrder = iterOrder;
     }
 
-    /// @dev function settling the auction and calculating the price if only one bid is made // ??? nico
+    /// @dev function settling the auction and calculating the price if only one bid is made
     /// @param _ordersTokenOut uint96[]  order which is at clearing price
     /// @param _ordersTokenOut uint96[]  order which is at clearing price
     /// @param _prevOrder uint96[]  order which is at clearing price
@@ -346,12 +345,6 @@ contract FairSale {
             "precalculateSellAmountSum is already too advanced"
         );
         _placeOrders(_ordersTokenOut, _ordersTokenIn, _prevOrder);
-        bytes32 _order =
-            IterableOrderedOrderSet.encodeOrder(
-                ownerId,
-                _ordersTokenOut[0],
-                _ordersTokenIn[0]
-            );
         settleAuction();
     }
 

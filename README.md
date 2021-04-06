@@ -32,6 +32,7 @@ yarn build
 Create a new .env file in the main directory with the following variables:
 
 ```sh
-PRIVATE_KEY=xxx
-INFURA_KEY=xxx
+INFURA_KEY="xxx"
+PRIVATE_KEY="xxx"
+ETHERSCAN_API_KEY="xxx"
 ```

@@ -31,8 +31,8 @@ contract FixedPriceSaleTemplate {
     constructor() public {}
 
     /// @dev internal setup function to initialize the template, called by init()
-    /// @param _saleLauncher TBD
-    /// @param _auctionTemplateId TBD
+    /// @param _saleLauncher address of Mesa SaleLauncher
+    /// @param _auctionTemplateId Mesa Auction TemplateId
     /// @param _tokenSupplier address that deposits the selling tokens
     /// @param _tokenOut token to be sold
     /// @param _tokenIn token to buy tokens with
@@ -102,7 +102,7 @@ contract FixedPriceSaleTemplate {
             msg.sender == tokenSupplier,
             "FixedPriceSaleTemplate: FORBIDDEN"
         );
-        newSale = saleLauncher.createSale.value(msg.value)(
+        newSale = saleLauncher.createSale{value: msg.value}(
             auctionTemplateId,
             tokenOut,
             tokenOutSupply,

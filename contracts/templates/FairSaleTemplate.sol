@@ -28,8 +28,8 @@ contract FairSaleTemplate {
     constructor() public {}
 
     /// @dev internal setup function to initialize the template, called by init()
-    /// @param _saleLauncher TBD
-    /// @param _auctionTemplateId TBD
+    /// @param _saleLauncher address of Mesa SaleLauncher
+    /// @param _auctionTemplateId Mesa Auction TemplateId
     /// @param _tokenOut token to be auctioned
     /// @param _tokenIn token to bid on auction
     /// @param _duration auction duration in seconds
@@ -49,7 +49,7 @@ contract FairSaleTemplate {
         uint96 _minBuyAmount,
         uint256 _minRaise,
         address _tokenSupplier
-    ) internal returns (address newAuction) {
+    ) internal {
         require(!initialized, "FairSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
@@ -90,7 +90,7 @@ contract FairSaleTemplate {
 
     function createSale() public payable returns (address newSale) {
         require(msg.sender == tokenSupplier, "FairSaleTemplate: FORBIDDEN");
-        newSale = saleLauncher.createSale.value(msg.value)(
+        newSale = saleLauncher.createSale{value: msg.value}(
             auctionTemplateId,
             tokenOut,
             tokenOutSupply,
@@ -101,7 +101,7 @@ contract FairSaleTemplate {
 
     /// @dev setup function expexted to be called by templateLauncher to init the template
     /// @param _data encoded template params
-    function init(bytes calldata _data) public returns (address) {
+    function init(bytes calldata _data) public {
         (
             address _saleLauncher,
             uint256 _auctionTemplateId,

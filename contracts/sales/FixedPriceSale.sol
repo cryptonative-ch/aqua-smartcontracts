@@ -292,18 +292,7 @@ contract FixedPriceSale {
         _withdrawFunds();
     }
 
-    /// @dev withdraw collected funds
-    /// @param _data encoded params for future use with saleLauncher
-    function withdrawFundsWithParams(bytes calldata _data)
-        external
-        onlyOwner()
-    {
-        bytes calldata data = _data; //?? don't know if this is the right type,
-        _withdrawFunds();
-    }
-
     /// @dev withdraw tokenOut which have no been sold
-    // ??? why not onlyOwner as in withdrawFunds. so everbody cancal this? (Thats okey in fact)
     function withdrawUnsoldFunds() external {
         require(isClosed, "FixedPriceSale: sale not closed");
 
@@ -317,7 +306,6 @@ contract FixedPriceSale {
     /// @dev withdraw any ERC20 token by owner
     /// @param token ERC20 token address
     /// @param amount Amount to withdraw
-    // ??? to unstuck token which are sent to the contract by accident
     function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
         require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
         TransferHelper.safeTransfer(token, owner, amount);
@@ -325,7 +313,6 @@ contract FixedPriceSale {
 
     /// @dev withdraw ETH token by owner
     /// @param amount ETH amount to withdraw
-    // ??? to unstuck ETH which are sent to the contract by accident
     function ETHWithdraw(uint256 amount) external onlyOwner() {
         require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
         TransferHelper.safeTransferETH(owner, amount);
