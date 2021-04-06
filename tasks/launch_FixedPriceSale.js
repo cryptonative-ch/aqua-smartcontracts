@@ -1,4 +1,5 @@
 const { task } = require("hardhat/config");
+const { ethers } = require("hardhat");
 
 task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
     .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
@@ -53,12 +54,12 @@ task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
             "..."
         );
 
-        saleLauncherAdd = await hre.ethers.getContractAt(
+        const saleLauncherAdd = await hre.ethers.getContractAt(
             "SaleLauncher",
             saleLauncher
         );
         const factoryAddress = await saleLauncherAdd.factory();
-        mesaFactory = await hre.ethers.getContractAt(
+        const mesaFactory = await hre.ethers.getContractAt(
             "MesaFactory",
             factoryAddress
         );

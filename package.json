@@ -12,7 +12,7 @@
     "lint:ts": "eslint --max-warnings 0 .",
     "prettier": "prettier 'contracts/**/*.sol' -w && prettier '**/*.ts' -w && prettier 'tasks/*.js' -w",
     "coverage": "hardhat compile && hardhat coverage",
-    "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --sale-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --weth 0xc778417e063141139fce010982780140aa0cd5ab --verify"
+    "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --sale-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --verify"
   },
   "repository": {
     "type": "git"
@@ -20,6 +20,7 @@
   "dependencies": {
     "@nomiclabs/hardhat-truffle5": "^2.0.0",
     "@nomiclabs/hardhat-web3": "^2.0.0",
+    "babel-eslint": "^10.1.0",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.19",
     "hardhat-gas-reporter": "^1.0.4",

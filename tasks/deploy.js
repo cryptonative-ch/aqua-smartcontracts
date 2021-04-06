@@ -4,7 +4,6 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
     .addParam("feeManager", "The address which is able to update fees")
     .addParam("feeTo", "The receiver of fees")
     .addParam("feeNumerator", "Amount of fees")
-    .addParam("weth", "Address of WETH")
     .addParam("saleFee", "Fixed fee to create sales")
     .addParam(
         "templateManager",
@@ -24,10 +23,8 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
             templateManager,
             templateFee,
             verify,
-            weth,
         } = taskArguments;
 
-        const [owner, addr1] = await ethers.getSigners();
         await hre.run("clean");
         await hre.run("compile");
 
@@ -65,10 +62,8 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         const fixedPriceSale = await FixedPriceSale.new();
 
         // Register FairSale & FixedPriceSale in SaleLauncher
-        const saleTemplate1 = await saleLauncher.addTemplate(fairSale.address);
-        const saleTemplate2 = await saleLauncher.addTemplate(
-            fixedPriceSale.address
-        );
+        await saleLauncher.addTemplate(fairSale.address);
+        await saleLauncher.addTemplate(fixedPriceSale.address);
 
         // Deploy FairSaleTemplate
         const FairSaleTemplate = hre.artifacts.require("FairSaleTemplate");
