@@ -5,7 +5,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
     .addParam("feeTo", "The receiver of fees")
     .addParam("feeNumerator", "Amount of fees")
     .addParam("weth", "Address of WETH")
-    .addParam("saleFee", "Fixed fee to create auctions")
+    .addParam("saleFee", "Fixed fee to create sales")
     .addParam(
         "templateManager",
         "The address which is able to manage templates"

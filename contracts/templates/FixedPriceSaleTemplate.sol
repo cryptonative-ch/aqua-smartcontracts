@@ -8,7 +8,7 @@ contract FixedPriceSaleTemplate {
     string public constant templateName = "FixedPriceSaleTemplate";
     ISaleLauncher public saleLauncher;
     IMesaFactory public mesaFactory;
-    uint256 public auctionTemplateId;
+    uint256 public saleTemplateId;
     bool initialized = false;
     address tokenSupplier;
     address tokenOut;
@@ -32,7 +32,7 @@ contract FixedPriceSaleTemplate {
 
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _saleLauncher address of Mesa SaleLauncher
-    /// @param _auctionTemplateId Mesa Auction TemplateId
+    /// @param _saleTemplateId Mesa Sale TemplateId
     /// @param _tokenSupplier address that deposits the selling tokens
     /// @param _tokenOut token to be sold
     /// @param _tokenIn token to buy tokens with
@@ -46,7 +46,7 @@ contract FixedPriceSaleTemplate {
     /// @param _owner address for privileged functions
     function initTemplate(
         address _saleLauncher,
-        uint256 _auctionTemplateId,
+        uint256 _saleTemplateId,
         address _tokenSupplier,
         address _tokenOut,
         address _tokenIn,
@@ -63,7 +63,7 @@ contract FixedPriceSaleTemplate {
 
         saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
-        auctionTemplateId = _auctionTemplateId;
+        saleTemplateId = _saleTemplateId;
         tokenOutSupply = _tokensForSale;
         tokenOut = _tokenOut;
         tokenSupplier = _tokenSupplier;
@@ -103,7 +103,7 @@ contract FixedPriceSaleTemplate {
             "FixedPriceSaleTemplate: FORBIDDEN"
         );
         newSale = saleLauncher.createSale{value: msg.value}(
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenOutSupply,
             tokenSupplier,
@@ -116,7 +116,7 @@ contract FixedPriceSaleTemplate {
     function init(bytes calldata _data) public {
         (
             address _saleLauncher,
-            uint256 _auctionTemplateId,
+            uint256 _saleTemplateId,
             address _tokenOutSupplier,
             address _tokenOut,
             address _tokenIn,
@@ -150,7 +150,7 @@ contract FixedPriceSaleTemplate {
 
         initTemplate(
             _saleLauncher,
-            _auctionTemplateId,
+            _saleTemplateId,
             _tokenOutSupplier,
             _tokenOut,
             _tokenIn,

@@ -2,10 +2,10 @@ const { task } = require("hardhat/config");
 
 task(
     "launchFixedPriceSale",
-    "Starts a new auction from FixedPriceSale template"
+    "Starts a new sale from FixedPriceSale template"
 )
     .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
-    .addParam("auctionTemplateId", "The id of Mesa FairSale Template")
+    .addParam("saleTemplateId", "The id of Mesa FairSale Template")
     .addParam(
         "tokenOut",
         "The ERC20's address of the token that should be sold"
@@ -35,7 +35,7 @@ task(
     .setAction(async (taskArguments, hre) => {
         const {
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenIn,
             tokenSupplier,
@@ -68,7 +68,7 @@ task(
 
         const initData = encodeInitDataFixedPrice(
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenIn,
             tokenSupplier,
@@ -83,7 +83,7 @@ task(
         );
 
         const launchTemplateTx = await mesaFactory.launchTemplate(
-            auctionTemplateId,
+            saleTemplateId,
             initData
         );
 
@@ -95,7 +95,7 @@ task(
 
 function encodeInitDataFixedPrice(
     saleLauncher,
-    auctionTemplateId,
+    saleTemplateId,
     tokenSupplier,
     tokenOut,
     tokenIn,
@@ -126,7 +126,7 @@ function encodeInitDataFixedPrice(
         ],
         [
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenSupplier,
             tokenOut,
             tokenIn,
@@ -146,7 +146,7 @@ function encodeInitDataFixedPrice(
 
 npx hardhat launchFixedPriceSale \
 --sale-launcher 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
---auction-template-id 1 \
+--sale-template-id 1 \
 --token-out 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
 --token-in 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
 --token-supplier 0xF9008327125bB1315a4577F034E4FF5C81248d90 \

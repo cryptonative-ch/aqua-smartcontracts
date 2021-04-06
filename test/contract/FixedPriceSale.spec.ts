@@ -100,7 +100,7 @@ describe("FixedPriceSale", async () => {
 
         await saleIntialized.init(initData);
     });
-    describe("initiate auction", async () => {
+    describe("initiate sale", async () => {
         it("throws if token is used for both tokenA and tokenB", async () => {
             const initData = await encodeInitData(
                 tokenA.address,
@@ -729,7 +729,7 @@ describe("FixedPriceSale", async () => {
                 .to.emit(fixedPriceSale, "distributeAllTokensLeft")
                 .withArgs("0");
         });
-        it("allows distribut all tokens after auction closing with two bidders", async () => {
+        it("allows distribut all tokens after sale closing with two bidders", async () => {
             tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(

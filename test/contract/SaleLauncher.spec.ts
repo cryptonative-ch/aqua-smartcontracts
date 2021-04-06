@@ -27,7 +27,7 @@ describe("SaleLauncher", async () => {
 
     function encodeInitDataFairSale(
         saleLauncher: string,
-        auctionTemplateId: number,
+        saleTemplateId: number,
         tokenOut: string,
         tokenIn: string,
         duration: number,
@@ -52,7 +52,7 @@ describe("SaleLauncher", async () => {
             ],
             [
                 saleLauncher,
-                auctionTemplateId,
+                saleTemplateId,
                 tokenOut,
                 tokenIn,
                 duration,

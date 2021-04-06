@@ -2,7 +2,7 @@ const { task } = require("hardhat/config");
 
 task("launchFairSale", "Starts a new auction from FairSale template")
     .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
-    .addParam("auctionTemplateId", "The id of Mesa FairSale Template")
+    .addParam("saleTemplateId", "The id of Mesa FairSale Template")
     .addParam(
         "tokenOut",
         "The ERC20's address of the token that should be sold"
@@ -29,7 +29,7 @@ task("launchFairSale", "Starts a new auction from FairSale template")
     .setAction(async (taskArguments, hre) => {
         const {
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenIn,
             tokenOutSupply,
@@ -59,7 +59,7 @@ task("launchFairSale", "Starts a new auction from FairSale template")
 
         const initData = await encodeInitDataFairSale(
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenIn,
             duration,
@@ -71,7 +71,7 @@ task("launchFairSale", "Starts a new auction from FairSale template")
         );
 
         const launchTemplateTx = await mesaFactory.launchTemplate(
-            auctionTemplateId,
+            saleTemplateId,
             initData
         );
 
@@ -83,7 +83,7 @@ task("launchFairSale", "Starts a new auction from FairSale template")
 
 function encodeInitDataFairSale(
     saleLauncher,
-    auctionTemplateId,
+    saleTemplateId,
     tokenOut,
     tokenIn,
     duration,
@@ -108,7 +108,7 @@ function encodeInitDataFairSale(
         ],
         [
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenIn,
             duration,
@@ -124,7 +124,7 @@ function encodeInitDataFairSale(
 
 npx hardhat launchFairSale \
 --sale-launcher 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
---auction-template-id 1 \
+--sale-template-id 1 \
 --token-out 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
 --token-in 0xF9008327125bB1315a4577F034E4FF5C81248d90 \
 --duration 10000 \

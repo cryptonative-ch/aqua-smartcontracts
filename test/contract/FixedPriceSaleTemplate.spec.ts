@@ -24,7 +24,7 @@ let defaultEndDate: number;
 
 function encodeInitDataFixedPrice(
     saleLauncher: string,
-    auctionTemplateId: number,
+    saleTemplateId: number,
     tokenSupplier: string,
     tokenOut: string,
     tokenIn: string,
@@ -55,7 +55,7 @@ function encodeInitDataFixedPrice(
         ],
         [
             saleLauncher,
-            auctionTemplateId,
+            saleTemplateId,
             tokenSupplier,
             tokenOut,
             tokenIn,

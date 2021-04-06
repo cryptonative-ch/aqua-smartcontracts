@@ -246,7 +246,7 @@ contract FixedPriceSale {
 
     /// @dev let everyone distribute token to the investors
     function distributeAllTokens() public {
-        require(isClosed, "FixedPriceAuction: auction not closed");
+        require(isClosed, "FixedPriceSale: sale not closed");
         uint256 _counter = 1;
         // loop backwards
         for (uint256 i = orderOwners.length; i > 0; i--) {

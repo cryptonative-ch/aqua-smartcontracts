@@ -4,7 +4,7 @@ import hre, { ethers, waffle } from "hardhat";
 import FairSaleTemplate from "../../build/artifacts/contracts/templates/FairSaleTemplate.sol/FairSaleTemplate.json";
 import "@nomiclabs/hardhat-ethers";
 
-import { mineBlock, expandTo18Decimals } from "./utilities";
+import { expandTo18Decimals } from "./utilities";
 
 describe("TemplateLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
@@ -30,7 +30,7 @@ describe("TemplateLauncher", async () => {
 
     function encodeInitDataFairSale(
         saleLauncher: string,
-        auctionTemplateId: number,
+        saleTemplateId: number,
         tokenOut: string,
         tokenIn: string,
         duration: number,
@@ -55,7 +55,7 @@ describe("TemplateLauncher", async () => {
             ],
             [
                 saleLauncher,
-                auctionTemplateId,
+                saleTemplateId,
                 tokenOut,
                 tokenIn,
                 duration,
@@ -70,7 +70,7 @@ describe("TemplateLauncher", async () => {
 
     function encodeInitDataFixedPrice(
         saleLauncher: string,
-        auctionTemplateId: number,
+        saleTemplateId: number,
         tokenIn: string,
         tokenOut: string,
         tokenPrice: BigNumber,
@@ -99,7 +99,7 @@ describe("TemplateLauncher", async () => {
             ],
             [
                 saleLauncher,
-                auctionTemplateId,
+                saleTemplateId,
                 tokenIn,
                 tokenOut,
                 tokenPrice,
@@ -263,7 +263,7 @@ describe("TemplateLauncher", async () => {
         });
     });
 
-    describe("launching auctions", async () => {
+    describe("launching sales", async () => {
         it("throws if trying to launch template not through factory", async () => {
             const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
@@ -326,7 +326,7 @@ describe("TemplateLauncher", async () => {
 
             await expect(
                 mesaFactory.launchTemplate(1, initData)
-            ).to.be.revertedWith("TemplateLauncher: AUCTION_FEE_NOT_PROVIDED");
+            ).to.be.revertedWith("TemplateLauncher: SALE_FEE_NOT_PROVIDED");
         });
 
         it("allows to launch a template through factory", async () => {

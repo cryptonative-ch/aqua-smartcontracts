@@ -40,31 +40,29 @@ contract TemplateLauncher is CloneFactory {
     function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
         payable
-        returns (address newAuction)
+        returns (address newSale)
     {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
         require(
             msg.value >= IMesaFactory(factory).saleFee(),
-            "TemplateLauncher: AUCTION_FEE_NOT_PROVIDED"
+            "TemplateLauncher: SALE_FEE_NOT_PROVIDED"
         );
         require(
             templates[_templateId] != address(0),
             "TemplateLauncher: INVALID_TEMPLATE"
         );
-        newAuction = _deployTemplate(_templateId);
-        ITemplate(newAuction).init(_data);
-        return address(newAuction);
+        newSale = _deployTemplate(_templateId);
+        ITemplate(newSale).init(_data);
     }
 
     /// @dev internal function to clone a template contract
     /// @param _templateId template to be cloned
     function _deployTemplate(uint256 _templateId)
         internal
-        returns (address newAuction)
+        returns (address newSale)
     {
-        newAuction = createClone(templates[_templateId]);
-        emit TemplateLaunched(address(newAuction), _templateId);
-        return address(newAuction);
+        newSale = createClone(templates[_templateId]);
+        emit TemplateLaunched(address(newSale), _templateId);
     }
 
     /// @dev allows to register a template by paying a fee

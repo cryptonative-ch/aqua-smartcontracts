@@ -8,7 +8,7 @@ contract FairSaleTemplate {
     string public constant templateName = "FairSaleTemplate";
     ISaleLauncher public saleLauncher;
     IMesaFactory public mesaFactory;
-    uint256 public auctionTemplateId;
+    uint256 public saleTemplateId;
     bool initialized = false;
     address tokenSupplier;
     address tokenOut;
@@ -29,7 +29,7 @@ contract FairSaleTemplate {
 
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _saleLauncher address of Mesa SaleLauncher
-    /// @param _auctionTemplateId Mesa Auction TemplateId
+    /// @param _saleTemplateId Mesa Auction TemplateId
     /// @param _tokenOut token to be auctioned
     /// @param _tokenIn token to bid on auction
     /// @param _duration auction duration in seconds
@@ -40,7 +40,7 @@ contract FairSaleTemplate {
     /// @param _tokenSupplier address that deposits the tokens
     function initTemplate(
         address _saleLauncher,
-        uint256 _auctionTemplateId,
+        uint256 _saleTemplateId,
         address _tokenOut,
         address _tokenIn,
         uint256 _duration,
@@ -54,7 +54,7 @@ contract FairSaleTemplate {
 
         saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
-        auctionTemplateId = _auctionTemplateId;
+        saleTemplateId = _saleTemplateId;
 
         uint256 orderCancelationPeriodDuration = 100;
         uint256 minimumBiddingAmountPerOrder = 100;
@@ -91,7 +91,7 @@ contract FairSaleTemplate {
     function createSale() public payable returns (address newSale) {
         require(msg.sender == tokenSupplier, "FairSaleTemplate: FORBIDDEN");
         newSale = saleLauncher.createSale{value: msg.value}(
-            auctionTemplateId,
+            saleTemplateId,
             tokenOut,
             tokenOutSupply,
             tokenSupplier,
@@ -104,7 +104,7 @@ contract FairSaleTemplate {
     function init(bytes calldata _data) public {
         (
             address _saleLauncher,
-            uint256 _auctionTemplateId,
+            uint256 _saleTemplateId,
             address _tokenOut,
             address _tokenIn,
             uint256 _duration,
@@ -133,7 +133,7 @@ contract FairSaleTemplate {
         return
             initTemplate(
                 _saleLauncher,
-                _auctionTemplateId,
+                _saleTemplateId,
                 _tokenOut,
                 _tokenIn,
                 _duration,
