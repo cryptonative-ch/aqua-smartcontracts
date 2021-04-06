@@ -213,7 +213,7 @@ describe("FixedPriceSale", async () => {
             );
 
             await expect(fixedPriceSale.init(initData))
-                .to.emit(fixedPriceSale, "SaleInitalized")
+                .to.emit(fixedPriceSale, "SaleInitialized")
                 .withArgs(
                     tokenA.address,
                     tokenB.address,

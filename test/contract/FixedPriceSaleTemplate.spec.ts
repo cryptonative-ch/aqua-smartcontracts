@@ -81,7 +81,7 @@ beforeEach(async () => {
     const MesaFactory = await ethers.getContractFactory("MesaFactory");
     mesaFactory = await MesaFactory.deploy();
 
-    await mesaFactory.initalize(
+    await mesaFactory.initialize(
         templateManager.address,
         templateManager.address,
         templateManager.address,

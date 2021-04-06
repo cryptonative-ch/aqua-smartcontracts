@@ -131,7 +131,7 @@ describe("TemplateLauncher", async () => {
 
         templateLauncher = await TemplateLauncher.deploy(mesaFactory.address);
 
-        await mesaFactory.initalize(
+        await mesaFactory.initialize(
             templateManager.address,
             templateManager.address,
             templateManager.address,

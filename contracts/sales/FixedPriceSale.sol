@@ -12,7 +12,7 @@ contract FixedPriceSale {
     using SafeMath for uint96;
     using SafeMath for uint256;
 
-    event SaleInitalized(
+    event SaleInitialized(
         IERC20 tokenIn,
         IERC20 tokenOut,
         uint256 tokenPrice,
@@ -108,7 +108,7 @@ contract FixedPriceSale {
         isClosed = false;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
 
-        emit SaleInitalized(
+        emit SaleInitialized(
             _tokenIn,
             _tokenOut,
             _tokenPrice,

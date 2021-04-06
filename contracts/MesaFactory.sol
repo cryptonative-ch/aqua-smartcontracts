@@ -33,7 +33,7 @@ contract MesaFactory {
     uint256 public templateFee;
     address[] public allSales;
     uint256 public templateId;
-    bool initalized = false;
+    bool initialized = false;
 
     constructor() public {}
 
@@ -45,7 +45,7 @@ contract MesaFactory {
     /// @param _templateFee fixed amount of native currency (ETH) to be paid for adding a template
     /// @param _feeNumerator fee that is token on depositing tokens
     /// @param _saleFee fixed amount of native currency (ETH) to be paid for launch a project
-    function initalize(
+    function initialize(
         address _feeManager,
         address _feeTo,
         address _templateManager,
@@ -54,7 +54,7 @@ contract MesaFactory {
         uint256 _feeNumerator,
         uint256 _saleFee
     ) public {
-        require(!initalized, "MesaFactory: ALREADY_INITIALIZED");
+        require(!initialized, "MesaFactory: ALREADY_INITIALIZED");
         feeManager = _feeManager;
         feeTo = _feeTo;
         feeNumerator = _feeNumerator;

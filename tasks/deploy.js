@@ -46,7 +46,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         );
 
         // Initializes Factory
-        await mesaFactory.initalize(
+        await mesaFactory.initialize(
             feeManager,
             feeTo,
             templateManager,

@@ -11,7 +11,7 @@ describe("MesaFactory", async () => {
         const MesaFactory = await ethers.getContractFactory("MesaFactory");
 
         mesaFactory = await MesaFactory.deploy();
-        await mesaFactory.initalize(
+        await mesaFactory.initialize(
             owner.address,
             owner.address,
             owner.address,
