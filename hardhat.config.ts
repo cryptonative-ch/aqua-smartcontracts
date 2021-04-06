@@ -1,78 +1,59 @@
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "solidity-coverage";
-import "hardhat-deploy";
-import dotenv from "dotenv";
-import type { HttpNetworkUserConfig } from "hardhat/types";
-import yargs from "yargs";
+require("@nomiclabs/hardhat-truffle5");
+require("solidity-coverage");
+require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-waffle");
+require("hardhat-gas-reporter");
+require("./tasks/deploy");
+require("./tasks/launch_FairSale");
+require("./tasks/launch_FixedPriceSale");
+require("dotenv").config();
 
-import { clearAuction } from "./src/tasks/clear_auction";
-import { initiateAuction } from "./src/tasks/initiate_new_auction";
-
-const argv = yargs
-  .option("network", {
-    type: "string",
-    default: "hardhat",
-  })
-  .help(false)
-  .version(false).argv;
-
-// Load environment variables.
-dotenv.config();
-const { INFURA_KEY, MNEMONIC, MY_ETHERSCAN_API_KEY, PK } = process.env;
-
-const DEFAULT_MNEMONIC =
-  "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat";
-
-const sharedNetworkConfig: HttpNetworkUserConfig = {};
-if (PK) {
-  sharedNetworkConfig.accounts = [PK];
-} else {
-  sharedNetworkConfig.accounts = {
-    mnemonic: MNEMONIC || DEFAULT_MNEMONIC,
-  };
-}
-
-if (["rinkeby", "mainnet"].includes(argv.network) && INFURA_KEY === undefined) {
-  throw new Error(
-    `Could not find Infura key in env, unable to connect to network ${argv.network}`,
-  );
-}
-
-initiateAuction();
-clearAuction();
-
-export default {
-  paths: {
-    artifacts: "build/artifacts",
-    cache: "build/cache",
-    deploy: "src/deploy",
-    sources: "contracts",
-  },
-  solidity: {
-    version: "0.6.12",
-  },
-  networks: {
-    mainnet: {
-      ...sharedNetworkConfig,
-      url: `https://mainnet.infura.io/v3/${INFURA_KEY}`,
+module.exports = {
+    networks: {
+        mainnet: {
+            url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
+        },
+        rinkeby: {
+            url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
+            accounts: [process.env.PRIVATE_KEY],
+        },
+        xdai: {
+            url: "https://xdai.poanetwork.dev",
+            accounts: [process.env.PRIVATE_KEY],
+        },
+        hardhat: {
+            accounts: {
+                count: 128,
+            },
+        },
     },
-    rinkeby: {
-      ...sharedNetworkConfig,
-      url: `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
+    mocha: {
+        timeout: "600s",
     },
-    xdai: {
-      ...sharedNetworkConfig,
-      url: "https://xdai.poanetwork.dev",
+    paths: {
+        artifacts: "build/artifacts",
+        cache: "build/cache",
+        deploy: "src/deploy",
+        sources: "contracts",
     },
-  },
-  namedAccounts: {
-    deployer: 0,
-  },
-  mocha: {
-    timeout: 2000000,
-  },
-  etherscan: {
-    apiKey: MY_ETHERSCAN_API_KEY,
-  },
+    solidity: {
+        compilers: [
+            {
+                version: "0.6.12",
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 200,
+                    },
+                },
+            },
+        ],
+    },
+    gasReporter: {
+        currency: "USD",
+        enabled: process.env.GAS_REPORT_ENABLED === "true",
+    },
+    etherscan: {
+        apiKey: process.env.ETHERSCAN_API_KEY,
+    },
 };

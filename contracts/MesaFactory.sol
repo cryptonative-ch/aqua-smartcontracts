@@ -1,82 +1,151 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 
-contract MesaFactory {
-    event AuctionCreated(address indexed auction, uint256 templateId);
-    event TemplateAdded(address indexed template, uint256 templateId);
+import "./interfaces/ITemplateLauncher.sol";
 
+contract MesaFactory {
+    event FactoryInitialized(
+        address feeManager,
+        address feeTo,
+        address templateManager,
+        address templateLauncher,
+        uint256 templateFee,
+        uint256 feeNumerator,
+        uint256 saleFee
+    );
+
+    event TemplateLaunched(address indexed template, uint256 templateId);
+    event SetFeeTo(address indexed feeTo);
+    event SetFeeNumerator(uint256 indexed feeNumerator);
+    event SetSaleFee(uint256 indexed saleFee);
+    event SetTemplateFee(uint256 indexed templateFee);
+    event SetFeeManager(address indexed feeManager);
+    event SetTemplateManager(address indexed templateManager);
+    event SetTemplateLauncher(address indexed templateLauncher);
+
+    uint256 public immutable feeDenominator = 1000;
     uint256 public feeNumerator;
-    uint256 public auctionFee;
+    uint256 public saleFee;
     address public feeTo;
     address public feeManager;
     address public templateManager;
-    address public auctionCreator;
-    address[] public allAuctions;
+    address public templateLauncher;
+    uint256 public templateFee;
+    address[] public allSales;
     uint256 public templateId;
+    bool initialized = false;
 
-    constructor(
+    constructor() public {}
+
+    /// @dev setup function to initialize the Mesa Factory
+    /// @param _feeManager address that is allowed to update fees
+    /// @param _feeTo address that receives fees
+    /// @param _templateManager address that is allowed to manage templates
+    /// @param _templateLauncher address of the template launcher used to launch projects
+    /// @param _templateFee fixed amount of native currency (ETH) to be paid for adding a template
+    /// @param _feeNumerator fee that is token on depositing tokens
+    /// @param _saleFee fixed amount of native currency (ETH) to be paid for launch a project
+    function initialize(
         address _feeManager,
         address _feeTo,
         address _templateManager,
-        address _auctionCreator,
+        address _templateLauncher,
+        uint256 _templateFee,
         uint256 _feeNumerator,
-        uint256 _auctionFee
+        uint256 _saleFee
     ) public {
+        require(!initialized, "MesaFactory: ALREADY_INITIALIZED");
         feeManager = _feeManager;
         feeTo = _feeTo;
         feeNumerator = _feeNumerator;
         templateManager = _templateManager;
-        auctionCreator = _auctionCreator;
-        auctionFee = _auctionFee;
+        templateLauncher = _templateLauncher;
+        templateFee = _templateFee;
+        saleFee = _saleFee;
+
+        emit FactoryInitialized(
+            _feeManager,
+            _feeTo,
+            _templateManager,
+            _templateLauncher,
+            _templateFee,
+            _feeNumerator,
+            _saleFee
+        );
     }
 
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeManager, "AuctionCreator: FORBIDDEN");
-        feeTo = _feeTo;
-    }
-
-    function setFeeNumerator(uint256 _feeNumerator) external {
-        require(msg.sender == feeManager, "AuctionCreator: FORBIDDEN");
-        feeNumerator = _feeNumerator;
-    }
-
-    function setAuctionFee(uint256 _auctionFee) external {
-        require(msg.sender == feeManager, "AuctionCreator: FORBIDDEN");
-        auctionFee = _auctionFee;
-    }
-
-    function setFeeManager(address _feeManager) external {
-        require(msg.sender == feeManager, "AuctionCreator: FORBIDDEN");
-        feeManager = _feeManager;
-    }
-
-    function setTemplateManager(address _templateManager) external {
-        require(msg.sender == templateManager, "AuctionCreator: FORBIDDEN");
-        templateManager = _templateManager;
-    }
-
-    function setAuctionCreator(address _auctionCreator) external {
-        require(msg.sender == templateManager, "AuctionCreator: FORBIDDEN");
-        auctionCreator = _auctionCreator;
-    }
-
-    function addAuction(address _auction, uint256 _templateId) external {
-        require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
-        allAuctions.push(_auction);
-        emit AuctionCreated(_auction, _templateId);
-    }
-
-    function addTemplate(address _template)
+    /// @dev function to launch a template on Mesa
+    /// @param _templateId template to be deployed
+    /// @param _data encoded template parameters
+    function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
-        returns (uint256 newTemplateId)
+        payable
+        returns (address newSale)
     {
-        require(msg.sender == auctionCreator, "AuctionCreator: FORBIDDEN");
-        newTemplateId = templateId;
-        templateId++;
-        emit TemplateAdded(_template, newTemplateId);
+        newSale = ITemplateLauncher(templateLauncher).launchTemplate{
+            value: msg.value
+        }(_templateId, _data);
+        emit TemplateLaunched(newSale, _templateId);
+        allSales.push(newSale);
     }
 
-    function numberOfAuctions() external view returns (uint256) {
-        return allAuctions.length;
+    /// @dev governance function to change the fee recipient
+    /// @param _feeTo new address that receives fees
+    function setFeeTo(address _feeTo) external {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        feeTo = _feeTo;
+        emit SetFeeTo(_feeTo);
+    }
+
+    /// @dev governance function to change the fee
+    /// @param _feeNumerator new fee numerator
+    function setFeeNumerator(uint256 _feeNumerator) external {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        feeNumerator = _feeNumerator;
+        emit SetFeeNumerator(_feeNumerator);
+    }
+
+    /// @dev governance function to change the sale fee
+    /// @param _saleFee new sale fee amount
+    function setSaleFee(uint256 _saleFee) external {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        saleFee = _saleFee;
+        emit SetSaleFee(_saleFee);
+    }
+
+    /// @dev governance function to change the template fee
+    /// @param _templateFee new template fee amount
+    function setTemplateFee(uint256 _templateFee) external {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        templateFee = _templateFee;
+        emit SetTemplateFee(_templateFee);
+    }
+
+    /// @dev governance function to change the feeManager
+    /// @param _feeManager new address allowed to change fees
+    function setFeeManager(address _feeManager) external {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        feeManager = _feeManager;
+        emit SetFeeManager(_feeManager);
+    }
+
+    /// @dev governance function to change the templateManager
+    /// @param _templateManager new address allowed to change templates
+    function setTemplateManager(address _templateManager) external {
+        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+        templateManager = _templateManager;
+        emit SetTemplateManager(_templateManager);
+    }
+
+    /// @dev governance function to replace the templateLauncher
+    /// @param _templateLauncher new address of templateLauncher
+    function setTemplateLauncher(address _templateLauncher) external {
+        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+        templateLauncher = _templateLauncher;
+        emit SetTemplateLauncher(_templateLauncher);
+    }
+
+    function numberOfSales() external view returns (uint256) {
+        return allSales.length;
     }
 }

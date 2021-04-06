@@ -3,8 +3,8 @@ build
 env/*
 coverage/*
 coverage.json
-artifacts/
 cache/
 yarn.lock
 coverage/
 coverage.json
+.env
