@@ -1,5 +1,4 @@
-const { task } = require("hardhat/config");
-const { ethers } = require("hardhat");
+const { task, ethers } = require("hardhat/config");
 
 task("launchFairSale", "Starts a new auction from FairSale template")
     .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
