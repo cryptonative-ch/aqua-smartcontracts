@@ -78,8 +78,8 @@ contract FairSale {
         uint256 minSellThreshold
     );
     event AuctionCleared(
-        uint96 auctionedTokens,
-        uint96 soldBiddingTokens,
+        uint96 soldTokenOut,
+        uint96 payedTokenIn,
         bytes32 clearingOrder
     );
     event UserRegistration(address indexed user, uint64 ownerId);
@@ -498,7 +498,7 @@ contract FairSale {
         minimumBiddingAmountPerOrder = uint256(0);
     }
 
-    /// @dev claim the bought tokenOut and get the change back in tokenIn  after sale is over
+    /// @dev claim the bought tokenOut and get the change back in tokenIn after sale is over
     /// @param _orders bytes32[] a list of orders to cancel
     /// @return sumTokenOutAmount uint256, sumTokenInAmount uint256
     function claimFromParticipantOrder(bytes32[] memory _orders)
@@ -563,8 +563,9 @@ contract FairSale {
 
     function distributeAllTokens() public atStageFinished (){
         // uint256 _counter = 1;
-        uint256 sumTokenOutAmount = 0;
-        uint256 sumTokenInAmount = 0;
+        uint96 orderTokenOut;
+        uint96 orderTokenIn;
+        uint64 ownerId;
         uint256 numberToDistributionPerBlock = 30;
         bytes32 currentOrder;
         bytes32 nextOrder;
@@ -586,35 +587,34 @@ contract FairSale {
                 emit distributeAllTokensLeft(333);
                 break;
             }
-
             (uint64 ownerId, uint96 orderTokenOut, uint96 orderTokenIn) = currentOrder.decodeOrder();
 
             emit distributeAllTokensLeft(ownerId);
 
             if (minSellThresholdNotReached) {
-                //[10] give orderTokenIn back, no orderTokenOut
+                // give orderTokenIn back, no orderTokenOut distributed
                 orderTokenOut = 0;
             } else {
                 //[23]
                 if (currentOrder == clearingPriceOrder) {
-                    //[25]
-                    orderTokenOut = uint96(volumeClearingPriceOrder.mul(priceNumerator).div(priceDenominator));
-                    orderTokenIn = uint96(orderTokenIn.sub(volumeClearingPriceOrder)); // ??? nico
-                    
+                    // severall orders could be hit, this must be distributed evenly for all, no this is not the case
+                    uint96 orderTokenOutCost = uint96(orderTokenOut.mul(priceDenominator).div(priceNumerator));
+                    orderTokenIn = uint96(orderTokenIn.sub(orderTokenOutCost));
                 } else {
                     if (currentOrder.smallerThan(clearingPriceOrder)) {
-                        //[17] orderTokenOut, distribute
-                        orderTokenOut = uint96(orderTokenIn.mul(priceNumerator).div(priceDenominator)); 
+                        // orderTokenIn change back and full amount of orderTokenOut 
+                        uint96 orderTokenOutCost = uint96(orderTokenOut.mul(priceDenominator).div(priceNumerator));
+                        orderTokenIn = uint96(orderTokenIn.sub(orderTokenOutCost));
                     } else {
-                        //[24] no orderTokenOut
+                        // give orderTokenIn back, no orderTokenOut distributed
                         orderTokenOut = 0;
                     }
                 }
             } // else
             nextOrder = currentOrder;
-            
             emit ClaimedFromOrder(ownerId, orderTokenOut, orderTokenIn);
-            sendOutTokens(orderTokenOut, orderTokenIn, ownerId); //[3]
+            //orderTokenIn ERC20 error ($DAI)
+            //sendOutTokens(orderTokenOut, orderTokenIn, ownerId); // TODO: This is sloppy, for consistency this order should be ownerId, orderTokenOut, orderTokenIn
         } // for
 
     }
@@ -672,7 +672,7 @@ contract FairSale {
     ) internal {
         address userAddress = registeredUsers.getAddressAt(ownerId);
         if (tokenOutAmount > 0) {
-            tokenOut.safeTransfer(userAddress, tokenOutAmount);
+           tokenOut.safeTransfer(userAddress, tokenOutAmount);
         }
         if (tokenInAmount > 0) {
             tokenIn.safeTransfer(userAddress, tokenInAmount);

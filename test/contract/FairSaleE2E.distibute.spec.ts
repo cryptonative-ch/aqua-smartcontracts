@@ -87,8 +87,8 @@ describe("FairSale", async () => {
         await fairSale.settleAuction();
 
         const { priceNumerator, priceDenominator } = await fairSale.getClearingPrice();
-        const clearingPrice = priceDenominator/priceNumerator
-        console.log("Gas clearingPrice", clearingPrice);
+        const clearingPrice = priceNumerator/priceDenominator
+        console.log("clearingPrice", clearingPrice);
         
         await getAllSellOrders(fairSale);
 
@@ -96,7 +96,7 @@ describe("FairSale", async () => {
         
         const gasUsed = (await tx.wait()).gasUsed;
 
-        console.log("Gas distributeAllTokens", gasUsed.toString());
+        //console.log("Gas distributeAllTokens", gasUsed.toString());
     });
 
 });
