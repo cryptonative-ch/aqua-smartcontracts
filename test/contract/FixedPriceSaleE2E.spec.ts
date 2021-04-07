@@ -131,7 +131,7 @@ describe("fixedPriceSaleE2E", async () => {
             );
 
             await fixedPriceSale.init(initData);
-            let ordersCount = 128;
+            const ordersCount = 128;
 
             const distributPerBlock = 100;
             // console.log("distributPerBlock", distributPerBlock);

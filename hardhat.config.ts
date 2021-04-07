@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-waffle";
 import "solidity-coverage";
 import "hardhat-deploy";
 import dotenv from "dotenv";
+import "hardhat-tracer";
 
 // Load environment variables.
 dotenv.config();
@@ -22,8 +23,9 @@ module.exports = {
         },
         hardhat: {
                 accounts: {
-                    count: 128
+                    count: 28
                 },
+                loggingEnabled: false
         },
     },
     mocha: {

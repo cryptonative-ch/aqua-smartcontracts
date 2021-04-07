@@ -72,8 +72,8 @@ contract FairSale {
         IERC20 indexed _tokenOut,
         uint256 orderCancellationEndDate,
         uint256 endDate,
-        uint96 _totalTokenOutAmount,
-        uint96 _minBidAmountToReceive,
+        uint96 _tokensForSale,
+        uint96 _allocationMin,
         uint256 minimumBiddingAmountPerOrder,
         uint256 minSellThreshold
     );
@@ -83,6 +83,10 @@ contract FairSale {
         bytes32 clearingOrder
     );
     event UserRegistration(address indexed user, uint64 ownerId);
+
+    event Log(
+        uint256 msg
+    );
 
     string public constant templateName = "FairSale";
     IERC20 public tokenIn;
@@ -121,8 +125,8 @@ contract FairSale {
     /// @param _tokenOut token to buy
     /// @param _orderCancelationPeriodDuration cancel order is allowed, but only during this duration
     /// @param _duration amount of tokens to be sold
-    /// @param _totalTokenOutAmount total amount to sell
-    /// @param _minBidAmountToReceive Minimum amount of biding token to receive at final point
+    /// @param _tokensForSale total amount to sell
+    /// @param _allocationMin Minimum amount of biding token to receive at final point
     /// @param _minimumBiddingAmountPerOrder to limit number of orders to reduce gas cost for settelment
     /// @param _minSellThreshold for the sale, otherwise sale will not happen
     /// @param _isAtomicClosureAllowed allow atomic closer of the sale
@@ -131,25 +135,25 @@ contract FairSale {
         IERC20 _tokenOut,
         uint256 _orderCancelationPeriodDuration,
         uint256 _duration,
-        uint96 _totalTokenOutAmount,
-        uint96 _minBidAmountToReceive,
+        uint96 _tokensForSale,   
+        uint96 _allocationMin,  // TODO: rename to allocationMin (is german style) -> minAllocation 
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minSellThreshold,
         bool _isAtomicClosureAllowed
     ) public {
         uint64 auctioneerId = getUserId(msg.sender);
 
-        // deposits _totalTokenOutAmount + fees
+        // deposits _tokensForSale + fees
         _tokenOut.safeTransferFrom(
             msg.sender,
             address(this),
-            _totalTokenOutAmount.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
+            _tokensForSale.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
                 FEE_DENOMINATOR
             ) //[0]
         );
-        require(_totalTokenOutAmount > 0, "cannot auction zero tokens");
+        require(_tokensForSale > 0, "cannot auction zero tokens");
         require(
-            _minBidAmountToReceive > 0,
+            _allocationMin > 0,
             "tokens cannot be auctioned for free"
         );
         require(
@@ -171,12 +175,12 @@ contract FairSale {
 
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             auctioneerId,
-            _totalTokenOutAmount,
-            _minBidAmountToReceive
+            _tokensForSale,
+            _allocationMin
         );
         minimumBiddingAmountPerOrder = _minimumBiddingAmountPerOrder;
         interimSumBidAmount = 0;
-        interimOrder = IterableOrderedOrderSet.QUEUE_START;
+        interimOrder = IterableOrderedOrderSet.QUEUE_START; // TODO: This is startOrder and interimOrder mixed, make two vars?
         clearingPriceOrder = bytes32(0);
         volumeClearingPriceOrder = 0;
         minSellThresholdNotReached = false;
@@ -188,8 +192,8 @@ contract FairSale {
             _tokenOut,
             orderCancellationEndDate,
             endDate,
-            _totalTokenOutAmount,
-            _minBidAmountToReceive,
+            _tokensForSale,
+            _allocationMin,
             _minimumBiddingAmountPerOrder,
             _minSellThreshold
         );
@@ -221,14 +225,14 @@ contract FairSale {
         uint96[] memory _ordersTokenIn,
         bytes32[] memory _prevOrders
     ) internal returns (uint64 ownerId) {
-        (, uint96 totalTokenOutAmount, uint96 minAmountToReceive) =
+        (, uint96 totalTokenOutAmount, uint96 allocationMin) =
             initialAuctionOrder.decodeOrder();
 
         uint256 sumOrdersTokenIn = 0;
         ownerId = getUserId(msg.sender);
         for (uint256 i = 0; i < _ordersTokenOut.length; i++) {
             require(
-                _ordersTokenOut[i].mul(minAmountToReceive) <
+                _ordersTokenOut[i].mul(allocationMin) <
                     totalTokenOutAmount.mul(_ordersTokenIn[i]),
                 "limit price not better than mimimal offer"
             );
@@ -283,6 +287,8 @@ contract FairSale {
         }
         tokenIn.safeTransfer(msg.sender, claimableAmount); //[2]
     }
+
+
 
     /// @dev ??? @nicoelzer, where is this used ???
     /// @param iterationSteps uint256
@@ -366,40 +372,64 @@ contract FairSale {
     {
         (
             uint64 auctioneerId,
-            uint96 fullAuctionAmountToSell,
-            uint96 minBidAmountToReceive
+            uint96 tokensForSale,
+            uint96 allocationMin
         ) = initialAuctionOrder.decodeOrder();
 
         uint256 currentBidSum = interimSumBidAmount;
-        bytes32 currentOrder = interimOrder;
-        bytes32 nextOrder = currentOrder;
+        // ??? nico better use nextOrder =  interimOrder?
+        // ??? nico better would be IterableOrderedOrderSet.QUEUE_START; anyway, because this is more clear
+        //bytes32 currentOrder = interimOrder;        
+        //bytes32 nextOrder = currentOrder;
+        // why not use orders.first() like in distributeAllTokens()?
+        bytes32 currentOrder = IterableOrderedOrderSet.QUEUE_START;        
+        bytes32 nextOrder = IterableOrderedOrderSet.QUEUE_START;
+        
         uint256 orderTokenOut;
         uint256 orderTokenIn;
-        uint96 fillVolumeOfAuctioneerOrder = fullAuctionAmountToSell;
-        // Sum order up, until fullAuctionAmountToSell is fully bought or queue end is reached
+        uint64 ownerId;
+        uint96 fillVolumeOfAuctioneerOrder = tokensForSale;
+        // Sum order up, until tokensForSale is fully bought or queue end is reached
         do {
             nextOrder = orders.next(nextOrder);
             if (nextOrder == IterableOrderedOrderSet.QUEUE_END) {
                 break;
             }
             currentOrder = nextOrder;
-            (, orderTokenOut, orderTokenIn) = currentOrder.decodeOrder();
+            (ownerId, orderTokenOut, orderTokenIn) = currentOrder.decodeOrder();
+
+            emit Log(ownerId);
+            emit Log(orderTokenOut); // $MESA
+            emit Log(orderTokenIn); // $DAI
+            
             currentBidSum = currentBidSum.add(orderTokenIn);
+            emit Log(currentBidSum);
+
+            emit Log(currentBidSum.mul(orderTokenOut));
+            emit Log(tokensForSale.mul(orderTokenIn));
+
         } while (
+            // currentBidSum = summ of all bids in $DAI
+            // orderTokenOut from the current bid ($MESA)
+            // currentBidSum in $DAI * $MESA amout of current bid
+            // smaller than 
+            // tokensForSale = $Mesa token to sell 
+            // orderTokenIn = dai in this bid
+            // tokensForSale * $DAI  amount of current bid
             currentBidSum.mul(orderTokenOut) <
-                fullAuctionAmountToSell.mul(orderTokenIn)
+                tokensForSale.mul(orderTokenIn)
         );
 
         if (
             currentBidSum > 0 &&
             currentBidSum.mul(orderTokenOut) >=
-            fullAuctionAmountToSell.mul(orderTokenIn)
+            tokensForSale.mul(orderTokenIn)
         ) {
             // All considered/summed orders are sufficient to close the auction fully
             // at price between current and previous orders.
             uint256 uncoveredBids =
                 currentBidSum.sub(
-                    fullAuctionAmountToSell.mul(orderTokenIn).div(orderTokenOut)
+                    tokensForSale.mul(orderTokenIn).div(orderTokenOut)
                 );
 
             if (orderTokenIn >= uncoveredBids) {
@@ -416,7 +446,7 @@ contract FairSale {
                 currentBidSum = currentBidSum.sub(orderTokenIn);
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionAmountToSell,
+                    tokensForSale,
                     currentBidSum.toUint96()
                 );
             }
@@ -424,12 +454,12 @@ contract FairSale {
             // All considered/summed orders are not sufficient to close the auction fully at price of last order //[18]
             // Either a higher price must be used or auction is only partially filled
 
-            if (currentBidSum > minBidAmountToReceive) {
+            if (currentBidSum > allocationMin) {
                 //[15]
                 // Price higher than last order would fill the auction
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionAmountToSell,
+                    tokensForSale,
                     currentBidSum.toUint96()
                 );
             } else {
@@ -437,12 +467,12 @@ contract FairSale {
                 // Even at the initial auction price, the auction is partially filled
                 clearingOrder = IterableOrderedOrderSet.encodeOrder(
                     0,
-                    fullAuctionAmountToSell,
-                    minBidAmountToReceive
+                    tokensForSale,
+                    allocationMin
                 );
                 fillVolumeOfAuctioneerOrder = currentBidSum
-                    .mul(fullAuctionAmountToSell)
-                    .div(minBidAmountToReceive)
+                    .mul(tokensForSale)
+                    .div(allocationMin)
                     .toUint96();
             }
         }
@@ -454,7 +484,7 @@ contract FairSale {
         processFeesAndFunds(
             fillVolumeOfAuctioneerOrder,
             auctioneerId,
-            fullAuctionAmountToSell
+            tokensForSale
         );
         emit AuctionCleared(
             fillVolumeOfAuctioneerOrder,
@@ -525,20 +555,84 @@ contract FairSale {
         sendOutTokens(sumTokenOutAmount, sumTokenInAmount, ownerId); //[3]
     }
 
+    event distributeAllTokensLeft(uint256 indexed amount);
+
+
+   /// @dev let everyone distribute token to the investors
+   /// loop trough every order and distribute
+
+    function distributeAllTokens() public atStageFinished (){
+        // uint256 _counter = 1;
+        uint256 sumTokenOutAmount = 0;
+        uint256 sumTokenInAmount = 0;
+        uint256 numberToDistributionPerBlock = 30;
+        bytes32 currentOrder;
+        bytes32 nextOrder;
+
+        (, uint96 priceNumerator, uint96 priceDenominator) = clearingPriceOrder.decodeOrder();
+
+        //require(iterOrder = orders.first(), "FairSale: All orders claimed");
+
+        for (uint256 i = 0; i < numberToDistributionPerBlock; i++) {
+
+            // require(iterOrder = orders.next(iterOrder), "FairSale: All orders claimed");
+            if (i == 0) {
+                currentOrder = orders.first();
+            } else {
+                currentOrder = orders.next(nextOrder);
+                orders.remove(nextOrder);
+            }
+            if (currentOrder == IterableOrderedOrderSet.QUEUE_END) {
+                emit distributeAllTokensLeft(333);
+                break;
+            }
+
+            (uint64 ownerId, uint96 orderTokenOut, uint96 orderTokenIn) = currentOrder.decodeOrder();
+
+            emit distributeAllTokensLeft(ownerId);
+
+            if (minSellThresholdNotReached) {
+                //[10] give orderTokenIn back, no orderTokenOut
+                orderTokenOut = 0;
+            } else {
+                //[23]
+                if (currentOrder == clearingPriceOrder) {
+                    //[25]
+                    orderTokenOut = uint96(volumeClearingPriceOrder.mul(priceNumerator).div(priceDenominator));
+                    orderTokenIn = uint96(orderTokenIn.sub(volumeClearingPriceOrder)); // ??? nico
+                    
+                } else {
+                    if (currentOrder.smallerThan(clearingPriceOrder)) {
+                        //[17] orderTokenOut, distribute
+                        orderTokenOut = uint96(orderTokenIn.mul(priceNumerator).div(priceDenominator)); 
+                    } else {
+                        //[24] no orderTokenOut
+                        orderTokenOut = 0;
+                    }
+                }
+            } // else
+            nextOrder = currentOrder;
+            
+            emit ClaimedFromOrder(ownerId, orderTokenOut, orderTokenIn);
+            sendOutTokens(orderTokenOut, orderTokenIn, ownerId); //[3]
+        } // for
+
+    }
+
     /// @dev processes funds and fees after the sale finished
     /// @param fillVolumeOfAuctioneerOrder uint256
     /// @param auctioneerId uint64 id of the address who did initiate the sale
-    /// @param fullAuctionAmountToSell uint96
+    /// @param tokensForSale uint96
     function processFeesAndFunds(
         uint256 fillVolumeOfAuctioneerOrder,
         uint64 auctioneerId,
-        uint96 fullAuctionAmountToSell
+        uint96 tokensForSale
     ) internal {
         uint256 feeAmount =
-            fullAuctionAmountToSell.mul(feeNumerator).div(FEE_DENOMINATOR); //[20]
+            tokensForSale.mul(feeNumerator).div(FEE_DENOMINATOR); //[20]
         if (minSellThresholdNotReached) {
             sendOutTokens(
-                fullAuctionAmountToSell.add(feeAmount),
+                tokensForSale.add(feeAmount),
                 0,
                 auctioneerId
             ); //[4]
@@ -547,10 +641,10 @@ contract FairSale {
             (, uint96 priceNumerator, uint96 priceDenominator) =
                 clearingPriceOrder.decodeOrder();
             uint256 unsettledTokens =
-                fullAuctionAmountToSell.sub(fillVolumeOfAuctioneerOrder);
+                tokensForSale.sub(fillVolumeOfAuctioneerOrder);
             uint256 tokenOutAmount =
                 unsettledTokens.add(
-                    feeAmount.mul(unsettledTokens).div(fullAuctionAmountToSell)
+                    feeAmount.mul(unsettledTokens).div(tokensForSale)
                 );
             uint256 tokenInAmount =
                 fillVolumeOfAuctioneerOrder.mul(priceDenominator).div(
@@ -559,7 +653,7 @@ contract FairSale {
             sendOutTokens(tokenOutAmount, tokenInAmount, auctioneerId); //[5]
             sendOutTokens(
                 feeAmount.mul(fillVolumeOfAuctioneerOrder).div(
-                    fullAuctionAmountToSell
+                    tokensForSale
                 ),
                 0,
                 feeReceiverUserId
@@ -609,6 +703,13 @@ contract FairSale {
             emit NewUser(ownerId, user);
         }
     }
+
+
+    /// @dev get clearingprice
+    function getClearingPrice() public view atStageFinished() returns (uint96 priceNumerator, uint96 priceDenominator) {
+        (, priceNumerator, priceDenominator) = clearingPriceOrder.decodeOrder();       // emit ClearingPrice(price, user);
+    }
+
 
     /// @dev read how much time is left until sale is over
     /// @return uint256 seconds until end
