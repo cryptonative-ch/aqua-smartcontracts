@@ -20,7 +20,7 @@ contract FairSale {
 
     modifier atStageOrderPlacement() {
         require(
-            block.timestamp < endDate,
+            block.timestamp < endDate, // ??? orders can be placed even befor startdate?
             "no longer in order placement phase"
         );
         _;
