@@ -2,9 +2,9 @@
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "../interfaces/ITemplate.sol";
-import "../interfaces/IMesaFactory.sol";
-import "../utils/cloneFactory.sol";
+import "../shared/interfaces/ITemplate.sol";
+import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/utils/cloneFactory.sol";
 
 contract TemplateLauncher is CloneFactory {
     using SafeERC20 for IERC20;

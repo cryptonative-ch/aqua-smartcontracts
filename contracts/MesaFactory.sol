@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 
-import "./interfaces/ITemplateLauncher.sol";
+import "./shared/interfaces/ITemplateLauncher.sol";
 
 contract MesaFactory {
     event FactoryInitialized(

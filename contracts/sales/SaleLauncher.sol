@@ -3,10 +3,10 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../interfaces/ISale.sol";
-import "../interfaces/IMesaFactory.sol";
-import "../libraries/TransferHelper.sol";
-import "../utils/cloneFactory.sol";
+import "../shared/interfaces/ISale.sol";
+import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/libraries/TransferHelper.sol";
+import "../shared/utils/cloneFactory.sol";
 
 contract SaleLauncher is CloneFactory {
     using SafeERC20 for IERC20;

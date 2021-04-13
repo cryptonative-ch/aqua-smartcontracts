@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
-import "../utils/cloneFactory.sol";
+import "../shared/utils/cloneFactory.sol";
 
 interface IParticipantList {
     function init(address[] memory managers) external;

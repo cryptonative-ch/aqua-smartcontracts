@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/ISaleLauncher.sol";
-import "../interfaces/IMesaFactory.sol";
+import "../shared/interfaces/ISaleLauncher.sol";
+import "../shared/interfaces/IMesaFactory.sol";
 
 contract FairSaleTemplate {
     string public constant templateName = "FairSaleTemplate";

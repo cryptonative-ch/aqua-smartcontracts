@@ -4,9 +4,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "../libraries/IdToAddressBiMap.sol";
-import "../libraries/SafeCast.sol";
-import "../libraries/IterableOrderedOrderSet.sol";
+import "../shared/libraries/IdToAddressBiMap.sol";
+import "../shared/libraries/SafeCast.sol";
+import "../shared/libraries/IterableOrderedOrderSet.sol";
 
 contract FairSale {
     using SafeERC20 for IERC20;
