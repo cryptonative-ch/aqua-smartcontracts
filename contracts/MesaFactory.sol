@@ -13,15 +13,15 @@ contract MesaFactory {
         uint256 feeNumerator,
         uint256 saleFee
     );
-
+    // ToDo: Rename EventNames?
     event TemplateLaunched(address indexed template, uint256 templateId);
-    event SetFeeTo(address indexed feeTo);
-    event SetFeeNumerator(uint256 indexed feeNumerator);
-    event SetSaleFee(uint256 indexed saleFee);
-    event SetTemplateFee(uint256 indexed templateFee);
-    event SetFeeManager(address indexed feeManager);
-    event SetTemplateManager(address indexed templateManager);
-    event SetTemplateLauncher(address indexed templateLauncher);
+    event FeeToUpdated(address indexed feeTo);
+    event FeeNumeratorUpdated(uint256 indexed feeNumerator);
+    event SaleFeeUpdated(uint256 indexed saleFee);
+    event TemplateFeeUpdated(uint256 indexed templateFee);
+    event FeeManagerUpdated(address indexed feeManager);
+    event TemplateManagerUpdated(address indexed templateManager);
+    event TemplateLauncherUpdated(address indexed templateLauncher);
 
     uint256 public immutable feeDenominator = 1000;
     uint256 public feeNumerator;
@@ -31,11 +31,20 @@ contract MesaFactory {
     address public templateManager;
     address public templateLauncher;
     uint256 public templateFee;
-    address[] public allSales;
+
+    address[] public allTemplates;
     uint256 public templateId;
     bool initialized = false;
 
-    constructor() public {}
+    modifier isTemplateManager() {
+        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+        _;
+    }
+
+    modifier isFeeManager() {
+        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        _;
+    }
 
     /// @dev setup function to initialize the Mesa Factory
     /// @param _feeManager address that is allowed to update fees
@@ -45,7 +54,7 @@ contract MesaFactory {
     /// @param _templateFee fixed amount of native currency (ETH) to be paid for adding a template
     /// @param _feeNumerator fee that is token on depositing tokens
     /// @param _saleFee fixed amount of native currency (ETH) to be paid for launch a project
-    function initialize(
+    constructor(
         address _feeManager,
         address _feeTo,
         address _templateManager,
@@ -54,7 +63,6 @@ contract MesaFactory {
         uint256 _feeNumerator,
         uint256 _saleFee
     ) public {
-        require(!initialized, "MesaFactory: ALREADY_INITIALIZED");
         feeManager = _feeManager;
         feeTo = _feeTo;
         feeNumerator = _feeNumerator;
@@ -62,6 +70,7 @@ contract MesaFactory {
         templateLauncher = _templateLauncher;
         templateFee = _templateFee;
         saleFee = _saleFee;
+        initialized = true;
 
         emit FactoryInitialized(
             _feeManager,
@@ -80,72 +89,71 @@ contract MesaFactory {
     function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
         payable
-        returns (address newSale)
+        returns (address newTemplate)
     {
-        newSale = ITemplateLauncher(templateLauncher).launchTemplate{
+        newTemplate = ITemplateLauncher(templateLauncher).launchTemplate{
             value: msg.value
         }(_templateId, _data);
-        emit TemplateLaunched(newSale, _templateId);
-        allSales.push(newSale);
+        allTemplates.push(newTemplate);
+        emit TemplateLaunched(newTemplate, _templateId);
     }
 
     /// @dev governance function to change the fee recipient
     /// @param _feeTo new address that receives fees
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+    function setFeeTo(address _feeTo) external isFeeManager() {
         feeTo = _feeTo;
-        emit SetFeeTo(_feeTo);
+        emit FeeToUpdated(_feeTo);
     }
 
     /// @dev governance function to change the fee
     /// @param _feeNumerator new fee numerator
-    function setFeeNumerator(uint256 _feeNumerator) external {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+    function setFeeNumerator(uint256 _feeNumerator) external isFeeManager() {
         feeNumerator = _feeNumerator;
-        emit SetFeeNumerator(_feeNumerator);
+        emit FeeNumeratorUpdated(_feeNumerator);
     }
 
     /// @dev governance function to change the sale fee
     /// @param _saleFee new sale fee amount
-    function setSaleFee(uint256 _saleFee) external {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+    function setSaleFee(uint256 _saleFee) external isFeeManager() {
         saleFee = _saleFee;
-        emit SetSaleFee(_saleFee);
+        emit SaleFeeUpdated(_saleFee);
     }
 
     /// @dev governance function to change the template fee
     /// @param _templateFee new template fee amount
-    function setTemplateFee(uint256 _templateFee) external {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+    function setTemplateFee(uint256 _templateFee) external isFeeManager() {
         templateFee = _templateFee;
-        emit SetTemplateFee(_templateFee);
+        emit TemplateFeeUpdated(_templateFee);
     }
 
     /// @dev governance function to change the feeManager
     /// @param _feeManager new address allowed to change fees
-    function setFeeManager(address _feeManager) external {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+    function setFeeManager(address _feeManager) external isFeeManager() {
         feeManager = _feeManager;
-        emit SetFeeManager(_feeManager);
+        emit FeeManagerUpdated(_feeManager);
     }
 
     /// @dev governance function to change the templateManager
     /// @param _templateManager new address allowed to change templates
-    function setTemplateManager(address _templateManager) external {
-        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+    function setTemplateManager(address _templateManager)
+        external
+        isTemplateManager()
+    {
         templateManager = _templateManager;
-        emit SetTemplateManager(_templateManager);
+        emit TemplateManagerUpdated(_templateManager);
     }
 
     /// @dev governance function to replace the templateLauncher
     /// @param _templateLauncher new address of templateLauncher
-    function setTemplateLauncher(address _templateLauncher) external {
-        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+    function setTemplateLauncher(address _templateLauncher)
+        external
+        isTemplateManager()
+    {
         templateLauncher = _templateLauncher;
-        emit SetTemplateLauncher(_templateLauncher);
+        emit TemplateLauncherUpdated(_templateLauncher);
     }
 
-    function numberOfSales() external view returns (uint256) {
-        return allSales.length;
+    function numberOfTemplates() external view returns (uint256) {
+        return allTemplates.length;
     }
 }

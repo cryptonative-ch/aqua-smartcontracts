@@ -89,11 +89,19 @@ contract FairSale {
     uint256 public orderCancellationEndDate;
     uint256 public auctionStartedDate;
     uint256 public endDate;
-    bytes32 public initialAuctionOrder;
+    uint64 public initialUserId;
+    uint96 public initialAmountToBuy;
+    uint96 public initialAmountToBid;
+
     uint256 public minimumBiddingAmountPerOrder;
     uint256 public interimSumBidAmount;
-    bytes32 public interimOrder;
-    bytes32 public clearingPriceOrder;
+    uint64 public interimUserId;
+    uint96 public interimAmountToBuy;
+    uint96 public interimAmountToBid;
+    uint64 public clearingUserId;
+    uint96 public clearingAmountToBuy;
+    uint96 public clearingAmountToBid;
+
     uint96 public volumeClearingPriceOrder;
     bool public minSellThresholdNotReached;
     bool public isAtomicClosureAllowed;
@@ -168,11 +176,10 @@ contract FairSale {
         orderCancellationEndDate = cancellationEndDate;
         auctionStartedDate = block.timestamp;
 
-        initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
-            auctioneerId,
-            _totalTokenOutAmount,
-            _minBidAmountToReceive
-        );
+        initialUserId = auctioneerId;
+        initialAmountToBuy = _totalTokenOutAmount;
+        initialAmountToBid = _minBidAmountToReceive;
+
         minimumBiddingAmountPerOrder = _minimumBiddingAmountPerOrder;
         interimSumBidAmount = 0;
         interimOrder = IterableOrderedOrderSet.QUEUE_START;
@@ -219,9 +226,8 @@ contract FairSale {
         uint96[] memory _ordersTokenIn,
         bytes32[] memory _prevOrders
     ) internal returns (uint64 ownerId) {
-        (, uint96 totalTokenOutAmount, uint96 minAmountToReceive) =
-            initialAuctionOrder.decodeOrder();
-
+        uint96 totalTokenOutAmount = initialAmountToBuy;
+        uint96 minAmountToReceive = initialAmountToBid;
         uint256 sumOrdersTokenIn = 0;
         ownerId = getUserId(msg.sender);
         for (uint256 i = 0; i < _ordersTokenOut.length; i++) {
@@ -287,7 +293,6 @@ contract FairSale {
         public
         atStageSolutionSubmission()
     {
-        (, uint96 totalTokenOutAmount, ) = initialAuctionOrder.decodeOrder();
         uint256 sumBidAmount = interimSumBidAmount;
         bytes32 iterOrder = interimOrder;
 
@@ -308,7 +313,7 @@ contract FairSale {
         (, uint96 orderTokenOut, uint96 orderTokenIn) = iterOrder.decodeOrder();
         require(
             sumBidAmount.mul(orderTokenOut) <
-                totalTokenOutAmount.mul(orderTokenIn),
+                initialAmountToBuy.mul(orderTokenIn),
             "too many orders summed up"
         );
 

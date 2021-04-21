@@ -9,26 +9,35 @@ import "../shared/utils/cloneFactory.sol";
 contract TemplateLauncher is CloneFactory {
     using SafeERC20 for IERC20;
 
-    struct Template {
-        bool exists;
-        uint64 templateId;
-        uint128 index;
-        bool verified;
-    }
-
-    uint256 public templateId;
     mapping(uint256 => address) private templates;
     mapping(address => uint256) private templateToId;
-    mapping(address => Template) public templateInfo;
+    mapping(address => bool) private templateVerified;
 
     event TemplateLaunched(address indexed sale, uint256 templateId);
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
-    event UpdatedTemplateRestriction(bool restrictedTemplates);
+    event TemplateRestrictionUpdated(bool restrictedTemplates);
 
     address public factory;
     bool public restrictedTemplates = true;
+
+    modifier isTemplateManager() {
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "MesaFactory: FORBIDDEN"
+        );
+        _;
+    }
+
+    modifier isAllowedToAddTemplate() {
+        require(
+            !restrictedTemplates ||
+                msg.sender == IMesaFactory(factory).templateManager(),
+            "MesaFactory: FORBIDDEN"
+        );
+        _;
+    }
 
     constructor(address _factory) public {
         factory = _factory;
@@ -67,12 +76,12 @@ contract TemplateLauncher is CloneFactory {
 
     /// @dev allows to register a template by paying a fee
     /// @param _template address of template to be added
-    function addTemplate(address _template) external payable returns (uint256) {
-        require(
-            !restrictedTemplates ||
-                msg.sender == IMesaFactory(factory).templateManager(),
-            "TemplateLauncher: FORBIDDEN"
-        );
+    function addTemplate(address _template)
+        external
+        payable
+        isAllowedToAddTemplate()
+        returns (uint256)
+    {
         require(
             msg.value >= IMesaFactory(factory).templateFee(),
             "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"
@@ -91,11 +100,7 @@ contract TemplateLauncher is CloneFactory {
 
     /// @dev allows the templateManager to unregister a template
     /// @param _templateId template to be removed
-    function removeTemplate(uint256 _templateId) external {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "TemplateLauncher: FORBIDDEN"
-        );
+    function removeTemplate(uint256 _templateId) external isTemplateManager() {
         require(templates[_templateId] != address(0));
         address template = templates[_templateId];
         templates[_templateId] = address(0);
@@ -105,32 +110,22 @@ contract TemplateLauncher is CloneFactory {
 
     /// @dev allows the templateManager to verify a template
     /// @param _templateId template to be verified
-    function verifyTemplate(uint256 _templateId) public {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "TemplateLauncher: FORBIDDEN"
-        );
-
-        templateInfo[templates[_templateId]].verified = true;
+    function verifyTemplate(uint256 _templateId) external isTemplateManager() {
+        templateVerified[templates[_templateId]] = true;
         emit TemplateVerified(templates[_templateId], _templateId);
     }
 
     /// @dev allows to switch on/off public template registrations
     /// @param _restrictedTemplates turns on/off the option
-    function updateTemplateRestriction(bool _restrictedTemplates) external {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "TemplateLauncher: FORBIDDEN"
-        );
+    function updateTemplateRestriction(bool _restrictedTemplates)
+        external
+        isTemplateManager()
+    {
         restrictedTemplates = _restrictedTemplates;
-        emit UpdatedTemplateRestriction(_restrictedTemplates);
+        emit TemplateRestrictionUpdated(_restrictedTemplates);
     }
 
-    function getTemplate(uint256 _templateId)
-        public
-        view
-        returns (address template)
-    {
+    function getTemplate(uint256 _templateId) public view returns (address) {
         return templates[_templateId];
     }
 

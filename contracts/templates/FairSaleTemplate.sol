@@ -75,8 +75,6 @@ contract FairSaleTemplate {
             isAtomicClosureAllowed
         );
 
-        initialized = true;
-
         emit TemplateInitialized(
             _tokenOut,
             _tokenIn,

@@ -3,18 +3,9 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../shared/interfaces/ISaleLauncher.sol";
 import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/utils/MesaTemplate.sol";
 
-contract FixedPriceSaleTemplate {
-    string public constant templateName = "FixedPriceSaleTemplate";
-    ISaleLauncher public saleLauncher;
-    IMesaFactory public mesaFactory;
-    uint256 public saleTemplateId;
-    bool initialized = false;
-    address tokenSupplier;
-    address tokenOut;
-    uint256 tokenOutSupply;
-    bytes encodedInitData;
-
+contract FixedPriceSaleTemplate is MesaTemplate {
     event TemplateInitialized(
         address tokenOut,
         address tokenIn,
@@ -28,7 +19,9 @@ contract FixedPriceSaleTemplate {
         address owner
     );
 
-    constructor() public {}
+    constructor() public {
+      templateName = "FixedPriceSaleTemplate";
+    }
 
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _saleLauncher address of Mesa SaleLauncher
@@ -113,6 +106,7 @@ contract FixedPriceSaleTemplate {
 
     /// @dev setup function expexted to be called by templateLauncher to init the template
     /// @param _data encoded template params
+    /// ToDo: Explore more generic approach & use .call
     function init(bytes calldata _data) public {
         (
             address _saleLauncher,
