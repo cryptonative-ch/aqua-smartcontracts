@@ -119,7 +119,7 @@ contract FairSale {
     /// @param _tokenIn token to make the bid in
     /// @param _tokenOut token to buy
     /// @param _orderCancelationPeriodDuration cancel order is allowed, but only during this duration
-    /// @param _duration amount of tokens to be sold
+    /// @param _duration duration of the sale in seconds
     /// @param _totalTokenOutAmount total amount to sell
     /// @param _minBidAmountToReceive Minimum amount of biding token to receive at final point
     /// @param _minimumBiddingAmountPerOrder to limit number of orders to reduce gas cost for settelment
