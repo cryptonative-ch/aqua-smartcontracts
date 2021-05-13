@@ -55,6 +55,11 @@ contract FairSale {
         uint96 orderTokenOut,
         uint96 orderTokenIn
     );
+    event InitialOrder(
+        uint64 indexed ownerId,
+        uint96 orderTokenOut,
+        uint96 orderTokenIn
+    );
     event CancellationOrder(
         uint64 indexed ownerId,
         uint96 orderTokenOut,
@@ -191,6 +196,12 @@ contract FairSale {
             _minBidAmountToReceive,
             _minimumBiddingAmountPerOrder,
             _minSellThreshold
+        );
+        // We emit the first Sale Order via NewOrder event
+        emit InitialOrder(
+            auctioneerId,
+            _totalTokenOutAmount,
+            _minBidAmountToReceive
         );
     }
 
