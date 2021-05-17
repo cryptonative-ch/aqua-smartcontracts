@@ -21,14 +21,15 @@ contract FixedPriceSale {
         uint256 endDate,
         uint256 allocationMin,
         uint256 allocationMax,
-        uint256 minimumRaise
+        uint256 minimumRaise,
+        address owner
     );
 
     event NewPurchase(address indexed buyer, uint256 indexed amount);
 
     event NewTokenClaim(address indexed buyer, uint256 indexed amount);
 
-    event distributeAllTokensLeft(uint256 indexed amount);
+    event DistributeAllTokensLeft(uint256 indexed amount);
 
     event NewTokenRelease(address indexed buyer, uint256 indexed amount);
 
@@ -47,8 +48,6 @@ contract FixedPriceSale {
     uint256 public allocationMax;
     uint256 public minimumRaise;
     bool public isClosed;
-
-    uint256 constant numberToDistributionPerBlock = 100;
 
     mapping(address => uint256) public tokensPurchased;
 
@@ -117,7 +116,121 @@ contract FixedPriceSale {
             _endDate,
             _allocationMin,
             _allocationMax,
-            _minimumRaise
+            _minimumRaise,
+            _owner
+        );
+    }
+
+    /// @dev reserve tokens for a fixed price
+    /// @param amount of tokenIn to buy at a fixed price
+    function buyTokens(uint256 amount) public {
+        require(!isClosed, "FixedPriceSale: sale closed");
+        require(amount >= allocationMin, "FixedPriceSale: amount to low");
+        require(
+            allocationMax == 0 ||
+                tokensPurchased[msg.sender].add(amount) <= allocationMax,
+            "FixedPriceSale: allocationMax reached"
+        );
+        require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
+        tokenIn.safeTransferFrom(msg.sender, address(this), amount);
+
+        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
+
+        if (tokensPurchased[msg.sender] == 0) {
+            orderOwners.push(msg.sender);
+        }
+
+        tokensSold = tokensSold.add(amount);
+        emit NewPurchase(msg.sender, amount);
+    }
+
+    /// @dev close sale if minRaise is reached
+    function closeSale() public {
+        require(!isClosed, "FixedPriceSale: already closed");
+        require(
+            block.timestamp > endDate,
+            "FixedPriceSale: endDate not passed"
+        );
+        require(
+            tokensSold >= minimumRaise,
+            "FixedPriceSale: minumumRaise not reached"
+        );
+        isClosed = true;
+        emit SaleClosed();
+    }
+
+    /// @dev realease tokenIn back to investors if minimumRaise not reached
+    /// can also be used from external script to automatically release tokens for investors
+    function releaseTokens(address account) public {
+        require(minimumRaise > 0, "FixedPriceSale: no minumumRaise");
+        require(
+            block.timestamp > endDate,
+            "FixedPriceSale: endDate not passed"
+        );
+        require(
+            tokensPurchased[account] > 0,
+            "FixedPriceSale: no tokens purchased by this investor"
+        );
+        require(
+            tokensSold < minimumRaise,
+            "FixedPriceSale: minumumRaise reached"
+        );
+
+        uint256 tokensAmount = tokensPurchased[account];
+        tokensPurchased[account] = 0;
+        isClosed = true;
+        TransferHelper.safeTransfer(address(tokenIn), account, tokensAmount);
+        emit NewTokenRelease(account, tokensAmount);
+    }
+
+    /// @dev let investors claim their purchased tokens
+    /// can also be used from external script to automatically claim tokens for investors
+    function claimTokens(address account) public {
+        require(isClosed, "FixedPriceSale: sale not closed");
+        require(
+            tokensPurchased[account] > 0,
+            "FixedPriceSale: no tokens to claim"
+        );
+        uint256 purchasedTokens = tokensPurchased[account].mul(tokenPrice);
+        tokensPurchased[account] = 0;
+        TransferHelper.safeTransfer(
+            address(tokenOut),
+            account,
+            purchasedTokens
+        );
+        emit NewTokenClaim(account, purchasedTokens);
+    }
+
+    /// @dev count how many orders
+    function ordersCount() public view returns (uint256) {
+        return orderOwners.length;
+    }
+
+    /// @dev withdraw collected funds
+    function _withdrawFunds() internal {
+        require(isClosed, "FixedPriceSale: sale not closed");
+
+        TransferHelper.safeTransfer(
+            address(tokenIn),
+            owner,
+            IERC20(tokenIn).balanceOf(address(this))
+        );
+    }
+
+    /// @dev withdraw collected funds
+    // version with calldata see below
+    function withdrawFunds() external onlyOwner() {
+        _withdrawFunds();
+    }
+
+    /// @dev withdraw tokenOut which have no been sold
+    function withdrawUnsoldFunds() external {
+        require(isClosed, "FixedPriceSale: sale not closed");
+
+        TransferHelper.safeTransfer(
+            address(tokenOut),
+            owner,
+            tokensForSale.sub(tokensSold)
         );
     }
 
@@ -166,155 +279,32 @@ contract FixedPriceSale {
         );
     }
 
-    /// @dev reserve tokens for a fixed price
-    /// @param amount of tokenIn to buy at a fixed price
-    function buyTokens(uint256 amount) public {
-        require(!isClosed, "FixedPriceSale: sale closed");
-        require(amount >= allocationMin, "FixedPriceSale: amount to low");
-        require(
-            allocationMax == 0 ||
-                tokensPurchased[msg.sender].add(amount) <= allocationMax,
-            "FixedPriceSale: allocationMax reached"
-        );
-        require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
-        tokenIn.safeTransferFrom(msg.sender, address(this), amount);
-
-        if (tokensPurchased[msg.sender] == 0) {
-            orderOwners.push(msg.sender);
-        }
-
-        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
-
-        tokensSold = tokensSold.add(amount);
-        emit NewPurchase(msg.sender, amount);
-    }
-
-    /// @dev close sale if minRaise is reached
-    function closeSale() public {
-        require(!isClosed, "FixedPriceSale: already closed");
-        require(
-            block.timestamp > endDate,
-            "FixedPriceSale: endDate not passed"
-        );
-        require(
-            tokensSold >= minimumRaise,
-            "FixedPriceSale: minumumRaise not reached"
-        );
-        isClosed = true;
-        emit SaleClosed();
-    }
-
-    /// @dev realease tokenIn back to investors if minimumRaise not reached
-    function releaseTokens() public {
-        require(minimumRaise > 0, "FixedPriceSale: no minumumRaise");
-        require(
-            block.timestamp > endDate,
-            "FixedPriceSale: endDate not passed"
-        );
-        require(
-            tokensPurchased[msg.sender] > 0,
-            "FixedPriceSale: no tokens purchased by this investor"
-        );
-        require(
-            tokensSold < minimumRaise,
-            "FixedPriceSale: minumumRaise reached"
-        );
-
-        uint256 tokensAmount = tokensPurchased[msg.sender];
-        tokensPurchased[msg.sender] = 0;
-        isClosed = true;
-        TransferHelper.safeTransfer(address(tokenIn), msg.sender, tokensAmount);
-        emit NewTokenRelease(msg.sender, tokensAmount);
-    }
-
-    /// @dev let investors claim their purchased tokens
-    function claimTokens() public {
-        require(isClosed, "FixedPriceSale: sale not closed");
-        require(
-            tokensPurchased[msg.sender] > 0,
-            "FixedPriceSale: no tokens to claim"
-        );
-        uint256 purchasedTokens = tokensPurchased[msg.sender];
-        tokensPurchased[msg.sender] = 0;
-        TransferHelper.safeTransfer(
-            address(tokenOut),
-            msg.sender,
-            purchasedTokens
-        );
-        emit NewTokenClaim(msg.sender, purchasedTokens);
-    }
-
-    /// @dev let everyone distribute token to the investors
-    function distributeAllTokens() public {
-        require(isClosed, "FixedPriceSale: sale not closed");
-        uint256 _counter = 1;
-        // loop backwards
-        for (uint256 i = orderOwners.length; i > 0; i--) {
-            address _orderOwner = orderOwners[i - 1];
-            if (tokensPurchased[_orderOwner] > 0) {
-                uint256 _purchasedTokens = tokensPurchased[_orderOwner];
-                tokensPurchased[_orderOwner] = 0;
-                TransferHelper.safeTransfer(
-                    address(tokenOut),
-                    _orderOwner,
-                    _purchasedTokens
-                );
-            }
-            // delete last entry, even if tokensPurchased[_orderOwner] == 0 this okey, because then token has been claimed by claimTokens()
-            orderOwners.pop();
-            if (_counter == numberToDistributionPerBlock) {
-                break;
-            }
-            _counter++;
-        } // for
-        emit distributeAllTokensLeft(orderOwners.length);
-    }
-
-    /// @dev count how many orders
-    function ordersCount() public view returns (uint256) {
-        return orderOwners.length;
-    }
-
-    /// @dev withdraw collected funds
-    function _withdrawFunds() internal {
-        require(isClosed, "FixedPriceSale: sale not closed");
-
-        TransferHelper.safeTransfer(
-            address(tokenIn),
-            owner,
-            IERC20(tokenIn).balanceOf(address(this))
-        );
-    }
-
-    /// @dev withdraw collected funds
-    // version with calldata see below
-    function withdrawFunds() external onlyOwner() {
-        _withdrawFunds();
-    }
-
-    /// @dev withdraw tokenOut which have no been sold
-    function withdrawUnsoldFunds() external {
-        require(isClosed, "FixedPriceSale: sale not closed");
-
-        TransferHelper.safeTransfer(
-            address(tokenOut),
-            owner,
-            tokensForSale.sub(tokensSold)
-        );
-    }
-
     /// @dev withdraw any ERC20 token by owner
     /// @param token ERC20 token address
     /// @param amount Amount to withdraw
     function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
-        require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
+        require(isClosed, "FixedPriceSale: sale not closed");
+        require(
+            block.timestamp > endDate,
+            "FixedPriceSale: deadline not reached"
+        );
+        if (isClosed) {
+            require(
+                token != address(tokenOut),
+                "FixedPriceSale: cannot withdraw tokenOut"
+            );
+        }
         TransferHelper.safeTransfer(token, owner, amount);
     }
 
     /// @dev withdraw ETH token by owner
     /// @param amount ETH amount to withdraw
     function ETHWithdraw(uint256 amount) external onlyOwner() {
-        require(block.timestamp > endDate, "FixedPriceSale: sale not ended");
+        require(isClosed, "FixedPriceSale: sale not closed");
+        require(
+            block.timestamp > endDate,
+            "FixedPriceSale: deadline not reached"
+        );
         TransferHelper.safeTransferETH(owner, amount);
     }
 

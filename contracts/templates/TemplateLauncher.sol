@@ -9,20 +9,21 @@ import "../shared/utils/cloneFactory.sol";
 contract TemplateLauncher is CloneFactory {
     using SafeERC20 for IERC20;
 
-    mapping(uint256 => address) private templates;
-    mapping(address => uint256) private templateToId;
-    mapping(address => bool) private templateVerified;
-
-    event TemplateLaunched(address indexed sale, uint256 templateId);
+    event TemplateLaunched(address indexed newTemplate, uint256 templateId);
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
     event TemplateRestrictionUpdated(bool restrictedTemplates);
 
-    address public factory;
-    bool public restrictedTemplates = true;
+    mapping(uint256 => address) private template;
+    mapping(address => uint256) private templateToId;
+    mapping(address => bool) public templateVerified;
 
-    modifier isTemplateManager() {
+    uint256 templateCounter;
+    address public factory;
+    bool public restrictedTemplates;
+
+    modifier isTemplateManager {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
             "MesaFactory: FORBIDDEN"
@@ -30,7 +31,7 @@ contract TemplateLauncher is CloneFactory {
         _;
     }
 
-    modifier isAllowedToAddTemplate() {
+    modifier isAllowedToAddTemplate {
         require(
             !restrictedTemplates ||
                 msg.sender == IMesaFactory(factory).templateManager(),
@@ -41,6 +42,7 @@ contract TemplateLauncher is CloneFactory {
 
     constructor(address _factory) public {
         factory = _factory;
+        restrictedTemplates = true;
     }
 
     /// @dev function to launch a template on Mesa, called from MesaFactory
@@ -49,7 +51,7 @@ contract TemplateLauncher is CloneFactory {
     function launchTemplate(uint256 _templateId, bytes calldata _data)
         external
         payable
-        returns (address newSale)
+        returns (address newTemplate)
     {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
         require(
@@ -57,21 +59,21 @@ contract TemplateLauncher is CloneFactory {
             "TemplateLauncher: SALE_FEE_NOT_PROVIDED"
         );
         require(
-            templates[_templateId] != address(0),
+            template[_templateId] != address(0),
             "TemplateLauncher: INVALID_TEMPLATE"
         );
-        newSale = _deployTemplate(_templateId);
-        ITemplate(newSale).init(_data);
+        newTemplate = _deployTemplate(_templateId);
+        ITemplate(newTemplate).init(_data);
     }
 
     /// @dev internal function to clone a template contract
     /// @param _templateId template to be cloned
     function _deployTemplate(uint256 _templateId)
         internal
-        returns (address newSale)
+        returns (address newTemplate)
     {
-        newSale = createClone(templates[_templateId]);
-        emit TemplateLaunched(address(newSale), _templateId);
+        newTemplate = createClone(template[_templateId]);
+        emit TemplateLaunched(address(newTemplate), _templateId);
     }
 
     /// @dev allows to register a template by paying a fee
@@ -79,7 +81,7 @@ contract TemplateLauncher is CloneFactory {
     function addTemplate(address _template)
         external
         payable
-        isAllowedToAddTemplate()
+        isAllowedToAddTemplate
         returns (uint256)
     {
         require(
@@ -91,42 +93,42 @@ contract TemplateLauncher is CloneFactory {
             "TemplateLauncher: TEMPLATE_DUPLICATE"
         );
 
-        templateId++;
-        templates[templateId] = _template;
-        templateToId[_template] = templateId;
-        emit TemplateAdded(_template, templateId);
-        return templateId;
+        templateCounter++;
+        template[templateCounter] = _template;
+        templateToId[_template] = templateCounter;
+        emit TemplateAdded(_template, templateCounter);
+        return templateCounter;
     }
 
     /// @dev allows the templateManager to unregister a template
     /// @param _templateId template to be removed
-    function removeTemplate(uint256 _templateId) external isTemplateManager() {
-        require(templates[_templateId] != address(0));
-        address template = templates[_templateId];
-        templates[_templateId] = address(0);
+    function removeTemplate(uint256 _templateId) external isTemplateManager {
+        require(template[_templateId] != address(0));
+        template[_templateId] = address(0);
+        address template = template[_templateId];
         delete templateToId[template];
         emit TemplateRemoved(template, _templateId);
     }
 
     /// @dev allows the templateManager to verify a template
     /// @param _templateId template to be verified
-    function verifyTemplate(uint256 _templateId) external isTemplateManager() {
-        templateVerified[templates[_templateId]] = true;
-        emit TemplateVerified(templates[_templateId], _templateId);
+    function verifyTemplate(uint256 _templateId) external isTemplateManager {
+        templateVerified[template[_templateId]] = true;
+        emit TemplateVerified(template[_templateId], _templateId);
     }
 
     /// @dev allows to switch on/off public template registrations
     /// @param _restrictedTemplates turns on/off the option
     function updateTemplateRestriction(bool _restrictedTemplates)
         external
-        isTemplateManager()
+        isTemplateManager
     {
         restrictedTemplates = _restrictedTemplates;
         emit TemplateRestrictionUpdated(_restrictedTemplates);
     }
 
     function getTemplate(uint256 _templateId) public view returns (address) {
-        return templates[_templateId];
+        return template[_templateId];
     }
 
     function getTemplateId(address _template) public view returns (uint256) {

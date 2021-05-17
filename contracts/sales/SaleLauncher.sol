@@ -12,24 +12,32 @@ contract SaleLauncher is CloneFactory {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
+    event TemplateAdded(address indexed template, uint256 templateId);
+    event TemplateRemoved(address indexed template, uint256 templateId);
+    event SaleLaunched(address indexed sale, uint256 templateId);
+    event SaleInitialized(address indexed sale, uint256 templateId, bytes data);
+
     struct Sale {
         bool exists;
         uint64 templateId;
         uint128 index;
     }
 
-    address[] public sales;
-    uint256 public saleTemplateId;
     mapping(uint256 => address) private saleTemplates;
     mapping(address => uint256) private saleTemplateToId;
     mapping(address => Sale) public saleInfo;
 
-    event TemplateAdded(address indexed template, uint256 templateId);
-    event TemplateRemoved(address indexed template, uint256 templateId);
-    event SaleLaunched(address indexed sale, uint256 templateId);
-    event SaleInitialized(address indexed sale, uint256 templateId, bytes data);
-
+    address[] public sales;
+    uint256 public saleTemplateId;
     address public factory;
+
+    modifier isTemplateManager {
+        require(
+            msg.sender == IMesaFactory(factory).templateManager(),
+            "MesaFactory: FORBIDDEN"
+        );
+        _;
+    }
 
     constructor(address _factory) public {
         factory = _factory;
@@ -95,11 +103,11 @@ contract SaleLauncher is CloneFactory {
         return address(newSale);
     }
 
-    function addTemplate(address _template) external returns (uint256) {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "SaleLauncher: FORBIDDEN"
-        );
+    function addTemplate(address _template)
+        external
+        isTemplateManager
+        returns (uint256)
+    {
         require(
             saleTemplateToId[_template] == 0,
             "SaleLauncher: TEMPLATE_DUPLICATE"
@@ -112,11 +120,7 @@ contract SaleLauncher is CloneFactory {
         return saleTemplateId;
     }
 
-    function removeTemplate(uint256 _templateId) external {
-        require(
-            msg.sender == IMesaFactory(factory).templateManager(),
-            "SaleLauncher: FORBIDDEN"
-        );
+    function removeTemplate(uint256 _templateId) external isTemplateManager {
         require(saleTemplates[_templateId] != address(0));
         address template = saleTemplates[_templateId];
         saleTemplates[_templateId] = address(0);

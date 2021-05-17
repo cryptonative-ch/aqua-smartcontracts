@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -32,8 +31,8 @@ library IterableOrderedOrderSet {
 
     struct Order {
         uint64 owner;
-        uint96 amountToBuy;
-        uint96 amountToBid;
+        uint96 buyAmount;
+        uint96 sellAmount;
     }
 
     function initializeEmptyList(Data storage self) internal {
@@ -93,6 +92,7 @@ library IterableOrderedOrderSet {
         self.prevMap[current] = elementToInsert;
         self.prevMap[elementToInsert] = previous;
         self.nextMap[elementToInsert] = current;
+
         return true;
     }
 
@@ -143,8 +143,9 @@ library IterableOrderedOrderSet {
     }
 
     // @dev orders are ordered by
-    // 1. their price - amountToBuy/amountToBid and
-    // 2. their userId,
+    // 1. their price - buyAmount/sellAmount
+    // 2. by the sellAmount
+    // 3. their userId,
     function smallerThan(bytes32 orderLeft, bytes32 orderRight)
         internal
         pure
@@ -170,6 +171,8 @@ library IterableOrderedOrderSet {
             priceNumeratorRight.mul(priceDenominatorLeft)
         ) return false;
 
+        if (priceNumeratorLeft < priceNumeratorRight) return true;
+        if (priceNumeratorLeft > priceNumeratorRight) return false;
         require(
             userIdLeft != userIdRight,
             "user is not allowed to place same order twice"
@@ -204,27 +207,27 @@ library IterableOrderedOrderSet {
         pure
         returns (
             uint64 userId,
-            uint96 amountToBuy,
-            uint96 amountToBid
+            uint96 buyAmount,
+            uint96 sellAmount
         )
     {
         // Note: converting to uint discards the binary digits that do not fit
         // the type.
         userId = uint64(uint256(_orderData) >> 192);
-        amountToBuy = uint96(uint256(_orderData) >> 96);
-        amountToBid = uint96(uint256(_orderData));
+        buyAmount = uint96(uint256(_orderData) >> 96);
+        sellAmount = uint96(uint256(_orderData));
     }
 
     function encodeOrder(
         uint64 userId,
-        uint96 amountToBuy,
-        uint96 amountToBid
+        uint96 buyAmount,
+        uint96 sellAmount
     ) internal pure returns (bytes32) {
         return
             bytes32(
                 (uint256(userId) << 192) +
-                    (uint256(amountToBuy) << 96) +
-                    uint256(amountToBid)
+                    (uint256(buyAmount) << 96) +
+                    uint256(sellAmount)
             );
     }
 }

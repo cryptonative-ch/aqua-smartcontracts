@@ -13,7 +13,6 @@ contract MesaFactory {
         uint256 feeNumerator,
         uint256 saleFee
     );
-    // ToDo: Rename EventNames?
     event TemplateLaunched(address indexed template, uint256 templateId);
     event FeeToUpdated(address indexed feeTo);
     event FeeNumeratorUpdated(uint256 indexed feeNumerator);
@@ -36,12 +35,12 @@ contract MesaFactory {
     uint256 public templateId;
     bool initialized = false;
 
-    modifier isTemplateManager() {
+    modifier isTemplateManager {
         require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
         _;
     }
 
-    modifier isFeeManager() {
+    modifier isFeeManager {
         require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
         _;
     }
@@ -100,35 +99,35 @@ contract MesaFactory {
 
     /// @dev governance function to change the fee recipient
     /// @param _feeTo new address that receives fees
-    function setFeeTo(address _feeTo) external isFeeManager() {
+    function setFeeTo(address _feeTo) external isFeeManager {
         feeTo = _feeTo;
         emit FeeToUpdated(_feeTo);
     }
 
     /// @dev governance function to change the fee
     /// @param _feeNumerator new fee numerator
-    function setFeeNumerator(uint256 _feeNumerator) external isFeeManager() {
+    function setFeeNumerator(uint256 _feeNumerator) external isFeeManager {
         feeNumerator = _feeNumerator;
         emit FeeNumeratorUpdated(_feeNumerator);
     }
 
     /// @dev governance function to change the sale fee
     /// @param _saleFee new sale fee amount
-    function setSaleFee(uint256 _saleFee) external isFeeManager() {
+    function setSaleFee(uint256 _saleFee) external isFeeManager {
         saleFee = _saleFee;
         emit SaleFeeUpdated(_saleFee);
     }
 
     /// @dev governance function to change the template fee
     /// @param _templateFee new template fee amount
-    function setTemplateFee(uint256 _templateFee) external isFeeManager() {
+    function setTemplateFee(uint256 _templateFee) external isFeeManager {
         templateFee = _templateFee;
         emit TemplateFeeUpdated(_templateFee);
     }
 
     /// @dev governance function to change the feeManager
     /// @param _feeManager new address allowed to change fees
-    function setFeeManager(address _feeManager) external isFeeManager() {
+    function setFeeManager(address _feeManager) external isFeeManager {
         feeManager = _feeManager;
         emit FeeManagerUpdated(_feeManager);
     }
@@ -137,7 +136,7 @@ contract MesaFactory {
     /// @param _templateManager new address allowed to change templates
     function setTemplateManager(address _templateManager)
         external
-        isTemplateManager()
+        isTemplateManager
     {
         templateManager = _templateManager;
         emit TemplateManagerUpdated(_templateManager);
@@ -147,7 +146,7 @@ contract MesaFactory {
     /// @param _templateLauncher new address of templateLauncher
     function setTemplateLauncher(address _templateLauncher)
         external
-        isTemplateManager()
+        isTemplateManager
     {
         templateLauncher = _templateLauncher;
         emit TemplateLauncherUpdated(_templateLauncher);

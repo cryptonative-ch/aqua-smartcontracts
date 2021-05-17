@@ -24,8 +24,7 @@ contract ParticipantListLauncher is CloneFactory {
         returns (address newList)
     {
         newList = createClone(participantListTemplate);
-        emit ListLaunched(newList);
-
         IParticipantList(newList).init(managers);
+        emit ListLaunched(newList);
     }
 }

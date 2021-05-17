@@ -357,9 +357,10 @@ describe("TemplateLauncher", async () => {
                 }
             );
 
-            const launchedTemplateTx = await ethers.provider.getTransactionReceipt(
-                launchedTemplate.hash
-            );
+            const launchedTemplateTx =
+                await ethers.provider.getTransactionReceipt(
+                    launchedTemplate.hash
+                );
 
             newFairSaleTemplate = new ethers.Contract(
                 launchedTemplateTx.logs[1].address,
