@@ -47,10 +47,7 @@ contract FairSale {
     }
 
     modifier atStageFinished() {
-        require(
-            clearingPriceOrder != bytes32(0),
-            "Auction not yet finished"
-        );
+        require(clearingPriceOrder != bytes32(0), "Auction not yet finished");
         _;
     }
 
@@ -100,7 +97,6 @@ contract FairSale {
     uint96 public volumeClearingPriceOrder;
     bool public minFundingThresholdNotReached;
     bool public isAtomicClosureAllowed;
-    uint256 public feeNumerator;
     uint256 public minFundingThreshold;
     IterableOrderedOrderSet.Data internal sellOrders;
 
@@ -108,9 +104,6 @@ contract FairSale {
     uint64 public numUsers;
 
     constructor() public {}
-
-    uint256 public constant FEE_DENOMINATOR = 1000;
-    uint64 public feeReceiverUserId = 1;
 
     // @dev: function to intiate a new auction
     // Warning: In case the auction is expected to raise more than
@@ -123,34 +116,32 @@ contract FairSale {
     function initAuction(
         IERC20 _biddingToken,
         IERC20 _auctioningToken,
-        uint256 orderCancellationEndDate,
-        uint256 auctionEndDate,
+        uint256 _orderCancellationEndDate,
+        uint256 _auctionEndDate,
         uint96 _auctionedSellAmount,
         uint96 _minBuyAmount,
-        uint256 minimumBiddingAmountPerOrder,
-        uint256 minFundingThreshold,
-        bool isAtomicClosureAllowed
-    ) public{
-        // withdraws sellAmount + fees
+        uint256 _minimumBiddingAmountPerOrder,
+        uint256 _minFundingThreshold,
+        bool _isAtomicClosureAllowed
+    ) public {
+        // withdraws sellAmount
         _auctioningToken.safeTransferFrom(
             msg.sender,
             address(this),
-            _auctionedSellAmount.mul(FEE_DENOMINATOR.add(feeNumerator)).div(
-                FEE_DENOMINATOR
-            ) //[0]
+            _auctionedSellAmount //[0]
         );
         require(_auctionedSellAmount > 0, "cannot auction zero tokens");
         require(_minBuyAmount > 0, "tokens cannot be auctioned for free");
         require(
-            minimumBiddingAmountPerOrder > 0,
+            _minimumBiddingAmountPerOrder > 0,
             "minimumBiddingAmountPerOrder is not allowed to be zero"
         );
         require(
-            orderCancellationEndDate <= auctionEndDate,
+            _orderCancellationEndDate <= auctionEndDate,
             "time periods are not configured correctly"
         );
         require(
-            auctionEndDate > block.timestamp,
+            _auctionEndDate > block.timestamp,
             "auction end date must be in the future"
         );
         sellOrders.initializeEmptyList();
@@ -158,33 +149,32 @@ contract FairSale {
 
         auctioningToken = _auctioningToken;
         biddingToken = _biddingToken;
-        orderCancellationEndDate = orderCancellationEndDate;
-        auctionEndDate = auctionEndDate;
+        orderCancellationEndDate = _orderCancellationEndDate;
+        auctionEndDate = _auctionEndDate;
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
-                userId,
-                _minBuyAmount,
-                _auctionedSellAmount
-            );
-        minimumBiddingAmountPerOrder = minimumBiddingAmountPerOrder;
+            userId,
+            _minBuyAmount,
+            _auctionedSellAmount
+        );
+        minimumBiddingAmountPerOrder = _minimumBiddingAmountPerOrder;
         interimSumBidAmount = 0;
         interimOrder = IterableOrderedOrderSet.QUEUE_START;
         clearingPriceOrder = bytes32(0);
         volumeClearingPriceOrder = 0;
         minFundingThresholdNotReached = false;
-        isAtomicClosureAllowed = isAtomicClosureAllowed;
-        feeNumerator = feeNumerator;
-        minFundingThreshold = minFundingThreshold;
+        isAtomicClosureAllowed = _isAtomicClosureAllowed;
+        minFundingThreshold = _minFundingThreshold;
 
         emit AuctionInitialized(
             _auctioningToken,
             _biddingToken,
-            orderCancellationEndDate,
-            auctionEndDate,
+            _orderCancellationEndDate,
+            _auctionEndDate,
             userId,
             _auctionedSellAmount,
             _minBuyAmount,
-            minimumBiddingAmountPerOrder,
-            minFundingThreshold
+            _minimumBiddingAmountPerOrder,
+            _minFundingThreshold
         );
     }
 
@@ -239,8 +229,6 @@ contract FairSale {
         }
         uint256 sumOfSellAmounts = 0;
         userId = getUserId(orderSubmitter);
-        uint256 minimumBiddingAmountPerOrder =
-            minimumBiddingAmountPerOrder;
         for (uint256 i = 0; i < _minBuyAmounts.length; i++) {
             require(
                 _minBuyAmounts[i] > 0,
@@ -263,11 +251,7 @@ contract FairSale {
                 )
             ) {
                 sumOfSellAmounts = sumOfSellAmounts.add(_sellAmounts[i]);
-                emit NewSellOrder(
-                    userId,
-                    _minBuyAmounts[i],
-                    _sellAmounts[i]
-                );
+                emit NewSellOrder(userId, _minBuyAmounts[i], _sellAmounts[i]);
             }
         }
         biddingToken.safeTransferFrom(
@@ -286,8 +270,7 @@ contract FairSale {
         for (uint256 i = 0; i < _sellOrders.length; i++) {
             // Note: we keep the back pointer of the deleted element so that
             // it can be used as a reference point to insert a new node.
-            bool success =
-                sellOrders.removeKeepHistory(_sellOrders[i]);
+            bool success = sellOrders.removeKeepHistory(_sellOrders[i]);
             if (success) {
                 (
                     uint64 userIdOfIter,
@@ -306,17 +289,14 @@ contract FairSale {
                 );
             }
         }
-        biddingToken.safeTransfer(
-            msg.sender,
-            claimableAmount
-        ); //[2]
+        biddingToken.safeTransfer(msg.sender, claimableAmount); //[2]
     }
 
-    function precalculateSellAmountSum(
-        uint256 iterationSteps
-    ) public atStageSolutionSubmission {
-        (, , uint96 auctioneerSellAmount) =
-            initialAuctionOrder.decodeOrder();
+    function precalculateSellAmountSum(uint256 iterationSteps)
+        public
+        atStageSolutionSubmission
+    {
+        (, , uint96 auctioneerSellAmount) = initialAuctionOrder.decodeOrder();
         uint256 sumBidAmount = interimSumBidAmount;
         bytes32 iterOrder = interimOrder;
 
@@ -342,15 +322,14 @@ contract FairSale {
             "too many orders summed up"
         );
 
-       interimSumBidAmount = sumBidAmount;
-       interimOrder = iterOrder;
+        interimSumBidAmount = sumBidAmount;
+        interimOrder = iterOrder;
     }
 
     function settleAuctionAtomically(
         uint96[] memory _minBuyAmount,
         uint96[] memory _sellAmount,
-        bytes32[] memory _prevSellOrder,
-        bytes calldata allowListCallData
+        bytes32[] memory _prevSellOrder
     ) public atStageSolutionSubmission {
         require(
             isAtomicClosureAllowed,
@@ -430,8 +409,7 @@ contract FairSale {
                 // Auction fully filled via partial match of currentOrder
                 uint256 sellAmountClearingOrder =
                     sellAmountOfIter.sub(uncoveredBids);
-                volumeClearingPriceOrder = sellAmountClearingOrder
-                    .toUint96();
+                volumeClearingPriceOrder = sellAmountClearingOrder.toUint96();
                 currentBidSum = currentBidSum.sub(uncoveredBids);
                 clearingOrder = currentOrder;
             } else {
@@ -476,11 +454,6 @@ contract FairSale {
         if (minFundingThreshold > currentBidSum) {
             minFundingThresholdNotReached = true;
         }
-        processFeesAndAuctioneerFunds(
-            fillVolumeOfAuctioneerOrder,
-            auctioneerId,
-            fullAuctionedAmount
-        );
         emit AuctionCleared(
             fillVolumeOfAuctioneerOrder,
             uint96(currentBidSum),
@@ -493,9 +466,7 @@ contract FairSale {
         minimumBiddingAmountPerOrder = uint256(0);
     }
 
-    function claimFromParticipantOrder(
-        bytes32[] memory orders
-    )
+    function claimFromParticipantOrder(bytes32[] memory orders)
         public
         atStageFinished
         returns (
@@ -511,12 +482,10 @@ contract FairSale {
                 "order is no longer claimable"
             );
         }
-        
+
         (, uint96 priceNumerator, uint96 priceDenominator) =
             clearingPriceOrder.decodeOrder();
         (uint64 userId, , ) = orders[0].decodeOrder();
-        bool minFundingThresholdNotReached =
-            minFundingThresholdNotReached;
         for (uint256 i = 0; i < orders.length; i++) {
             (uint64 userIdOrder, uint96 buyAmount, uint96 sellAmount) =
                 orders[i].decodeOrder();
@@ -532,9 +501,9 @@ contract FairSale {
                 if (orders[i] == clearingPriceOrder) {
                     //[25]
                     sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
-                        volumeClearingPriceOrder
-                            .mul(priceNumerator)
-                            .div(priceDenominator)
+                        volumeClearingPriceOrder.mul(priceNumerator).div(
+                            priceDenominator
+                        )
                     );
                     sumBiddingTokenAmount = sumBiddingTokenAmount.add(
                         sellAmount.sub(volumeClearingPriceOrder)
@@ -555,57 +524,7 @@ contract FairSale {
             }
             emit ClaimedFromOrder(userId, buyAmount, sellAmount);
         }
-        sendOutTokens(
-            sumAuctioningTokenAmount,
-            sumBiddingTokenAmount,
-            userId
-        ); //[3]
-    }
-
-    function processFeesAndAuctioneerFunds(
-        uint256 fillVolumeOfAuctioneerOrder,
-        uint64 auctioneerId,
-        uint96 fullAuctionedAmount
-    ) internal {
-        uint256 feeAmount =
-            fullAuctionedAmount.mul(feeNumerator).div(
-                FEE_DENOMINATOR
-            ); //[20]
-        if (minFundingThresholdNotReached) {
-            sendOutTokens(
-                fullAuctionedAmount.add(feeAmount),
-                0,
-                auctioneerId
-            ); //[4]
-        } else {
-            //[11]
-            (, uint96 priceNumerator, uint96 priceDenominator) =
-                clearingPriceOrder.decodeOrder();
-            uint256 unsettledAuctionTokens =
-                fullAuctionedAmount.sub(fillVolumeOfAuctioneerOrder);
-            uint256 auctioningTokenAmount =
-                unsettledAuctionTokens.add(
-                    feeAmount.mul(unsettledAuctionTokens).div(
-                        fullAuctionedAmount
-                    )
-                );
-            uint256 biddingTokenAmount =
-                fillVolumeOfAuctioneerOrder.mul(priceDenominator).div(
-                    priceNumerator
-                );
-            sendOutTokens(
-                auctioningTokenAmount,
-                biddingTokenAmount,
-                auctioneerId
-            ); //[5]
-            sendOutTokens(
-                feeAmount.mul(fillVolumeOfAuctioneerOrder).div(
-                    fullAuctionedAmount
-                ),
-                0,
-                feeReceiverUserId
-            ); //[7]
-        }
+        sendOutTokens(sumAuctioningTokenAmount, sumBiddingTokenAmount, userId); //[3]
     }
 
     function init(bytes calldata _data) public {
@@ -655,16 +574,10 @@ contract FairSale {
     ) internal {
         address userAddress = registeredUsers.getAddressAt(userId);
         if (auctioningTokenAmount > 0) {
-            auctioningToken.safeTransfer(
-                userAddress,
-                auctioningTokenAmount
-            );
+            auctioningToken.safeTransfer(userAddress, auctioningTokenAmount);
         }
         if (biddingTokenAmount > 0) {
-            biddingToken.safeTransfer(
-                userAddress,
-                biddingTokenAmount
-            );
+            biddingToken.safeTransfer(userAddress, biddingTokenAmount);
         }
     }
 
@@ -687,22 +600,14 @@ contract FairSale {
         }
     }
 
-    function getSecondsRemainingInBatch()
-        public
-        view
-        returns (uint256)
-    {
+    function getSecondsRemainingInBatch() public view returns (uint256) {
         if (auctionEndDate < block.timestamp) {
             return 0;
         }
         return auctionEndDate.sub(block.timestamp);
     }
 
-    function containsOrder(bytes32 order)
-        public
-        view
-        returns (bool)
-    {
+    function containsOrder(bytes32 order) public view returns (bool) {
         return sellOrders.contains(order);
     }
 }
