@@ -68,25 +68,25 @@ contract FairSale {
     );
     event NewUser(uint64 indexed userId, address indexed userAddress);
     event AuctionInitialized(
-        IERC20 indexed _auctioningToken,
-        IERC20 indexed _biddingToken,
+        IERC20 indexed tokenOut,
+        IERC20 indexed tokenIn,
         uint256 orderCancellationEndDate,
         uint256 auctionEndDate,
         uint64 userId,
-        uint96 _auctionedSellAmount,
-        uint96 _minBuyAmount,
+        uint96 auctionedSellAmount,
+        uint96 minBuyAmount,
         uint256 minimumBiddingAmountPerOrder,
         uint256 minFundingThreshold
     );
     event AuctionCleared(
-        uint96 soldAuctioningTokens,
-        uint96 soldBiddingTokens,
+        uint96 soldTokenOuts,
+        uint96 soldTokenIns,
         bytes32 clearingPriceOrder
     );
     event UserRegistration(address indexed user, uint64 userId);
 
-    IERC20 public auctioningToken;
-    IERC20 public biddingToken;
+    IERC20 public tokenOut;
+    IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
     uint256 public auctionEndDate;
     bytes32 public initialAuctionOrder;
@@ -107,15 +107,15 @@ contract FairSale {
 
     // @dev: function to intiate a new auction
     // Warning: In case the auction is expected to raise more than
-    // 2^96 units of the biddingToken, don't start the auction, as
+    // 2^96 units of the tokenIn, don't start the auction, as
     // it will not be settlable. This corresponds to about 79
     // billion DAI.
     //
-    // Prices between biddingToken and auctioningToken are expressed by a
+    // Prices between tokenIn and tokenOut are expressed by a
     // fraction whose components are stored as uint96.
     function initAuction(
-        IERC20 _biddingToken,
-        IERC20 _auctioningToken,
+        IERC20 _tokenIn,
+        IERC20 _tokenOut,
         uint256 _orderCancellationEndDate,
         uint256 _auctionEndDate,
         uint96 _auctionedSellAmount,
@@ -125,7 +125,7 @@ contract FairSale {
         bool _isAtomicClosureAllowed
     ) public {
         // withdraws sellAmount
-        _auctioningToken.safeTransferFrom(
+        _tokenOut.safeTransferFrom(
             msg.sender,
             address(this),
             _auctionedSellAmount //[0]
@@ -147,8 +147,8 @@ contract FairSale {
         sellOrders.initializeEmptyList();
         uint64 userId = getUserId(msg.sender);
 
-        auctioningToken = _auctioningToken;
-        biddingToken = _biddingToken;
+        tokenOut = _tokenOut;
+        tokenIn = _tokenIn;
         orderCancellationEndDate = _orderCancellationEndDate;
         auctionEndDate = _auctionEndDate;
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
@@ -166,8 +166,8 @@ contract FairSale {
         minFundingThreshold = _minFundingThreshold;
 
         emit AuctionInitialized(
-            _auctioningToken,
-            _biddingToken,
+            _tokenOut,
+            _tokenIn,
             _orderCancellationEndDate,
             _auctionEndDate,
             userId,
@@ -254,11 +254,7 @@ contract FairSale {
                 emit NewSellOrder(userId, _minBuyAmounts[i], _sellAmounts[i]);
             }
         }
-        biddingToken.safeTransferFrom(
-            msg.sender,
-            address(this),
-            sumOfSellAmounts
-        ); //[1]
+        tokenIn.safeTransferFrom(msg.sender, address(this), sumOfSellAmounts); //[1]
     }
 
     function cancelSellOrders(bytes32[] memory _sellOrders)
@@ -289,7 +285,7 @@ contract FairSale {
                 );
             }
         }
-        biddingToken.safeTransfer(msg.sender, claimableAmount); //[2]
+        tokenIn.safeTransfer(msg.sender, claimableAmount); //[2]
     }
 
     function precalculateSellAmountSum(uint256 iterationSteps)
@@ -469,10 +465,7 @@ contract FairSale {
     function claimFromParticipantOrder(bytes32[] memory orders)
         public
         atStageFinished
-        returns (
-            uint256 sumAuctioningTokenAmount,
-            uint256 sumBiddingTokenAmount
-        )
+        returns (uint256 sumTokenOutAmount, uint256 sumTokenInAmount)
     {
         for (uint256 i = 0; i < orders.length; i++) {
             // Note: we don't need to keep any information about the node since
@@ -495,42 +488,40 @@ contract FairSale {
             );
             if (minFundingThresholdNotReached) {
                 //[10]
-                sumBiddingTokenAmount = sumBiddingTokenAmount.add(sellAmount);
+                sumTokenInAmount = sumTokenInAmount.add(sellAmount);
             } else {
                 //[23]
                 if (orders[i] == clearingPriceOrder) {
                     //[25]
-                    sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
+                    sumTokenOutAmount = sumTokenOutAmount.add(
                         volumeClearingPriceOrder.mul(priceNumerator).div(
                             priceDenominator
                         )
                     );
-                    sumBiddingTokenAmount = sumBiddingTokenAmount.add(
+                    sumTokenInAmount = sumTokenInAmount.add(
                         sellAmount.sub(volumeClearingPriceOrder)
                     );
                 } else {
                     if (orders[i].smallerThan(clearingPriceOrder)) {
                         //[17]
-                        sumAuctioningTokenAmount = sumAuctioningTokenAmount.add(
+                        sumTokenOutAmount = sumTokenOutAmount.add(
                             sellAmount.mul(priceNumerator).div(priceDenominator)
                         );
                     } else {
                         //[24]
-                        sumBiddingTokenAmount = sumBiddingTokenAmount.add(
-                            sellAmount
-                        );
+                        sumTokenInAmount = sumTokenInAmount.add(sellAmount);
                     }
                 }
             }
             emit ClaimedFromOrder(userId, buyAmount, sellAmount);
         }
-        sendOutTokens(sumAuctioningTokenAmount, sumBiddingTokenAmount, userId); //[3]
+        sendOutTokens(sumTokenOutAmount, sumTokenInAmount, userId); //[3]
     }
 
     function init(bytes calldata _data) public {
         (
-            IERC20 _biddingToken,
-            IERC20 _auctioningToken,
+            IERC20 _tokenIn,
+            IERC20 _tokenOut,
             uint256 _orderCancelationPeriodDuration,
             uint256 _duration,
             uint96 _totalTokenOutAmount,
@@ -555,8 +546,8 @@ contract FairSale {
             );
 
         initAuction(
-            _biddingToken,
-            _auctioningToken,
+            _tokenIn,
+            _tokenOut,
             _orderCancelationPeriodDuration,
             _duration,
             _totalTokenOutAmount,
@@ -568,16 +559,16 @@ contract FairSale {
     }
 
     function sendOutTokens(
-        uint256 auctioningTokenAmount,
-        uint256 biddingTokenAmount,
+        uint256 tokenOutAmount,
+        uint256 tokenInAmount,
         uint64 userId
     ) internal {
         address userAddress = registeredUsers.getAddressAt(userId);
-        if (auctioningTokenAmount > 0) {
-            auctioningToken.safeTransfer(userAddress, auctioningTokenAmount);
+        if (tokenOutAmount > 0) {
+            tokenOut.safeTransfer(userAddress, tokenOutAmount);
         }
-        if (biddingTokenAmount > 0) {
-            biddingToken.safeTransfer(userAddress, biddingTokenAmount);
+        if (tokenInAmount > 0) {
+            tokenIn.safeTransfer(userAddress, tokenInAmount);
         }
     }
 
