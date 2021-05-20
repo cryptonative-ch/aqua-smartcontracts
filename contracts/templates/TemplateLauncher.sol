@@ -26,7 +26,7 @@ contract TemplateLauncher is CloneFactory {
     modifier isTemplateManager {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
-            "MesaFactory: FORBIDDEN"
+            "TemplateLauncher: FORBIDDEN"
         );
         _;
     }
@@ -35,7 +35,7 @@ contract TemplateLauncher is CloneFactory {
         require(
             !restrictedTemplates ||
                 msg.sender == IMesaFactory(factory).templateManager(),
-            "MesaFactory: FORBIDDEN"
+            "TemplateLauncher: FORBIDDEN"
         );
         _;
     }
@@ -104,10 +104,10 @@ contract TemplateLauncher is CloneFactory {
     /// @param _templateId template to be removed
     function removeTemplate(uint256 _templateId) external isTemplateManager {
         require(template[_templateId] != address(0));
+        address templateAddress = template[_templateId];
         template[_templateId] = address(0);
-        address template = template[_templateId];
-        delete templateToId[template];
-        emit TemplateRemoved(template, _templateId);
+        delete templateToId[templateAddress];
+        emit TemplateRemoved(templateAddress, _templateId);
     }
 
     /// @dev allows the templateManager to verify a template

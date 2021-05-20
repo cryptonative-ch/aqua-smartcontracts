@@ -10,9 +10,7 @@ describe("MesaFactory", async () => {
     beforeEach(async () => {
         const MesaFactory = await ethers.getContractFactory("MesaFactory");
 
-        mesaFactory = await MesaFactory.deploy();
-        await mesaFactory.initialize(
-            owner.address,
+        mesaFactory = await MesaFactory.deploy(
             owner.address,
             owner.address,
             owner.address,
@@ -29,7 +27,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setFeeTo(user_2.address))
-                .to.emit(mesaFactory, "SetFeeTo")
+                .to.emit(mesaFactory, "FeeToUpdated")
                 .withArgs(user_2.address);
         });
 
@@ -39,7 +37,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setFeeNumerator(10))
-                .to.emit(mesaFactory, "SetFeeNumerator")
+                .to.emit(mesaFactory, "FeeNumeratorUpdated")
                 .withArgs(10);
         });
 
@@ -49,7 +47,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setSaleFee(10))
-                .to.emit(mesaFactory, "SetSaleFee")
+                .to.emit(mesaFactory, "SaleFeeUpdated")
                 .withArgs(10);
         });
 
@@ -59,7 +57,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setTemplateFee(10))
-                .to.emit(mesaFactory, "SetTemplateFee")
+                .to.emit(mesaFactory, "TemplateFeeUpdated")
                 .withArgs(10);
         });
 
@@ -69,7 +67,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setFeeManager(user_2.address))
-                .to.emit(mesaFactory, "SetFeeManager")
+                .to.emit(mesaFactory, "FeeManagerUpdated")
                 .withArgs(user_2.address);
         });
 
@@ -79,7 +77,7 @@ describe("MesaFactory", async () => {
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
             await expect(mesaFactory.setTemplateManager(user_2.address))
-                .to.emit(mesaFactory, "SetTemplateManager")
+                .to.emit(mesaFactory, "TemplateManagerUpdated")
                 .withArgs(user_2.address);
         });
 
@@ -88,9 +86,8 @@ describe("MesaFactory", async () => {
                 mesaFactory.connect(user_2).setTemplateLauncher(user_2.address)
             ).to.be.revertedWith("MesaFactory: FORBIDDEN");
 
-            expect(await mesaFactory.numberOfSales()).to.be.equal(0);
             await expect(mesaFactory.setTemplateLauncher(user_2.address))
-                .to.emit(mesaFactory, "SetTemplateLauncher")
+                .to.emit(mesaFactory, "TemplateLauncherUpdated")
                 .withArgs(user_2.address);
         });
     });

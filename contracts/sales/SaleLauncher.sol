@@ -34,7 +34,7 @@ contract SaleLauncher is CloneFactory {
     modifier isTemplateManager {
         require(
             msg.sender == IMesaFactory(factory).templateManager(),
-            "MesaFactory: FORBIDDEN"
+            "SaleLauncher: FORBIDDEN"
         );
         _;
     }

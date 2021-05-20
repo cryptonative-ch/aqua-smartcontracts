@@ -79,17 +79,13 @@ beforeEach(async () => {
     defaultEndDate = defaultStartDate + 86400; // 24 hours
 
     const MesaFactory = await ethers.getContractFactory("MesaFactory");
-    mesaFactory = await MesaFactory.deploy();
-
-    await mesaFactory.initialize(
-        templateManager.address,
-        templateManager.address,
-        templateManager.address,
-        templateManager.address,
-        0,
-        0,
-        0
-    );
+    mesaFactory = await MesaFactory.deploy(
+      templateManager.address,
+      templateManager.address,
+      templateManager.address,
+      0,
+      0,
+      0);
 
     const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
     saleLauncher = await SaleLauncher.deploy(mesaFactory.address);

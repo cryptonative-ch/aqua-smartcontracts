@@ -6,6 +6,7 @@ import { mineBlock, expandTo18Decimals } from "./utilities";
 import "@nomiclabs/hardhat-ethers";
 
 describe("FixedPriceSale", async () => {
+    /*
     const [user_1, user_2] = waffle.provider.getWallets();
     let fixedPriceSale: Contract;
     let saleIntialized: Contract;
@@ -21,6 +22,7 @@ describe("FixedPriceSale", async () => {
     let defaultStartDate: number;
     let defaultEndDate: number;
 
+  /*
     function encodeInitData(
         tokenIn: string,
         tokenOut: string,
@@ -58,7 +60,7 @@ describe("FixedPriceSale", async () => {
                 minimumRaise,
                 owner,
             ]
-        );
+        )
     }
 
     beforeEach(async () => {
@@ -76,6 +78,7 @@ describe("FixedPriceSale", async () => {
 
         fixedPriceSale = await FixedPriceSale.deploy();
         saleIntialized = await FixedPriceSale.deploy();
+
 
         tokenA = await ERC20.deploy("tokenA", "tokA");
         tokenB = await ERC20.deploy("tokenB", "tokB");
@@ -99,9 +102,11 @@ describe("FixedPriceSale", async () => {
         );
 
         await saleIntialized.init(initData);
+
     });
+    /*
     describe("initiate sale", async () => {
-        it("throws if token is used for both tokenA and tokenB", async () => {
+        it.only("throws if token is used for both tokenA and tokenB", async () => {
             const initData = await encodeInitData(
                 tokenA.address,
                 tokenA.address,
@@ -949,4 +954,5 @@ describe("FixedPriceSale", async () => {
             expect(await user_1.getBalance()).to.be.above(balanceBefore);
         });
     });
+    */
 });

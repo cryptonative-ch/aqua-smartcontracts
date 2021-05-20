@@ -24,7 +24,7 @@ describe("fixedPriceSaleE2E", async () => {
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitData(
+    function encodeInitData( 
         tokenIn: string,
         tokenOut: string,
         tokenPrice: BigNumber,
@@ -118,7 +118,7 @@ describe("fixedPriceSaleE2E", async () => {
         );
         await saleIntialized.init(initData);
     });
-    describe("allow distributeAllTokens ", async () => {
+    describe.skip("allow distributeAllTokens ", async () => {
         it("allows distributeAllTokens with 128 accounts", async () => {
             const initData = await encodeInitData(
                 tokenIn.address,

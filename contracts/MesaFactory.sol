@@ -8,7 +8,6 @@ contract MesaFactory {
         address feeManager,
         address feeTo,
         address templateManager,
-        address templateLauncher,
         uint256 templateFee,
         uint256 feeNumerator,
         uint256 saleFee
@@ -33,7 +32,7 @@ contract MesaFactory {
 
     address[] public allTemplates;
     uint256 public templateId;
-    bool initialized = false;
+    bool public initialized = false;
 
     modifier isTemplateManager {
         require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
@@ -49,7 +48,6 @@ contract MesaFactory {
     /// @param _feeManager address that is allowed to update fees
     /// @param _feeTo address that receives fees
     /// @param _templateManager address that is allowed to manage templates
-    /// @param _templateLauncher address of the template launcher used to launch projects
     /// @param _templateFee fixed amount of native currency (ETH) to be paid for adding a template
     /// @param _feeNumerator fee that is token on depositing tokens
     /// @param _saleFee fixed amount of native currency (ETH) to be paid for launch a project
@@ -57,7 +55,6 @@ contract MesaFactory {
         address _feeManager,
         address _feeTo,
         address _templateManager,
-        address _templateLauncher,
         uint256 _templateFee,
         uint256 _feeNumerator,
         uint256 _saleFee
@@ -66,7 +63,6 @@ contract MesaFactory {
         feeTo = _feeTo;
         feeNumerator = _feeNumerator;
         templateManager = _templateManager;
-        templateLauncher = _templateLauncher;
         templateFee = _templateFee;
         saleFee = _saleFee;
         initialized = true;
@@ -75,7 +71,6 @@ contract MesaFactory {
             _feeManager,
             _feeTo,
             _templateManager,
-            _templateLauncher,
             _templateFee,
             _feeNumerator,
             _saleFee
