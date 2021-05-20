@@ -102,8 +102,8 @@ beforeEach(async () => {
 
     const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
     tokenA = await ERC20.deploy("tokenA", "tokA");
-    await tokenA.mint(templateManager.address, defaultTokensForSale);
     tokenB = await ERC20.deploy("tokenB", "tokB");
+    await tokenB.mint(templateManager.address, expandTo18Decimals(3000));
 });
 describe("FixedPriceSaleTemplate", async () => {
     it("can only initialize once", async () => {
@@ -177,7 +177,7 @@ describe("FixedPriceSaleTemplate", async () => {
             fixedPriceSaleTemplate.connect(user_2).createSale()
         ).to.be.revertedWith("FixedPriceSaleTemplate: FORBIDDEN");
 
-        await tokenA.approve(saleLauncher.address, defaultTokensForSale);
+        await tokenB.approve(saleLauncher.address, defaultTokensForSale);
         await fixedPriceSaleTemplate.createSale({
             value: 500,
         });

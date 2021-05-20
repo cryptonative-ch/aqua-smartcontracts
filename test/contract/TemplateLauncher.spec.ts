@@ -328,7 +328,7 @@ describe("TemplateLauncher", async () => {
             ).to.be.revertedWith("TemplateLauncher: SALE_FEE_NOT_PROVIDED");
         });
 
-        it.skip("allows to launch a template through factory", async () => {
+        it("allows to launch a template through factory", async () => {
             await mesaFactory.setSaleFee(500);
             await templateLauncher.addTemplate(fairSaleTemplateDefault.address);
 
@@ -345,8 +345,8 @@ describe("TemplateLauncher", async () => {
                 templateManager.address
             );
 
-            await tokenA.mint(templateManager.address, expandTo18Decimals(50));
-            await tokenA.approve(saleLauncher.address, expandTo18Decimals(50));
+            await tokenB.mint(templateManager.address, expandTo18Decimals(50));
+            await tokenB.approve(saleLauncher.address, expandTo18Decimals(50));
 
             const launchedTemplate = await mesaFactory.launchTemplate(
                 1,
