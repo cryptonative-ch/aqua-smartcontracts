@@ -80,12 +80,13 @@ beforeEach(async () => {
 
     const MesaFactory = await ethers.getContractFactory("MesaFactory");
     mesaFactory = await MesaFactory.deploy(
-      templateManager.address,
-      templateManager.address,
-      templateManager.address,
-      0,
-      0,
-      0);
+        templateManager.address,
+        templateManager.address,
+        templateManager.address,
+        0,
+        0,
+        0
+    );
 
     const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
     saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
@@ -133,8 +134,7 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultEndDate,
                 defaultAllocationMin,
                 defaultAllocationMax,
-                defaultMinimumRaise,
-                templateManager.address
+                defaultMinimumRaise
             );
 
         await expect(fixedPriceSaleTemplate.init(initData)).to.be.revertedWith(
@@ -170,8 +170,7 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultEndDate,
                 defaultAllocationMin,
                 defaultAllocationMax,
-                defaultMinimumRaise,
-                templateManager.address
+                defaultMinimumRaise
             );
 
         await expect(

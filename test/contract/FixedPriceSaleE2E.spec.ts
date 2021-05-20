@@ -24,7 +24,7 @@ describe("fixedPriceSaleE2E", async () => {
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitData( 
+    function encodeInitData(
         tokenIn: string,
         tokenOut: string,
         tokenPrice: BigNumber,

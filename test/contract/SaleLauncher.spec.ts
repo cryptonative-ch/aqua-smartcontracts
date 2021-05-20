@@ -74,12 +74,14 @@ describe("SaleLauncher", async () => {
 
         const MesaFactory = await ethers.getContractFactory("MesaFactory");
 
-        mesaFactory = await MesaFactory.deploy(templateManager.address,
-          templateManager.address,
-          templateManager.address,
-          0,
-          0,
-          0);
+        mesaFactory = await MesaFactory.deploy(
+            templateManager.address,
+            templateManager.address,
+            templateManager.address,
+            0,
+            0,
+            0
+        );
 
         const TemplateLauncher = await ethers.getContractFactory(
             "TemplateLauncher"

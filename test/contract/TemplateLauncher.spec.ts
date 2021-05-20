@@ -129,7 +129,8 @@ describe("TemplateLauncher", async () => {
             templateManager.address,
             0,
             0,
-            0);
+            0
+        );
 
         const TemplateLauncher = await ethers.getContractFactory(
             "TemplateLauncher"
