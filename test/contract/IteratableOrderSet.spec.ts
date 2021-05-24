@@ -11,49 +11,49 @@ import {
 const QUEUE_END =
     "0xffffffffffffffffffffffffffffffffffffffff000000000000000000000001";
 const BYTES32_ZERO = encodeOrder({
-    ownerId: BigNumber.from(1),
-    orderTokenIn: BigNumber.from(0),
-    orderTokenOut: BigNumber.from(0),
+    userId: BigNumber.from(1),
+    sellAmount: BigNumber.from(0),
+    buyAmount: BigNumber.from(0),
 });
 const BYTES32_ONE = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenIn: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(2),
+    userId: BigNumber.from(2),
+    sellAmount: BigNumber.from(2),
+    buyAmount: BigNumber.from(2),
 });
 const BYTES32_ONE_DIFFERENT = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenIn: BigNumber.from(3),
-    orderTokenOut: BigNumber.from(3),
+    userId: BigNumber.from(2),
+    sellAmount: BigNumber.from(3),
+    buyAmount: BigNumber.from(3),
 });
 const BYTES32_ONE_BEST_USER = encodeOrder({
-    ownerId: BigNumber.from(1),
-    orderTokenIn: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(2),
+    userId: BigNumber.from(1),
+    sellAmount: BigNumber.from(2),
+    buyAmount: BigNumber.from(2),
 });
 const BYTES32_ONE_BEST_AMOUNT = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenIn: BigNumber.from(1),
-    orderTokenOut: BigNumber.from(1),
+    userId: BigNumber.from(2),
+    sellAmount: BigNumber.from(1),
+    buyAmount: BigNumber.from(1),
 });
 const BYTES32_TWO = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(8),
-    orderTokenIn: BigNumber.from(4),
+    userId: BigNumber.from(2),
+    buyAmount: BigNumber.from(8),
+    sellAmount: BigNumber.from(4),
 });
 const BYTES32_THREE = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(6),
-    orderTokenIn: BigNumber.from(2),
+    userId: BigNumber.from(2),
+    buyAmount: BigNumber.from(6),
+    sellAmount: BigNumber.from(2),
 });
 const BYTES32_FOUR = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(8),
-    orderTokenIn: BigNumber.from(2),
+    userId: BigNumber.from(2),
+    buyAmount: BigNumber.from(8),
+    sellAmount: BigNumber.from(2),
 });
 const BYTES32_FIVE = encodeOrder({
-    ownerId: BigNumber.from(2),
-    orderTokenOut: BigNumber.from(10),
-    orderTokenIn: BigNumber.from(2),
+    userId: BigNumber.from(2),
+    buyAmount: BigNumber.from(10),
+    sellAmount: BigNumber.from(2),
 });
 
 async function getSetContent(set: Contract) {
