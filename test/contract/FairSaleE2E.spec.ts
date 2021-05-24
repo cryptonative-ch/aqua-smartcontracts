@@ -25,15 +25,12 @@ describe("FairSale", async () => {
             hre
         );
         const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-        await createAuctionWithDefaults(
-            fairSale,
-            {
-                tokenOut,
-                tokenIn,
-                auctionedSellAmount: ethers.utils.parseEther("1000"),
-                minBuyAmount: ethers.utils.parseEther("1000"),
-            }
-        );
+        await createAuctionWithDefaults(fairSale, {
+            tokenOut,
+            tokenIn,
+            auctionedSellAmount: ethers.utils.parseEther("1000"),
+            minBuyAmount: ethers.utils.parseEther("1000"),
+        });
         for (let i = 2; i < nrTests; i++) {
             const sellOrder = [
                 {

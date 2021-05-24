@@ -137,7 +137,7 @@ contract FairSale {
             "minimumBiddingAmountPerOrder is not allowed to be zero"
         );
         require(
-            _orderCancellationEndDate <= auctionEndDate,
+            _orderCancellationEndDate <= _auctionEndDate,
             "time periods are not configured correctly"
         );
         require(

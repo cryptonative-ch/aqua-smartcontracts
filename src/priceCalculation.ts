@@ -68,13 +68,11 @@ export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
 }
 
 export async function getInitialOrder(fairSale: Contract): Promise<Order> {
-    const auctionDataStruct = await fairSale.initialAuctionOrder();
-    return decodeOrder(auctionDataStruct.initialAuctionOrder);
+    return decodeOrder(await fairSale.initialAuctionOrder());
 }
 
 export async function getInterimOrder(fairSale: Contract): Promise<Order> {
-    const auctionDataStruct = await fairSale.interimOrder();
-    return decodeOrder(auctionDataStruct.interimOrder);
+    return decodeOrder(await fairSale.interimOrder());
 }
 
 export async function getAuctionEndTimeStamp(
@@ -231,9 +229,7 @@ export function findClearingPrice(
     }
 }
 
-export async function getAllSellOrders(
-    fairSale: Contract
-): Promise<Order[]> {
+export async function getAllSellOrders(fairSale: Contract): Promise<Order[]> {
     const filterSellOrders = fairSale.filters.NewSellOrder(null, null, null);
     const logs = await fairSale.queryFilter(filterSellOrders, 0, "latest");
     const events = logs.map((log: any) => fairSale.interface.parseLog(log));
@@ -314,8 +310,7 @@ export async function placeOrders(
             .placeSellOrders(
                 [sellOrder.buyAmount],
                 [sellOrder.sellAmount],
-                [queueStartElement],
-                "0x"
+                [queueStartElement]
             );
     }
 }

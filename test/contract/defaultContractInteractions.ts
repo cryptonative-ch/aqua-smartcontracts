@@ -13,8 +13,8 @@ async function createAuctionInputWithDefaults(
 ): Promise<unknown[]> {
     const now = (await ethers.provider.getBlock("latest")).timestamp;
     return [
-        parameters.tokenOut.address,
         parameters.tokenIn.address,
+        parameters.tokenOut.address,
         parameters.orderCancellationEndDate ?? now + 3600,
         parameters.auctionEndDate ?? now + 3600,
         parameters.auctionedSellAmount ?? ethers.utils.parseEther("1"),

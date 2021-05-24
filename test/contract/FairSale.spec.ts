@@ -15,9 +15,7 @@ import {
     getClearingPriceFromInitialOrder,
 } from "../../src/priceCalculation";
 
-import {
-    createAuctionWithDefaults
-} from "./defaultContractInteractions";
+import { createAuctionWithDefaults } from "./defaultContractInteractions";
 import {
     sendTxAndGetReturnValue,
     closeAuction,
@@ -2121,7 +2119,7 @@ describe("FairSale", async () => {
                 ).to.be.revertedWith("order is no longer claimable");
         });
     });
-    it.only("checks that orders from different users can not be claimed at once", async () => {
+    it("checks that orders from different users can not be claimed at once", async () => {
         const initialAuctionOrder = {
             sellAmount: ethers.utils.parseEther("1"),
             buyAmount: ethers.utils.parseEther("1"),
@@ -2186,14 +2184,15 @@ describe("FairSale", async () => {
         );
 
         await createAuctionWithDefaults(fairSale, {
-            tokenOut,
             tokenIn,
+            tokenOut,
             auctionedSellAmount: initialAuctionOrder.sellAmount,
             minBuyAmount: initialAuctionOrder.buyAmount,
         });
         await placeOrders(fairSale, sellOrders, hre);
 
         await closeAuction(fairSale);
+
         const { clearingOrder: price } = await calculateClearingPrice(fairSale);
         await fairSale.settleAuction();
 
@@ -2244,8 +2243,8 @@ describe("FairSale", async () => {
             );
 
             await createAuctionWithDefaults(fairSale, {
-                tokenOut,
                 tokenIn,
+                tokenOut,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: false,
