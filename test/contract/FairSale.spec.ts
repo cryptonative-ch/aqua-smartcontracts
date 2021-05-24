@@ -16,8 +16,7 @@ import {
 } from "../../src/priceCalculation";
 
 import {
-    createAuctionWithDefaults,
-    createAuctionWithDefaultsAndReturnId,
+    createAuctionWithDefaults
 } from "./defaultContractInteractions";
 import {
     sendTxAndGetReturnValue,
@@ -31,24 +30,24 @@ import {
 // https://jamboard.google.com/d/1DMgMYCQQzsSLKPq_hlK3l32JNBbRdIhsOrLB1oHaEYY/edit?usp=sharing
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-describe("EasyAuction", async () => {
+describe("FairSale", async () => {
     const [user_1, user_2, user_3] = waffle.provider.getWallets();
-    let easyAuction: Contract;
+    let fairSale: Contract;
     beforeEach(async () => {
-        const EasyAuction = await ethers.getContractFactory("FairSale");
+        const FairSale = await ethers.getContractFactory("FairSale");
 
-        easyAuction = await EasyAuction.deploy();
+        fairSale = await FairSale.deploy();
     });
     describe("initiate Auction", async () => {
         it("throws if minimumBiddingAmountPerOrder is zero", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             await expect(
-                createAuctionWithDefaults(easyAuction, {
+                createAuctionWithDefaults(fairSale, {
                     tokenOut,
                     tokenIn,
                     minimumBiddingAmountPerOrder: 0,
@@ -60,13 +59,13 @@ describe("EasyAuction", async () => {
         });
         it("throws if auctioned amount is zero", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             await expect(
-                createAuctionWithDefaults(easyAuction, {
+                createAuctionWithDefaults(fairSale, {
                     tokenOut,
                     tokenIn,
                     auctionedSellAmount: 0,
@@ -75,13 +74,13 @@ describe("EasyAuction", async () => {
         });
         it("throws if auction is a giveaway", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             await expect(
-                createAuctionWithDefaults(easyAuction, {
+                createAuctionWithDefaults(fairSale, {
                     tokenOut,
                     tokenIn,
                     minBuyAmount: 0,
@@ -90,14 +89,14 @@ describe("EasyAuction", async () => {
         });
         it("throws if auction periods do not make sense", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             const now = (await ethers.provider.getBlock("latest")).timestamp;
             await expect(
-                createAuctionWithDefaults(easyAuction, {
+                createAuctionWithDefaults(fairSale, {
                     tokenOut,
                     tokenIn,
                     orderCancellationEndDate: now + 60 * 60 + 1,
@@ -111,13 +110,13 @@ describe("EasyAuction", async () => {
             // locked funds in the contract.
 
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             await expect(
-                createAuctionWithDefaults(easyAuction, {
+                createAuctionWithDefaults(fairSale, {
                     tokenOut,
                     tokenIn,
                     orderCancellationEndDate: 0,
@@ -127,7 +126,7 @@ describe("EasyAuction", async () => {
         });
         it("initiateAuction stores the parameters correctly", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
@@ -140,16 +139,16 @@ describe("EasyAuction", async () => {
                 buyAmount: ethers.utils.parseEther("1"),
                 userId: BigNumber.from(1),
             };
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    orderCancellationEndDate,
-                    auctionEndDate,
-                });
-            const auctionData = await easyAuction.tokenOut();
+
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                orderCancellationEndDate,
+                auctionEndDate,
+            });
+            const auctionData = await fairSale.tokenOut();
             expect(auctionData.tokenOut).to.equal(tokenOut.address);
             expect(auctionData.tokenIn).to.equal(tokenIn.address);
             expect(auctionData.initialAuctionOrder).to.equal(
@@ -168,7 +167,7 @@ describe("EasyAuction", async () => {
             );
             expect(auctionData.volumeClearingPriceOrder).to.be.equal(0);
 
-            expect(await tokenOut.balanceOf(easyAuction.address)).to.equal(
+            expect(await tokenOut.balanceOf(fairSale.address)).to.equal(
                 ethers.utils.parseEther("1")
             );
         });
@@ -178,21 +177,21 @@ describe("EasyAuction", async () => {
         it("creates new userIds", async () => {
             expect(
                 await sendTxAndGetReturnValue(
-                    easyAuction,
+                    fairSale,
                     "getUserId(address)",
                     user_1.address
                 )
             ).to.equal(1);
             expect(
                 await sendTxAndGetReturnValue(
-                    easyAuction,
+                    fairSale,
                     "getUserId(address)",
                     user_2.address
                 )
             ).to.equal(2);
             expect(
                 await sendTxAndGetReturnValue(
-                    easyAuction,
+                    fairSale,
                     "getUserId(address)",
                     user_1.address
                 )
@@ -202,18 +201,17 @@ describe("EasyAuction", async () => {
     describe("placeOrdersOnBehalf", async () => {
         it("places a new order and checks that tokens were transferred", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
             const now = (await ethers.provider.getBlock("latest")).timestamp;
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    orderCancellationEndDate: now + 3600,
-                    auctionEndDate: now + 3600,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                orderCancellationEndDate: now + 3600,
+                auctionEndDate: now + 3600,
+            });
 
             const balanceBeforeOrderPlacement = await tokenIn.balanceOf(
                 user_1.address
@@ -224,7 +222,7 @@ describe("EasyAuction", async () => {
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
 
-            await easyAuction
+            await fairSale
                 .connect(user_1)
                 .placeSellOrdersOnBehalf(
                     [buyAmount],
@@ -234,7 +232,7 @@ describe("EasyAuction", async () => {
                     user_2.address
                 );
 
-            expect(await tokenIn.balanceOf(easyAuction.address)).to.equal(
+            expect(await tokenIn.balanceOf(fairSale.address)).to.equal(
                 sellAmount
             );
             expect(await tokenIn.balanceOf(user_1.address)).to.equal(
@@ -244,14 +242,14 @@ describe("EasyAuction", async () => {
                 balanceBeforeOrderPlacementOfUser2
             );
             const userId = BigNumber.from(
-                await easyAuction.callStatic.getUserId(user_2.address)
+                await fairSale.callStatic.getUserId(user_2.address)
             );
-            await easyAuction
+            await fairSale
                 .connect(user_2)
                 .cancelSellOrders([
                     encodeOrder({ sellAmount, buyAmount, userId }),
                 ]);
-            expect(await tokenIn.balanceOf(easyAuction.address)).to.equal("0");
+            expect(await tokenIn.balanceOf(fairSale.address)).to.equal("0");
             expect(await tokenIn.balanceOf(user_2.address)).to.equal(
                 balanceBeforeOrderPlacementOfUser2.add(sellAmount)
             );
@@ -261,7 +259,7 @@ describe("EasyAuction", async () => {
     describe("placeOrders", async () => {
         it("one can not place orders, if auction is not yet initiated", async () => {
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     0,
                     [ethers.utils.parseEther("1")],
                     [ethers.utils.parseEther("1").add(1)],
@@ -272,18 +270,17 @@ describe("EasyAuction", async () => {
         });
         it("one can not place orders, if auction is over", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
-            await closeAuction(easyAuction);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     0,
                     [ethers.utils.parseEther("1")],
                     [ethers.utils.parseEther("1").add(1)],
@@ -294,17 +291,16 @@ describe("EasyAuction", async () => {
         });
         it("one can not place orders, with a worser or same rate", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1").add(1)],
                     [ethers.utils.parseEther("1")],
                     [queueStartElement],
@@ -312,7 +308,7 @@ describe("EasyAuction", async () => {
                 )
             ).to.be.revertedWith("limit price not better than mimimal offer");
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1")],
                     [ethers.utils.parseEther("1")],
                     [queueStartElement],
@@ -322,17 +318,16 @@ describe("EasyAuction", async () => {
         });
         it("one can not place orders with buyAmount == 0", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [ethers.utils.parseEther("0")],
                     [ethers.utils.parseEther("1")],
                     [queueStartElement],
@@ -342,17 +337,16 @@ describe("EasyAuction", async () => {
         });
         it("does not withdraw funds, if orders are placed twice", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
             await expect(() =>
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1").sub(1)],
                     [ethers.utils.parseEther("1")],
                     [queueStartElement],
@@ -364,7 +358,7 @@ describe("EasyAuction", async () => {
                 [ethers.utils.parseEther("-1")]
             );
             await expect(() =>
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1").sub(1)],
                     [ethers.utils.parseEther("1")],
                     [queueStartElement],
@@ -374,15 +368,14 @@ describe("EasyAuction", async () => {
         });
         it("places a new order and checks that tokens were transferred", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
 
             const balanceBeforeOrderPlacement = await tokenIn.balanceOf(
                 user_1.address
@@ -390,7 +383,7 @@ describe("EasyAuction", async () => {
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
 
-            await easyAuction.placeSellOrders(
+            await fairSale.placeSellOrders(
                 [buyAmount, buyAmount],
                 [sellAmount, sellAmount.add(1)],
                 [queueStartElement, queueStartElement],
@@ -398,7 +391,7 @@ describe("EasyAuction", async () => {
             );
             const transferredtokenInAmount = sellAmount.add(sellAmount.add(1));
 
-            expect(await tokenIn.balanceOf(easyAuction.address)).to.equal(
+            expect(await tokenIn.balanceOf(fairSale.address)).to.equal(
                 transferredtokenInAmount
             );
             expect(await tokenIn.balanceOf(user_1.address)).to.equal(
@@ -413,22 +406,21 @@ describe("EasyAuction", async () => {
             );
             await verifierMocked.mock.isAllowed.returns("0x00000000");
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    allowListManager: verifierMocked.address,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                allowListManager: verifierMocked.address,
+            });
 
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [buyAmount],
                     [sellAmount],
                     [queueStartElement],
@@ -438,22 +430,21 @@ describe("EasyAuction", async () => {
         });
         it("order placement reverts, if allow manager is an EOA", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    allowListManager: user_3.address,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                allowListManager: user_3.address,
+            });
 
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [buyAmount],
                     [sellAmount],
                     [queueStartElement],
@@ -469,51 +460,49 @@ describe("EasyAuction", async () => {
                 verifier.abi
             );
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    allowListManager: verifierMocked.address,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                allowListManager: verifierMocked.address,
+            });
 
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [buyAmount],
                     [sellAmount],
                     [queueStartElement],
                     "0x"
                 )
-            ).to.emit(easyAuction, "NewSellOrder");
+            ).to.emit(fairSale, "NewSellOrder");
         });
         it("an order is only placed once", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
 
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
 
-            await easyAuction.placeSellOrders(
+            await fairSale.placeSellOrders(
                 [buyAmount],
                 [sellAmount],
                 [queueStartElement],
                 "0x"
             );
-            const allPlacedOrders = await getAllSellOrders(easyAuction);
+            const allPlacedOrders = await getAllSellOrders(fairSale);
             expect(allPlacedOrders.length).to.be.equal(1);
         });
         it("throws, if DDOS attack with small order amounts is started", async () => {
@@ -531,23 +520,22 @@ describe("EasyAuction", async () => {
             ];
 
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    minimumBiddingAmountPerOrder: ethers.utils
-                        .parseEther("1")
-                        .div(100),
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                minimumBiddingAmountPerOrder: ethers.utils
+                    .parseEther("1")
+                    .div(100),
+            });
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     sellOrders.map((buyOrder) => buyOrder.buyAmount),
                     sellOrders.map((buyOrder) => buyOrder.sellAmount),
                     Array(sellOrders.length).fill(queueStartElement),
@@ -557,24 +545,23 @@ describe("EasyAuction", async () => {
         });
         it("fails, if transfers are failing", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                });
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+            });
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
             await tokenIn.approve(
-                easyAuction.address,
+                fairSale.address,
                 ethers.utils.parseEther("0")
             );
 
             await expect(
-                easyAuction.placeSellOrders(
+                fairSale.placeSellOrders(
                     [buyAmount, buyAmount],
                     [sellAmount, sellAmount.add(1)],
                     [queueStartElement, queueStartElement],
@@ -609,23 +596,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.precalculateSellAmountSum(3)
+                fairSale.precalculateSellAmountSum(3)
             ).to.be.revertedWith("too many orders summed up");
         });
         it("fails if queue end is reached", async () => {
@@ -642,23 +628,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.precalculateSellAmountSum(auctionId, 2)
+                fairSale.precalculateSellAmountSum(2)
             ).to.be.revertedWith("reached end of order list");
         });
         it("verifies that interimSumBidAmount and iterOrder is set correctly", async () => {
@@ -686,24 +671,23 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await easyAuction.precalculateSellAmountSum(1);
-            const auctionData = await easyAuction.auctionData();
+            await fairSale.precalculateSellAmountSum(1);
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.interimSumBidAmount).to.equal(
                 sellOrders[0].sellAmount
             );
@@ -742,25 +726,24 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await easyAuction.precalculateSellAmountSum(1);
-            await easyAuction.precalculateSellAmountSum(1);
-            const auctionData = await easyAuction.auctionData();
+            await fairSale.precalculateSellAmountSum(1);
+            await fairSale.precalculateSellAmountSum(1);
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.interimSumBidAmount).to.equal(
                 sellOrders[0].sellAmount.add(sellOrders[0].sellAmount)
             );
@@ -786,28 +769,27 @@ describe("EasyAuction", async () => {
             ];
 
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
 
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            await expect(easyAuction.settleAuction())
-                .to.emit(easyAuction, "AuctionCleared")
+            await expect(fairSale.settleAuction())
+                .to.emit(fairSale, "AuctionCleared")
                 .withArgs(
                     sellOrders[0].sellAmount
                         .mul(price.buyAmount)
@@ -817,7 +799,7 @@ describe("EasyAuction", async () => {
                         getClearingPriceFromInitialOrder(initialAuctionOrder)
                     )
                 );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(encodeOrder(price));
         });
         it("checks case 4, it verifies the price in case of clearingOrder == initialAuctionOrder", async () => {
@@ -834,27 +816,26 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            await expect(easyAuction.settleAuction())
-                .to.emit(easyAuction, "AuctionCleared")
+            await expect(fairSale.settleAuction())
+                .to.emit(fairSale, "AuctionCleared")
                 .withArgs(
                     sellOrders[0].sellAmount
                         .mul(price.buyAmount)
@@ -864,9 +845,9 @@ describe("EasyAuction", async () => {
                         getClearingPriceFromInitialOrder(initialAuctionOrder)
                     )
                 );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(encodeOrder(price));
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 4, it verifies the price in case of clearingOrder == initialAuctionOrder with 3 orders", async () => {
             const initialAuctionOrder = {
@@ -892,26 +873,25 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            await expect(easyAuction.settleAuction())
-                .to.emit(easyAuction, "AuctionCleared")
+            await expect(fairSale.settleAuction())
+                .to.emit(fairSale, "AuctionCleared")
                 .withArgs(
                     sellOrders[0].sellAmount
                         .mul(3)
@@ -922,13 +902,13 @@ describe("EasyAuction", async () => {
                         getClearingPriceFromInitialOrder(initialAuctionOrder)
                     )
                 );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(
                     getClearingPriceFromInitialOrder(initialAuctionOrder)
                 )
             );
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 6, it verifies the price in case of clearingOrder == initialOrder, although last iterOrder would also be possible", async () => {
             // This test demonstrates the case 6,
@@ -946,24 +926,23 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await expect(easyAuction.settleAuction())
-                .to.emit(easyAuction, "AuctionCleared")
+            await expect(fairSale.settleAuction())
+                .to.emit(fairSale, "AuctionCleared")
                 .withArgs(
                     initialAuctionOrder.sellAmount,
                     sellOrders[0].sellAmount,
@@ -971,13 +950,13 @@ describe("EasyAuction", async () => {
                         getClearingPriceFromInitialOrder(initialAuctionOrder)
                     )
                 );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(
                     getClearingPriceFromInitialOrder(initialAuctionOrder)
                 )
             );
-            await easyAuction.claimFromParticipantOrder(
+            await fairSale.claimFromParticipantOrder(
                 sellOrders.map((order) => encodeOrder(order))
             );
         });
@@ -1000,25 +979,24 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await easyAuction.settleAuction();
-            await easyAuction.auctionData();
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await fairSale.settleAuction();
+            await fairSale.auctionData();
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 3, it verifies the price in case of clearingOrder != placed order with 3x participation", async () => {
             const initialAuctionOrder = {
@@ -1045,24 +1023,23 @@ describe("EasyAuction", async () => {
             ];
 
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
-            await placeOrders(easyAuction, sellOrders, hre);
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder({
                     sellAmount: ethers.utils.parseEther("3"),
@@ -1071,7 +1048,7 @@ describe("EasyAuction", async () => {
                 })
             );
             expect(auctionData.volumeClearingPriceOrder).to.equal(0);
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 8, it verifies the price in case of no participation of the auction", async () => {
             const initialAuctionOrder = {
@@ -1081,23 +1058,22 @@ describe("EasyAuction", async () => {
             };
 
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            await createAuctionWithDefaults(easyAuction, {
+            await createAuctionWithDefaults(fairSale, {
                 tokenOut,
                 tokenIn,
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
-            const auctionId = BigNumber.from(1);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
 
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(
                     getClearingPriceFromInitialOrder(initialAuctionOrder)
@@ -1126,23 +1102,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder({
                     sellAmount: sellOrders[0].sellAmount,
@@ -1151,7 +1126,7 @@ describe("EasyAuction", async () => {
                 })
             );
             expect(auctionData.volumeClearingPriceOrder).to.equal(0);
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 10, verifies the price in case one sellOrder is eating initialAuctionOrder completely", async () => {
             const initialAuctionOrder = {
@@ -1167,23 +1142,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(sellOrders[0])
             );
@@ -1192,7 +1166,7 @@ describe("EasyAuction", async () => {
                     .mul(sellOrders[0].sellAmount)
                     .div(sellOrders[0].buyAmount)
             );
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks case 5, bidding amount matches min buyAmount of initialOrder perfectly", async () => {
             const initialAuctionOrder = {
@@ -1213,23 +1187,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.eql(
                 encodeOrder(sellOrders[1])
             );
@@ -1237,18 +1210,14 @@ describe("EasyAuction", async () => {
                 sellOrders[1].sellAmount
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_2],
                 [sellOrders[0].sellAmount]
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_3],
@@ -1279,23 +1248,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.eql(
                 encodeOrder(sellOrders[1])
             );
@@ -1303,27 +1271,21 @@ describe("EasyAuction", async () => {
                 sellOrders[1].sellAmount
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_2],
                 [sellOrders[0].sellAmount]
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_3],
                 [sellOrders[1].sellAmount]
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[2]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[2])])
             ).to.changeTokenBalances(
                 tokenIn,
                 [user_3],
@@ -1354,23 +1316,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(sellOrders[0])
             );
@@ -1378,27 +1339,21 @@ describe("EasyAuction", async () => {
                 sellOrders[1].sellAmount
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[0]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[0])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_2],
                 [sellOrders[0].sellAmount]
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[1]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[1])])
             ).to.changeTokenBalances(
                 tokenIn,
                 [user_3],
                 [sellOrders[1].sellAmount]
             );
             await expect(() =>
-                easyAuction.claimFromParticipantOrder([
-                    encodeOrder(sellOrders[2]),
-                ])
+                fairSale.claimFromParticipantOrder([encodeOrder(sellOrders[2])])
             ).to.changeTokenBalances(
                 tokenOut,
                 [user_3],
@@ -1430,28 +1385,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.eql(
                 encodeOrder(sellOrders[1])
             );
             expect(auctionData.volumeClearingPriceOrder).to.equal(0);
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("verifies the price in case of 2 of 3 sellOrders eating initialAuctionOrder completely - with precalculateSellAmountSum step", async () => {
             const initialAuctionOrder = {
@@ -1478,26 +1432,25 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             // this is the additional step
-            await easyAuction.precalculateSellAmountSum(1);
+            await fairSale.precalculateSellAmountSum(1);
 
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.eql(
                 encodeOrder(sellOrders[1])
             );
@@ -1533,38 +1486,37 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             // this is the additional step
-            await easyAuction.precalculateSellAmountSum(1);
+            await fairSale.precalculateSellAmountSum(1);
 
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.interimSumBidAmount).to.equal(
                 sellOrders[0].sellAmount
             );
             expect(auctionData.interimOrder).to.equal(
                 encodeOrder(sellOrders[0])
             );
-            await easyAuction.settleAuction();
-            const auctionData2 = await easyAuction.auctionData();
+            await fairSale.settleAuction();
+            const auctionData2 = await fairSale.auctionData();
             expect(auctionData2.clearingPriceOrder).to.eql(
                 encodeOrder(sellOrders[2])
             );
             expect(auctionData2.volumeClearingPriceOrder).to.equal(0);
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("verifies the price in case of clearing order is decided by userId", async () => {
             const initialAuctionOrder = {
@@ -1591,28 +1543,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.be.equal(
                 encodeOrder(sellOrders[1])
             );
             expect(auctionData.volumeClearingPriceOrder).to.equal(0);
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("simple version of e2e gas test", async () => {
             const initialAuctionOrder = {
@@ -1643,36 +1594,35 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
 
-            await easyAuction.settleAuction();
+            await fairSale.settleAuction();
             expect(price.toString()).to.eql(
                 getClearingPriceFromInitialOrder(initialAuctionOrder).toString()
             );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder(
                     getClearingPriceFromInitialOrder(initialAuctionOrder)
                 )
             );
-            await claimFromAllOrders(easyAuction, sellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
         });
         it("checks whether the minimalFundingThreshold is not met", async () => {
             const initialAuctionOrder = {
@@ -1693,31 +1643,30 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    minFundingThreshold: ethers.utils.parseEther("5"),
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                minFundingThreshold: ethers.utils.parseEther("5"),
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
 
-            await easyAuction.settleAuction();
+            await fairSale.settleAuction();
             expect(price.toString()).to.eql(
                 getClearingPriceFromInitialOrder(initialAuctionOrder).toString()
             );
-            const auctionData = await easyAuction.auctionData(auctionId);
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.minFundingThresholdNotReached).to.equal(true);
         });
     });
@@ -1741,7 +1690,7 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
@@ -1750,21 +1699,21 @@ describe("EasyAuction", async () => {
             );
             const feeReceiver = user_3;
             const feeNumerator = 10;
-            await easyAuction
+            await fairSale
                 .connect(user_1)
                 .setFeeParameters(feeNumerator, feeReceiver.address);
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    minFundingThreshold: ethers.utils.parseEther("5"),
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            const auctionData = await easyAuction.auctionData();
+
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                minFundingThreshold: ethers.utils.parseEther("5"),
+            });
+            await placeOrders(fairSale, sellOrders, hre);
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.minFundingThresholdNotReached).to.equal(true);
             expect(await tokenOut.balanceOf(user_1.address)).to.be.equal(
                 tokenOutBalanceBeforeAuction
@@ -1784,25 +1733,24 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            const callPromise = easyAuction.settleAuction();
+            const callPromise = fairSale.settleAuction();
             // auctioneer reward check:
             await expect(() => callPromise).to.changeTokenBalances(
                 tokenOut,
@@ -1811,11 +1759,7 @@ describe("EasyAuction", async () => {
             );
             await expect(callPromise)
                 .to.emit(tokenIn, "Transfer")
-                .withArgs(
-                    easyAuction.address,
-                    user_1.address,
-                    price.sellAmount
-                );
+                .withArgs(fairSale.address, user_1.address, price.sellAmount);
         });
         it("checks the claimed amounts for a partially matched initialAuctionOrder and buyOrder", async () => {
             const initialAuctionOrder = {
@@ -1831,34 +1775,33 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            const callPromise = easyAuction.settleAuction();
+            await closeAuction(fairSale);
+            const callPromise = fairSale.settleAuction();
             // auctioneer reward check:
             await expect(callPromise)
                 .to.emit(tokenOut, "Transfer")
                 .withArgs(
-                    easyAuction.address,
+                    fairSale.address,
                     user_1.address,
                     initialAuctionOrder.sellAmount.sub(sellOrders[0].sellAmount)
                 );
             await expect(callPromise)
                 .to.emit(tokenIn, "Transfer")
                 .withArgs(
-                    easyAuction.address,
+                    fairSale.address,
                     user_1.address,
                     sellOrders[0].sellAmount
                 );
@@ -1884,25 +1827,24 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    minFundingThreshold: ethers.utils.parseEther("5"),
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                minFundingThreshold: ethers.utils.parseEther("5"),
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
             await expect(() =>
-                easyAuction.claimFromParticipantOrder(
+                fairSale.claimFromParticipantOrder(
                     sellOrders.map((order) => encodeOrder(order))
                 )
             ).to.changeTokenBalances(
@@ -1925,28 +1867,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
-                easyAuction.claimFromParticipantOrder(
+                fairSale.claimFromParticipantOrder(
                     sellOrders.map((order) => encodeOrder(order))
                 )
             ).to.be.revertedWith("Auction not yet finished");
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.claimFromParticipantOrder(
+                fairSale.claimFromParticipantOrder(
                     sellOrders.map((order) => encodeOrder(order))
                 )
             ).to.be.revertedWith("Auction not yet finished");
@@ -1974,28 +1915,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            await easyAuction.settleAuction();
+            await fairSale.settleAuction();
 
             const receivedAmounts = toReceivedFunds(
-                await easyAuction.callStatic.claimFromParticipantOrder([
+                await fairSale.callStatic.claimFromParticipantOrder([
                     encodeOrder(sellOrders[1]),
                 ])
             );
@@ -2055,23 +1995,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
             const receivedAmounts = toReceivedFunds(
-                await easyAuction.callStatic.claimFromParticipantOrder([
+                await fairSale.callStatic.claimFromParticipantOrder([
                     encodeOrder(sellOrders[2]),
                 ])
             );
@@ -2103,28 +2042,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             const { clearingOrder: price } = await calculateClearingPrice(
-                easyAuction
+                fairSale
             );
-            await easyAuction.settleAuction();
+            await fairSale.settleAuction();
 
             const receivedAmounts = toReceivedFunds(
-                await easyAuction.callStatic.claimFromParticipantOrder([
+                await fairSale.callStatic.claimFromParticipantOrder([
                     encodeOrder(sellOrders[0]),
                 ])
             );
@@ -2158,33 +2096,32 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.settleAuction();
-            await easyAuction.claimFromParticipantOrder([
+            await closeAuction(fairSale);
+            await fairSale.settleAuction();
+            await fairSale.claimFromParticipantOrder([
                 encodeOrder(sellOrders[0]),
             ]),
                 await expect(
-                    easyAuction.claimFromParticipantOrder([
+                    fairSale.claimFromParticipantOrder([
                         encodeOrder(sellOrders[0]),
                     ])
                 ).to.be.revertedWith("order is no longer claimable");
         });
     });
-    it("checks that orders from different users can not be claimed at once", async () => {
+    it.only("checks that orders from different users can not be claimed at once", async () => {
         const initialAuctionOrder = {
             sellAmount: ethers.utils.parseEther("1"),
             buyAmount: ethers.utils.parseEther("1"),
@@ -2203,26 +2140,22 @@ describe("EasyAuction", async () => {
             },
         ];
         const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-            easyAuction,
+            fairSale,
             [user_1, user_2],
             hre
         );
 
-        const auctionId: BigNumber = await createAuctionWithDefaultsAndReturnId(
-            easyAuction,
-            {
-                tokenOut,
-                tokenIn,
-                auctionedSellAmount: initialAuctionOrder.sellAmount,
-                minBuyAmount: initialAuctionOrder.buyAmount,
-            }
-        );
-        await placeOrders(easyAuction, sellOrders, hre);
-
-        await closeAuction(easyAuction);
-        await easyAuction.settleAuction();
+        await createAuctionWithDefaults(fairSale, {
+            tokenOut,
+            tokenIn,
+            auctionedSellAmount: initialAuctionOrder.sellAmount,
+            minBuyAmount: initialAuctionOrder.buyAmount,
+        });
+        await placeOrders(fairSale, sellOrders, hre);
+        await closeAuction(fairSale);
+        await fairSale.settleAuction();
         await expect(
-            easyAuction.claimFromParticipantOrder([
+            fairSale.claimFromParticipantOrder([
                 encodeOrder(sellOrders[0]),
                 encodeOrder(sellOrders[1]),
             ])
@@ -2247,30 +2180,25 @@ describe("EasyAuction", async () => {
             },
         ];
         const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-            easyAuction,
+            fairSale,
             [user_1, user_2],
             hre
         );
 
-        const auctionId: BigNumber = await createAuctionWithDefaultsAndReturnId(
-            easyAuction,
-            {
-                tokenOut,
-                tokenIn,
-                auctionedSellAmount: initialAuctionOrder.sellAmount,
-                minBuyAmount: initialAuctionOrder.buyAmount,
-            }
-        );
-        await placeOrders(easyAuction, sellOrders, hre);
+        await createAuctionWithDefaults(fairSale, {
+            tokenOut,
+            tokenIn,
+            auctionedSellAmount: initialAuctionOrder.sellAmount,
+            minBuyAmount: initialAuctionOrder.buyAmount,
+        });
+        await placeOrders(fairSale, sellOrders, hre);
 
-        await closeAuction(easyAuction);
-        const { clearingOrder: price } = await calculateClearingPrice(
-            easyAuction
-        );
-        await easyAuction.settleAuction();
+        await closeAuction(fairSale);
+        const { clearingOrder: price } = await calculateClearingPrice(fairSale);
+        await fairSale.settleAuction();
 
         const receivedAmounts = toReceivedFunds(
-            await easyAuction.callStatic.claimFromParticipantOrder([
+            await fairSale.callStatic.claimFromParticipantOrder([
                 encodeOrder(sellOrders[0]),
                 encodeOrder(sellOrders[1]),
             ])
@@ -2310,24 +2238,23 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: false,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: false,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.settleAuctionAtomically(
+                fairSale.settleAuctionAtomically(
                     [atomicSellOrders[0].sellAmount],
                     [atomicSellOrders[0].buyAmount],
                     [queueStartElement],
@@ -2361,24 +2288,23 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: true,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: true,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.settleAuctionAtomically(
+                fairSale.settleAuctionAtomically(
                     [
                         atomicSellOrders[0].sellAmount,
                         atomicSellOrders[1].sellAmount,
@@ -2413,26 +2339,25 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: true,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: true,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.precalculateSellAmountSum(1);
+            await closeAuction(fairSale);
+            await fairSale.precalculateSellAmountSum(1);
 
             await expect(
-                easyAuction.settleAuctionAtomically(
+                fairSale.settleAuctionAtomically(
                     [atomicSellOrders[0].sellAmount],
                     [atomicSellOrders[0].buyAmount],
                     [queueStartElement],
@@ -2463,32 +2388,31 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: true,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: true,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction.precalculateSellAmountSum(1);
+            await closeAuction(fairSale);
+            await fairSale.precalculateSellAmountSum(1);
 
-            await easyAuction.settleAuctionAtomically(
+            await fairSale.settleAuctionAtomically(
                 [atomicSellOrders[0].buyAmount],
                 [atomicSellOrders[0].sellAmount],
                 [queueStartElement],
                 "0x"
             );
-            await claimFromAllOrders(easyAuction, sellOrders);
-            await claimFromAllOrders(easyAuction, atomicSellOrders);
+            await claimFromAllOrders(fairSale, sellOrders);
+            await claimFromAllOrders(fairSale, atomicSellOrders);
         });
         it("can settle atomically, if it is allowed", async () => {
             const initialAuctionOrder = {
@@ -2511,23 +2435,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: true,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: true,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
-            await easyAuction
+            await closeAuction(fairSale);
+            await fairSale
                 .connect(user_2)
                 .settleAuctionAtomically(
                     [atomicSellOrders[0].sellAmount],
@@ -2535,7 +2458,7 @@ describe("EasyAuction", async () => {
                     [queueStartElement],
                     "0x"
                 );
-            const auctionData = await easyAuction.auctionData();
+            const auctionData = await fairSale.auctionData();
             expect(auctionData.clearingPriceOrder).to.equal(
                 encodeOrder({
                     sellAmount: sellOrders[0].sellAmount.add(
@@ -2567,23 +2490,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    isAtomicClosureAllowed: true,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                isAtomicClosureAllowed: true,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
-                easyAuction
+                fairSale
                     .connect(user_2)
                     .settleAuctionAtomically(
                         [atomicSellOrders[0].sellAmount],
@@ -2596,9 +2518,9 @@ describe("EasyAuction", async () => {
     });
     describe("registerUser", async () => {
         it("registers a user only once", async () => {
-            await easyAuction.registerUser(user_1.address);
+            await fairSale.registerUser(user_1.address);
             await expect(
-                easyAuction.registerUser(user_1.address)
+                fairSale.registerUser(user_1.address)
             ).to.be.revertedWith("User already registered");
         });
     });
@@ -2617,26 +2539,25 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
-                easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])])
+                fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             )
                 .to.emit(tokenIn, "Transfer")
                 .withArgs(
-                    easyAuction.address,
+                    fairSale.address,
                     user_1.address,
                     sellOrders[0].sellAmount
                 );
@@ -2655,32 +2576,32 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
             const now = (await ethers.provider.getBlock("latest")).timestamp;
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                    orderCancellationEndDate: now + 60 * 60,
-                    auctionEndDate: now + 60 * 60 * 60,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+                orderCancellationEndDate: now + 60 * 60,
+                auctionEndDate: now + 60 * 60 * 60,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
             await expect(
-                easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])])
+                fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             ).to.be.revertedWith(
                 "revert no longer in order placement and cancelation phase"
             );
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             await expect(
-                easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])])
+                fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             ).to.be.revertedWith(
                 "revert no longer in order placement and cancelation phase"
             );
@@ -2699,28 +2620,27 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             // removes the order
-            easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])]);
+            fairSale.cancelSellOrders([encodeOrder(sellOrders[0])]);
             // claims 0 sellAmount tokens
             await expect(
-                easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])])
+                fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             )
                 .to.emit(tokenIn, "Transfer")
-                .withArgs(easyAuction.address, user_1.address, 0);
+                .withArgs(fairSale.address, user_1.address, 0);
         });
         it("prevents an order from canceling, if tx is not from owner", async () => {
             const initialAuctionOrder = {
@@ -2736,22 +2656,21 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
-                easyAuction.cancelSellOrders([encodeOrder(sellOrders[0])])
+                fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             ).to.be.revertedWith("Only the user can cancel his orders");
         });
     });
@@ -2771,23 +2690,22 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
 
-            await closeAuction(easyAuction);
+            await closeAuction(fairSale);
             expect(
-                await easyAuction.callStatic.containsOrder(
+                await fairSale.callStatic.containsOrder(
                     encodeOrder(sellOrders[0])
                 )
             ).to.be.equal(true);
@@ -2801,21 +2719,20 @@ describe("EasyAuction", async () => {
                 userId: BigNumber.from(1),
             };
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2],
                 hre
             );
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await closeAuction(easyAuction);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await closeAuction(fairSale);
             expect(
-                await easyAuction.callStatic.getSecondsRemainingInBatch()
+                await fairSale.callStatic.getSecondsRemainingInBatch()
             ).to.be.equal("0");
         });
     });
@@ -2843,40 +2760,36 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
             const feeReceiver = user_3;
             const feeNumerator = 10;
-            await easyAuction
+            await fairSale
                 .connect(user_1)
                 .setFeeParameters(feeNumerator, feeReceiver.address);
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
             // resets the userId, as they are only given during function call.
-            sellOrders = await getAllSellOrders(easyAuction);
+            sellOrders = await getAllSellOrders(fairSale);
 
-            await closeAuction(easyAuction);
-            await expect(() =>
-                easyAuction.settleAuction()
-            ).to.changeTokenBalances(
+            await closeAuction(fairSale);
+            await expect(() => fairSale.settleAuction()).to.changeTokenBalances(
                 tokenOut,
                 [feeReceiver],
                 [initialAuctionOrder.sellAmount.mul(feeNumerator).div("1000")]
             );
 
             // contract still holds sufficient funds to pay the participants fully
-            await easyAuction.callStatic.claimFromParticipantOrder(
-                auctionId,
+            await fairSale.callStatic.claimFromParticipantOrder(
                 sellOrders.map((order) => encodeOrder(order))
             );
         });
@@ -2903,42 +2816,39 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
             const feeReceiver = user_3;
             const feeNumerator = 0;
-            await easyAuction
+            await fairSale
                 .connect(user_1)
                 .setFeeParameters(feeNumerator, feeReceiver.address);
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
             // resets the userId, as they are only given during function call.
-            sellOrders = await getAllSellOrders(easyAuction);
-            await easyAuction
+            sellOrders = await getAllSellOrders(fairSale);
+            await fairSale
                 .connect(user_1)
                 .setFeeParameters(10, feeReceiver.address);
 
-            await closeAuction(easyAuction);
-            await expect(() =>
-                easyAuction.settleAuction()
-            ).to.changeTokenBalances(
+            await closeAuction(fairSale);
+            await expect(() => fairSale.settleAuction()).to.changeTokenBalances(
                 tokenOut,
                 [feeReceiver],
                 [BigNumber.from(0)]
             );
 
             // contract still holds sufficient funds to pay the participants fully
-            await easyAuction.callStatic.claimFromParticipantOrder(
+            await fairSale.callStatic.claimFromParticipantOrder(
                 sellOrders.map((order) => encodeOrder(order))
             );
         });
@@ -2956,32 +2866,29 @@ describe("EasyAuction", async () => {
                 },
             ];
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-                easyAuction,
+                fairSale,
                 [user_1, user_2, user_3],
                 hre
             );
 
             const feeReceiver = user_3;
             const feeNumerator = 10;
-            await easyAuction
+            await fairSale
                 .connect(user_1)
                 .setFeeParameters(feeNumerator, feeReceiver.address);
 
-            const auctionId: BigNumber =
-                await createAuctionWithDefaultsAndReturnId(easyAuction, {
-                    tokenOut,
-                    tokenIn,
-                    auctionedSellAmount: initialAuctionOrder.sellAmount,
-                    minBuyAmount: initialAuctionOrder.buyAmount,
-                });
-            await placeOrders(easyAuction, sellOrders, hre);
+            await createAuctionWithDefaults(fairSale, {
+                tokenOut,
+                tokenIn,
+                auctionedSellAmount: initialAuctionOrder.sellAmount,
+                minBuyAmount: initialAuctionOrder.buyAmount,
+            });
+            await placeOrders(fairSale, sellOrders, hre);
             // resets the userId, as they are only given during function call.
-            sellOrders = await getAllSellOrders(easyAuction);
+            sellOrders = await getAllSellOrders(fairSale);
 
-            await closeAuction(easyAuction);
-            await expect(() =>
-                easyAuction.settleAuction()
-            ).to.changeTokenBalances(
+            await closeAuction(fairSale);
+            await expect(() => fairSale.settleAuction()).to.changeTokenBalances(
                 tokenOut,
                 [user_1, feeReceiver],
                 [
@@ -3004,7 +2911,7 @@ describe("EasyAuction", async () => {
                 ]
             );
             // contract still holds sufficient funds to pay the participants fully
-            await easyAuction.callStatic.claimFromParticipantOrder(
+            await fairSale.callStatic.claimFromParticipantOrder(
                 sellOrders.map((order) => encodeOrder(order))
             );
         });
@@ -3014,7 +2921,7 @@ describe("EasyAuction", async () => {
             const feeReceiver = user_3;
             const feeNumerator = 10;
             await expect(
-                easyAuction
+                fairSale
                     .connect(user_2)
                     .setFeeParameters(feeNumerator, feeReceiver.address)
             ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -3023,7 +2930,7 @@ describe("EasyAuction", async () => {
             const feeReceiver = user_3;
             const feeNumerator = 16;
             await expect(
-                easyAuction
+                fairSale
                     .connect(user_1)
                     .setFeeParameters(feeNumerator, feeReceiver.address)
             ).to.be.revertedWith(

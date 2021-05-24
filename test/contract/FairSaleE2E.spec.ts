@@ -6,27 +6,27 @@ import {
     placeOrders,
 } from "../../src/priceCalculation";
 
-import { createAuctionWithDefaultsAndReturnId } from "./defaultContractInteractions";
+import { createAuctionWithDefaults } from "./defaultContractInteractions";
 import { closeAuction } from "./utilities";
 
-describe("EasyAuction", async () => {
+describe("FairSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
-    let easyAuction: Contract;
+    let fairSale: Contract;
     beforeEach(async () => {
-        const EasyAuction = await ethers.getContractFactory("EasyAuction");
+        const FairSale = await ethers.getContractFactory("FairSale");
 
-        easyAuction = await EasyAuction.deploy();
+        fairSale = await FairSale.deploy();
     });
 
     it("e2e - places a lot of sellOrders, such that the second last order is the clearingOrder and calculates the price to test gas usage of settleAuction", async () => {
         const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
-            easyAuction,
+            fairSale,
             [user_1, user_2],
             hre
         );
         const nrTests = 12; // increase here for better gas estimations, nrTests-2 must be a divisor of 10**18
-        const auctionId: BigNumber = await createAuctionWithDefaultsAndReturnId(
-            easyAuction,
+        await createAuctionWithDefaults(
+            fairSale,
             {
                 tokenOut,
                 tokenIn,
@@ -49,10 +49,10 @@ describe("EasyAuction", async () => {
                     userId: BigNumber.from(1),
                 },
             ];
-            await placeOrders(easyAuction, sellOrder, hre);
+            await placeOrders(fairSale, sellOrder, hre);
         }
-        await closeAuction(easyAuction);
-        const tx = await easyAuction.settleAuction(auctionId);
+        await closeAuction(fairSale);
+        const tx = await fairSale.settleAuction();
         const gasUsed = (await tx.wait()).gasUsed;
 
         console.log("Gas usage for verification", gasUsed.toString());
