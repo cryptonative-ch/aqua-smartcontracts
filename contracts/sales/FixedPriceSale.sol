@@ -40,7 +40,7 @@ contract FixedPriceSale {
 
     event SaleClosed();
 
-    string public constant templateName = "FixedPriceSale";
+    string public constant TEMPLATE_NAME = "FixedPriceSale";
     address public owner;
     address private deployer;
     IERC20 public tokenIn;

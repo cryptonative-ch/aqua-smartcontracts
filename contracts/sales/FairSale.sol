@@ -95,6 +95,7 @@ contract FairSale {
     );
     event UserRegistration(address indexed user, uint64 userId);
 
+    string public constant TEMPLATE_NAME = "FairSale";
     address private deployer;
     IERC20 public tokenOut;
     IERC20 public tokenIn;
@@ -110,7 +111,7 @@ contract FairSale {
     bool public isAtomicClosureAllowed;
     uint256 public minFundingThreshold;
     IterableOrderedOrderSet.Data internal sellOrders;
-    bool initialized;
+    bool public initialized;
 
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
