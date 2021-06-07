@@ -93,11 +93,12 @@ contract TemplateLauncher is CloneFactory {
             "TemplateLauncher: TEMPLATE_DUPLICATE"
         );
 
+        uint256 templateId = templateCounter;
         templateCounter++;
         template[templateCounter] = _template;
         templateToId[_template] = templateCounter;
         emit TemplateAdded(_template, templateCounter);
-        return templateCounter;
+        return templateId;
     }
 
     /// @dev allows the templateManager to unregister a template

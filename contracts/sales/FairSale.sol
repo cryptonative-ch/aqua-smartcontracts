@@ -17,6 +17,16 @@ contract FairSale {
     using IterableOrderedOrderSet for bytes32;
     using IdToAddressBiMap for IdToAddressBiMap.Data;
 
+    modifier notInitialized() {
+        require(!initialized, "already initialized");
+        _;
+    }
+
+    modifier onlyDeployer {
+        require(msg.sender == deployer, "FixedPriceSale: FORBIDDEN");
+        _;
+    }
+
     modifier atStageOrderPlacement() {
         require(
             block.timestamp < auctionEndDate,
@@ -85,6 +95,7 @@ contract FairSale {
     );
     event UserRegistration(address indexed user, uint64 userId);
 
+    address private deployer;
     IERC20 public tokenOut;
     IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
@@ -99,11 +110,14 @@ contract FairSale {
     bool public isAtomicClosureAllowed;
     uint256 public minFundingThreshold;
     IterableOrderedOrderSet.Data internal sellOrders;
+    bool initialized;
 
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
 
-    constructor() public {}
+    constructor() public {
+        deployer = msg.sender;
+    }
 
     // @dev: function to intiate a new auction
     // Warning: In case the auction is expected to raise more than
@@ -123,8 +137,9 @@ contract FairSale {
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
         bool _isAtomicClosureAllowed
-    ) public {
+    ) internal {
         // withdraws sellAmount
+        initialized = true;
         _tokenOut.safeTransferFrom(
             msg.sender,
             address(this),
@@ -310,8 +325,8 @@ contract FairSale {
         // it is checked that not too many iteration steps were taken:
         // require that the sum of SellAmounts times the price of the last order
         // is not more than initially sold amount
-        (, uint96 buyAmountOfIter, uint96 sellAmountOfIter) =
-            iterOrder.decodeOrder();
+        (, uint96 buyAmountOfIter, uint96 sellAmountOfIter) = iterOrder
+        .decodeOrder();
         require(
             sumBidAmount.mul(buyAmountOfIter) <
                 auctioneerSellAmount.mul(sellAmountOfIter),
@@ -393,18 +408,16 @@ contract FairSale {
         ) {
             // All considered/summed orders are sufficient to close the auction fully
             // at price between current and previous orders.
-            uint256 uncoveredBids =
-                currentBidSum.sub(
-                    fullAuctionedAmount.mul(sellAmountOfIter).div(
-                        buyAmountOfIter
-                    )
-                );
+            uint256 uncoveredBids = currentBidSum.sub(
+                fullAuctionedAmount.mul(sellAmountOfIter).div(buyAmountOfIter)
+            );
 
             if (sellAmountOfIter >= uncoveredBids) {
                 //[13]
                 // Auction fully filled via partial match of currentOrder
-                uint256 sellAmountClearingOrder =
-                    sellAmountOfIter.sub(uncoveredBids);
+                uint256 sellAmountClearingOrder = sellAmountOfIter.sub(
+                    uncoveredBids
+                );
                 volumeClearingPriceOrder = sellAmountClearingOrder.toUint96();
                 currentBidSum = currentBidSum.sub(uncoveredBids);
                 clearingOrder = currentOrder;
@@ -440,9 +453,9 @@ contract FairSale {
                     minAuctionedBuyAmount
                 );
                 fillVolumeOfAuctioneerOrder = currentBidSum
-                    .mul(fullAuctionedAmount)
-                    .div(minAuctionedBuyAmount)
-                    .toUint96();
+                .mul(fullAuctionedAmount)
+                .div(minAuctionedBuyAmount)
+                .toUint96();
             }
         }
         clearingPriceOrder = clearingOrder;
@@ -476,12 +489,14 @@ contract FairSale {
             );
         }
 
-        (, uint96 priceNumerator, uint96 priceDenominator) =
-            clearingPriceOrder.decodeOrder();
+        (, uint96 priceNumerator, uint96 priceDenominator) = clearingPriceOrder
+        .decodeOrder();
         (uint64 userId, , ) = orders[0].decodeOrder();
         for (uint256 i = 0; i < orders.length; i++) {
-            (uint64 userIdOrder, uint96 buyAmount, uint96 sellAmount) =
-                orders[i].decodeOrder();
+            (uint64 userIdOrder, uint96 buyAmount, uint96 sellAmount) = orders[
+                i
+            ]
+            .decodeOrder();
             require(
                 userIdOrder == userId,
                 "only allowed to claim for same user"
@@ -518,7 +533,7 @@ contract FairSale {
         sendOutTokens(sumTokenOutAmount, sumTokenInAmount, userId); //[3]
     }
 
-    function init(bytes calldata _data) public {
+    function init(bytes calldata _data) public notInitialized onlyDeployer {
         (
             IERC20 _tokenIn,
             IERC20 _tokenOut,
@@ -529,21 +544,20 @@ contract FairSale {
             uint256 _minimumBiddingAmountPerOrder,
             uint256 _minSellThreshold,
             bool _isAtomicClosureAllowed
-        ) =
-            abi.decode(
-                _data,
-                (
-                    IERC20,
-                    IERC20,
-                    uint256,
-                    uint256,
-                    uint96,
-                    uint96,
-                    uint256,
-                    uint256,
-                    bool
-                )
-            );
+        ) = abi.decode(
+            _data,
+            (
+                IERC20,
+                IERC20,
+                uint256,
+                uint256,
+                uint96,
+                uint96,
+                uint256,
+                uint256,
+                bool
+            )
+        );
 
         initAuction(
             _tokenIn,

@@ -65,10 +65,9 @@ contract SaleLauncher is CloneFactory {
             uint256 feeDenominator = IMesaFactory(factory).feeDenominator();
             uint256 feeNumerator = IMesaFactory(factory).feeNumerator();
 
-            uint256 depositAmount =
-                _tokenSupply.mul(feeDenominator.add(feeNumerator)).div(
-                    feeDenominator
-                );
+            uint256 depositAmount = _tokenSupply
+            .mul(feeDenominator.add(feeNumerator))
+            .div(feeDenominator);
 
             TransferHelper.safeTransferFrom(
                 _token,
@@ -113,11 +112,12 @@ contract SaleLauncher is CloneFactory {
             "SaleLauncher: TEMPLATE_DUPLICATE"
         );
 
+        uint256 templateId = saleTemplateId;
         saleTemplateId++;
         saleTemplates[saleTemplateId] = _template;
         saleTemplateToId[_template] = saleTemplateId;
         emit TemplateAdded(_template, saleTemplateId);
-        return saleTemplateId;
+        return templateId;
     }
 
     function removeTemplate(uint256 _templateId) external isTemplateManager {

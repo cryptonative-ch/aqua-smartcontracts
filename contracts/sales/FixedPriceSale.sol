@@ -12,6 +12,11 @@ contract FixedPriceSale {
     using SafeMath for uint96;
     using SafeMath for uint256;
 
+    modifier notInitialized() {
+        require(!initialized, "already initialized");
+        _;
+    }
+
     event SaleInitialized(
         IERC20 tokenIn,
         IERC20 tokenOut,
@@ -37,6 +42,7 @@ contract FixedPriceSale {
 
     string public constant templateName = "FixedPriceSale";
     address public owner;
+    address private deployer;
     IERC20 public tokenIn;
     IERC20 public tokenOut;
     uint256 public tokenPrice;
@@ -48,6 +54,7 @@ contract FixedPriceSale {
     uint256 public allocationMax;
     uint256 public minimumRaise;
     bool public isClosed;
+    bool initialized;
 
     mapping(address => uint256) public tokensPurchased;
 
@@ -58,7 +65,14 @@ contract FixedPriceSale {
         _;
     }
 
-    constructor() public {}
+    modifier onlyDeployer {
+        require(msg.sender == deployer, "FixedPriceSale: FORBIDDEN");
+        _;
+    }
+
+    constructor() public {
+        deployer = msg.sender;
+    }
 
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _tokenIn token to make the bid in
@@ -94,6 +108,7 @@ contract FixedPriceSale {
             _endDate > _startDate || _endDate == 0,
             "FixedPriceSale: invalid endDate"
         );
+        initialized = true;
         tokenIn = _tokenIn;
         tokenOut = _tokenOut;
         tokenPrice = _tokenPrice;
@@ -236,7 +251,7 @@ contract FixedPriceSale {
 
     /// @dev init function expexted to be called by SaleLauncher to init the sale
     /// @param _data encoded init params
-    function init(bytes calldata _data) public {
+    function init(bytes calldata _data) public notInitialized onlyDeployer {
         (
             IERC20 _tokenIn,
             IERC20 _tokenOut,
@@ -248,22 +263,21 @@ contract FixedPriceSale {
             uint256 _allocationMax,
             uint256 _minimumRaise,
             address _owner
-        ) =
-            abi.decode(
-                _data,
-                (
-                    IERC20,
-                    IERC20,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    address
-                )
-            );
+        ) = abi.decode(
+            _data,
+            (
+                IERC20,
+                IERC20,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                address
+            )
+        );
 
         initSale(
             _tokenIn,

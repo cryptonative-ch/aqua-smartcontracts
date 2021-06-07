@@ -130,24 +130,23 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             uint256 _minAllocation,
             uint256 _maxAllocation,
             uint256 _minimumRaise
-        ) =
-            abi.decode(
-                _data,
-                (
-                    address,
-                    uint256,
-                    address,
-                    address,
-                    address,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256,
-                    uint256
-                )
-            );
+        ) = abi.decode(
+            _data,
+            (
+                address,
+                uint256,
+                address,
+                address,
+                address,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256,
+                uint256
+            )
+        );
 
         initTemplate(
             _saleLauncher,
