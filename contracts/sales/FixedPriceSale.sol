@@ -147,13 +147,14 @@ contract FixedPriceSale {
             "FixedPriceSale: allocationMax reached"
         );
         require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
+        require(tokensSold.add(amount) <= tokensForSale, "FixedPriceSale: sale sold out");
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
-
-        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
 
         if (tokensPurchased[msg.sender] == 0) {
             orderOwners.push(msg.sender);
         }
+
+        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
 
         tokensSold = tokensSold.add(amount);
         emit NewPurchase(msg.sender, amount);
