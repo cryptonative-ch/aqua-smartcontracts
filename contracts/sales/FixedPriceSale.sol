@@ -197,7 +197,6 @@ contract FixedPriceSale {
 
         uint256 tokensAmount = tokensPurchased[account];
         tokensPurchased[account] = 0;
-        isClosed = true;
         TransferHelper.safeTransfer(address(tokenIn), account, tokensAmount);
         emit NewTokenRelease(account, tokensAmount);
     }
