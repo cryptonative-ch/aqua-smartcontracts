@@ -5,47 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
  
-## [Unreleased] - yyyy-mm-dd
+## [0.1.1-mpv.Unreleased] - 2012-mm-dd
  
-Here we write upgrading notes for brands. It's a team effort to make them as
-straightforward as possible.
+Mainly fixes for fixeprice sale
  
 ### Added
-- [PROJECTNAME-XXXX](http://tickets.projectname.com/browse/PROJECTNAME-XXXX)
-  MINOR Ticket title goes here.
-- [PROJECTNAME-YYYY](http://tickets.projectname.com/browse/PROJECTNAME-YYYY)
-  PATCH Ticket title goes here.
  
+ - template metadata over ipfs (#68)  48627ca58b39b541b1aa0bac6bc23bfbf6bcbdf5
 ### Changed
- 
+
+- mesaFactory.initalize -> mesaFactory.initialize / e17bb3dec3d65c741fba7b375f9b8e232f4fdfe6
+
 ### Fixed
- 
-## [1.2.4] - 2017-03-15
+
+- Fix: Remove isClosed = true on releaseTokens() (#71) / cabdc1682dd3a7754938c30aee30f47d1aa7284a
+
+## [0.1.0-mpv.20210406] - 2021-04-06 
   
-Here we would have the update steps for 1.2.4 for people to follow.
+First deploy used for FE
  
-### Added
- 
-### Changed
-  
-- [PROJECTNAME-ZZZZ](http://tickets.projectname.com/browse/PROJECTNAME-ZZZZ)
-  PATCH Drupal.org is now used for composer.
- 
-### Fixed
- 
-- [PROJECTNAME-TTTT](http://tickets.projectname.com/browse/PROJECTNAME-TTTT)
-  PATCH Add logic to runsheet teaser delete to delete corresponding
-  schedule cards.
- 
-## [1.2.3] - 2017-03-14
- 
-### Added
-   
-### Changed
- 
-### Fixed
- 
-- [PROJECTNAME-UUUU](http://tickets.projectname.com/browse/PROJECTNAME-UUUU)
-  MINOR Fix module foo tests
-- [PROJECTNAME-RRRR](http://tickets.projectname.com/browse/PROJECTNAME-RRRR)
-  MAJOR Module foo's timeline uses the browser timezone for date resolution 
