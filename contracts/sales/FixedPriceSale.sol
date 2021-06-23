@@ -137,7 +137,7 @@ contract FixedPriceSale {
     }
 
     /// @dev reserve tokens for a fixed price
-    /// @param amount of tokenIn to buy at a fixed price
+    /// @param amount of tokenIn to invest at a fixed price
     function buyTokens(uint256 amount) public {
         require(!isClosed, "FixedPriceSale: sale closed");
         require(amount >= allocationMin, "FixedPriceSale: amount to low");
