@@ -12,8 +12,8 @@ contract TemplateLauncher is CloneFactory {
     event TemplateLaunched(
         address indexed newTemplate,
         uint256 templateId,
-        address templatedeployer,
-        bytes metaData
+        address templateDeployer,
+        string metaData
     );
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
@@ -21,7 +21,7 @@ contract TemplateLauncher is CloneFactory {
     event TemplateRestrictionUpdated(bool restrictedTemplates);
     event TemplateMetaDataUpdated(
         address _launchedTemplate,
-        bytes _newMetaData
+        string _newMetaData
     );
 
     mapping(uint256 => address) private template;
@@ -30,7 +30,7 @@ contract TemplateLauncher is CloneFactory {
 
     struct TemplateData {
         address deployer;
-        bytes metaData;
+        string metaData;
     }
 
     mapping(address => TemplateData) public launchedTemplate;
@@ -75,7 +75,7 @@ contract TemplateLauncher is CloneFactory {
     function launchTemplate(
         uint256 _templateId,
         bytes calldata _data,
-        bytes calldata _metaData,
+        string calldata _metaData,
         address _templateDeployer
     ) external payable returns (address newTemplate) {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
@@ -157,7 +157,7 @@ contract TemplateLauncher is CloneFactory {
     /// @param _newMetaData ipfs hash to be set
     function updateTemplateMetadata(
         address _template,
-        bytes calldata _newMetaData
+        string calldata _newMetaData
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template].metaData = _newMetaData;
         emit TemplateMetaDataUpdated(_template, _newMetaData);

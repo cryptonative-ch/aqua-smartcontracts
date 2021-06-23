@@ -80,14 +80,15 @@ contract MesaFactory {
     /// @dev function to launch a template on Mesa
     /// @param _templateId template to be deployed
     /// @param _data encoded template parameters
+    /// @param _metaData ipfsHash pointing to the metadata
     function launchTemplate(
         uint256 _templateId,
         bytes calldata _data,
-        bytes calldata _ipfsMetaData
+        string calldata _metaData
     ) external payable returns (address newTemplate) {
         newTemplate = ITemplateLauncher(templateLauncher).launchTemplate{
             value: msg.value
-        }(_templateId, _data, _ipfsMetaData, msg.sender);
+        }(_templateId, _data, _metaData, msg.sender);
         allTemplates.push(newTemplate);
         emit TemplateLaunched(newTemplate, _templateId);
     }
