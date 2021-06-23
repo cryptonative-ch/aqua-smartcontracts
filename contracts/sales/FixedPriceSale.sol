@@ -173,14 +173,14 @@ contract FixedPriceSale {
 
     /// @dev realease tokenIn back to investors if minimumRaise not reached
     /// can also be used from external script to automatically release tokens for investors
-    function releaseTokens(address account) public {
+    function releaseTokens(address user) public {
         require(minimumRaise > 0, "FixedPriceSale: no minumumRaise");
         require(
             block.timestamp > endDate,
             "FixedPriceSale: endDate not passed"
         );
         require(
-            commitment[account] > 0,
+            commitment[user] > 0,
             "FixedPriceSale: no tokens purchased by this investor"
         );
         require(
@@ -188,25 +188,21 @@ contract FixedPriceSale {
             "FixedPriceSale: minumumRaise reached"
         );
 
-        uint256 tokensAmount = commitment[account];
-        commitment[account] = 0;
-        TransferHelper.safeTransfer(address(tokenIn), account, tokensAmount);
-        emit NewTokenRelease(account, tokensAmount);
+        uint256 releaseAmount = commitment[user];
+        commitment[user] = 0;
+        TransferHelper.safeTransfer(address(tokenIn), user, releaseAmount);
+        emit NewTokenRelease(user, releaseAmount);
     }
 
     /// @dev let investors claim their purchased tokens
     /// can also be used from external script to automatically claim tokens for investors
-    function claimTokens(address account) public {
+    function claimTokens(address user) public {
         require(isClosed, "FixedPriceSale: sale not closed");
-        require(commitment[account] > 0, "FixedPriceSale: no tokens to claim");
-        uint256 purchasedTokens = commitment[account].mul(tokenPrice);
-        commitment[account] = 0;
-        TransferHelper.safeTransfer(
-            address(tokenOut),
-            account,
-            purchasedTokens
-        );
-        emit NewTokenClaim(account, purchasedTokens);
+        require(commitment[user] > 0, "FixedPriceSale: no tokens to claim");
+        uint256 purchasedTokens = commitment[user].mul(tokenPrice);
+        commitment[user] = 0;
+        TransferHelper.safeTransfer(address(tokenOut), user, purchasedTokens);
+        emit NewTokenClaim(user, purchasedTokens);
     }
 
     /// @dev withdraw collected funds
