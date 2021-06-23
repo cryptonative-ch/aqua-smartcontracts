@@ -171,11 +171,10 @@ contract FixedPriceSale {
         emit SaleClosed();
     }
 
-    /// @dev withdraws purchased tokens if sale successfull, if not releases comitted tokens
+    /// @dev withdraws purchased tokens if sale successfull, if not releases committed tokens
     function withdrawTokens(address user) public {
         if (minimumRaiseReached()) {
-            require(saleEnded(), "FixedPriceSale: not ended yet");
-            require(commitment[user] > 0, "FixedPriceSale: no tokens to claim");
+            require(isClosed, "FixedPriceSale: not closed yet");
             uint256 withdrawAmount = _getTokenAmount(commitment[user]);
             commitment[user] = 0;
             TransferHelper.safeTransfer(
