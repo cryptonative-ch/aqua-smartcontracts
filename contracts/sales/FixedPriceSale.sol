@@ -32,7 +32,7 @@ contract FixedPriceSale {
 
     event NewCommitment(address indexed user, uint256 indexed amount);
 
-    event NewTokenClaim(address indexed user, uint256 indexed amount);
+    event NewTokenWithdraw(address indexed user, uint256 indexed amount);
 
     event DistributeAllTokensLeft(uint256 indexed amount);
 
@@ -171,38 +171,28 @@ contract FixedPriceSale {
         emit SaleClosed();
     }
 
-    /// @dev realease tokenIn back to investors if minimumRaise not reached
-    /// can also be used from external script to automatically release tokens for investors
-    function releaseTokens(address user) public {
-        require(minimumRaise > 0, "FixedPriceSale: no minumumRaise");
-        require(
-            block.timestamp > endDate,
-            "FixedPriceSale: endDate not passed"
-        );
-        require(
-            commitment[user] > 0,
-            "FixedPriceSale: no tokens purchased by this investor"
-        );
-        require(
-            tokensCommitted < minimumRaise,
-            "FixedPriceSale: minumumRaise reached"
-        );
-
-        uint256 releaseAmount = commitment[user];
-        commitment[user] = 0;
-        TransferHelper.safeTransfer(address(tokenIn), user, releaseAmount);
-        emit NewTokenRelease(user, releaseAmount);
-    }
-
-    /// @dev let investors claim their purchased tokens
-    /// can also be used from external script to automatically claim tokens for investors
-    function claimTokens(address user) public {
-        require(isClosed, "FixedPriceSale: sale not closed");
-        require(commitment[user] > 0, "FixedPriceSale: no tokens to claim");
-        uint256 purchasedTokens = commitment[user].mul(tokenPrice);
-        commitment[user] = 0;
-        TransferHelper.safeTransfer(address(tokenOut), user, purchasedTokens);
-        emit NewTokenClaim(user, purchasedTokens);
+    /// @dev withdraws purchased tokens if sale successfull, if not releases committed tokens
+    function withdrawTokens(address user) public {
+        if (minimumRaiseReached()) {
+            require(isClosed, "FixedPriceSale: not closed yet");
+            uint256 withdrawAmount = _getTokenAmount(commitment[user]);
+            commitment[user] = 0;
+            TransferHelper.safeTransfer(
+                address(tokenOut),
+                user,
+                withdrawAmount
+            );
+            emit NewTokenWithdraw(user, withdrawAmount);
+        } else {
+            require(
+                block.timestamp > endDate,
+                "FixedPriceSale: endDate not reached"
+            );
+            uint256 releaseAmount = commitment[user];
+            commitment[user] = 0;
+            TransferHelper.safeTransfer(address(tokenIn), user, releaseAmount);
+            emit NewTokenRelease(user, releaseAmount);
+        }
     }
 
     /// @dev withdraw collected funds
@@ -218,6 +208,16 @@ contract FixedPriceSale {
 
     function _getTokenAmount(uint256 _amount) internal view returns (uint256) {
         return _amount.mul(uint256(tokenPrice)).div(1e18);
+    }
+
+    function minimumRaiseReached() public view returns (bool) {
+        return tokensCommitted >= minimumRaise;
+    }
+
+    function saleEnded() public view returns (bool) {
+        return
+            block.timestamp > endDate ||
+            _getTokenAmount(tokensCommitted) == tokensForSale;
     }
 
     /// @dev withdraw collected funds
