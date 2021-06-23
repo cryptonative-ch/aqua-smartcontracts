@@ -30,13 +30,13 @@ contract FixedPriceSale {
         address owner
     );
 
-    event NewPurchase(address indexed buyer, uint256 indexed amount);
+    event NewCommitment(address indexed user, uint256 indexed amount);
 
-    event NewTokenClaim(address indexed buyer, uint256 indexed amount);
+    event NewTokenClaim(address indexed user, uint256 indexed amount);
 
     event DistributeAllTokensLeft(uint256 indexed amount);
 
-    event NewTokenRelease(address indexed buyer, uint256 indexed amount);
+    event NewTokenRelease(address indexed user, uint256 indexed amount);
 
     event SaleClosed();
 
@@ -47,7 +47,7 @@ contract FixedPriceSale {
     IERC20 public tokenOut;
     uint256 public tokenPrice;
     uint256 public tokensForSale;
-    uint256 public tokensSold;
+    uint256 public tokensComitted;
     uint256 public startDate;
     uint256 public endDate;
     uint256 public allocationMin;
@@ -56,9 +56,7 @@ contract FixedPriceSale {
     bool public isClosed;
     bool initialized;
 
-    mapping(address => uint256) public tokensPurchased;
-
-    address[] public orderOwners;
+    mapping(address => uint256) public commitment;
 
     modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
@@ -137,30 +135,25 @@ contract FixedPriceSale {
     }
 
     /// @dev reserve tokens for a fixed price
-    /// @param amount of tokenIn to invest at a fixed price
-    function buyTokens(uint256 amount) public {
+    /// @param amount of tokenIn to buy at a fixed price
+    function commitTokens(uint256 amount) public {
         require(!isClosed, "FixedPriceSale: sale closed");
         require(amount >= allocationMin, "FixedPriceSale: amount to low");
         require(
             allocationMax == 0 ||
-                tokensPurchased[msg.sender].add(amount) <= allocationMax,
+                commitment[msg.sender].add(amount) <= allocationMax,
             "FixedPriceSale: allocationMax reached"
         );
         require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
         require(
-            tokensSold.add(amount) <= tokensForSale,
+            _getTokenAmount(tokensComitted.add(amount)) <= tokensForSale,
             "FixedPriceSale: sale sold out"
         );
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
+        commitment[msg.sender] = commitment[msg.sender].add(amount);
 
-        if (tokensPurchased[msg.sender] == 0) {
-            orderOwners.push(msg.sender);
-        }
-
-        tokensPurchased[msg.sender] = tokensPurchased[msg.sender].add(amount);
-
-        tokensSold = tokensSold.add(amount);
-        emit NewPurchase(msg.sender, amount);
+        tokensComitted = tokensComitted.add(amount);
+        emit NewCommitment(msg.sender, amount);
     }
 
     /// @dev close sale if minRaise is reached
@@ -171,7 +164,7 @@ contract FixedPriceSale {
             "FixedPriceSale: endDate not passed"
         );
         require(
-            tokensSold >= minimumRaise,
+            tokensComitted >= minimumRaise,
             "FixedPriceSale: minumumRaise not reached"
         );
         isClosed = true;
@@ -187,16 +180,16 @@ contract FixedPriceSale {
             "FixedPriceSale: endDate not passed"
         );
         require(
-            tokensPurchased[account] > 0,
+            commitment[account] > 0,
             "FixedPriceSale: no tokens purchased by this investor"
         );
         require(
-            tokensSold < minimumRaise,
+            tokensComitted < minimumRaise,
             "FixedPriceSale: minumumRaise reached"
         );
 
-        uint256 tokensAmount = tokensPurchased[account];
-        tokensPurchased[account] = 0;
+        uint256 tokensAmount = commitment[account];
+        commitment[account] = 0;
         TransferHelper.safeTransfer(address(tokenIn), account, tokensAmount);
         emit NewTokenRelease(account, tokensAmount);
     }
@@ -205,23 +198,15 @@ contract FixedPriceSale {
     /// can also be used from external script to automatically claim tokens for investors
     function claimTokens(address account) public {
         require(isClosed, "FixedPriceSale: sale not closed");
-        require(
-            tokensPurchased[account] > 0,
-            "FixedPriceSale: no tokens to claim"
-        );
-        uint256 purchasedTokens = tokensPurchased[account].mul(tokenPrice);
-        tokensPurchased[account] = 0;
+        require(commitment[account] > 0, "FixedPriceSale: no tokens to claim");
+        uint256 purchasedTokens = commitment[account].mul(tokenPrice);
+        commitment[account] = 0;
         TransferHelper.safeTransfer(
             address(tokenOut),
             account,
             purchasedTokens
         );
         emit NewTokenClaim(account, purchasedTokens);
-    }
-
-    /// @dev count how many orders
-    function ordersCount() public view returns (uint256) {
-        return orderOwners.length;
     }
 
     /// @dev withdraw collected funds
@@ -233,6 +218,10 @@ contract FixedPriceSale {
             owner,
             IERC20(tokenIn).balanceOf(address(this))
         );
+    }
+
+    function _getTokenAmount(uint256 _amount) internal view returns (uint256) {
+        return _amount.mul(uint256(tokenPrice)).div(1e18);
     }
 
     /// @dev withdraw collected funds
@@ -248,7 +237,7 @@ contract FixedPriceSale {
         TransferHelper.safeTransfer(
             address(tokenOut),
             owner,
-            tokensForSale.sub(tokensSold)
+            tokensForSale.sub(tokensComitted)
         );
     }
 
@@ -327,7 +316,7 @@ contract FixedPriceSale {
 
     /// @dev to get remaining token at any point of the sale
     function tokensRemaining() public view returns (uint256) {
-        return tokensForSale.sub(tokensSold);
+        return tokensForSale.sub(tokensComitted);
     }
 
     /// @dev to get the remaining time of the sale in seconds
