@@ -47,7 +47,7 @@ contract FixedPriceSale {
     IERC20 public tokenOut;
     uint256 public tokenPrice;
     uint256 public tokensForSale;
-    uint256 public tokensComitted;
+    uint256 public tokensCommitted;
     uint256 public startDate;
     uint256 public endDate;
     uint256 public allocationMin;
@@ -81,7 +81,7 @@ contract FixedPriceSale {
     /// @param _endDate end date
     /// @param _allocationMin minimum tokenOut to buy
     /// @param _allocationMax maximum tokenOut to buy
-    /// @param _minimumRaise minimum amount an project is expected to raise
+    /// @param _minimumRaise minimum amount an project is expected to raise, amount of tokenIn
     /// @param _owner owner of the sale
     function initSale(
         IERC20 _tokenIn,
@@ -146,13 +146,13 @@ contract FixedPriceSale {
         );
         require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
         require(
-            _getTokenAmount(tokensComitted.add(amount)) <= tokensForSale,
+            _getTokenAmount(tokensCommitted.add(amount)) <= tokensForSale,
             "FixedPriceSale: sale sold out"
         );
         tokenIn.safeTransferFrom(msg.sender, address(this), amount);
         commitment[msg.sender] = commitment[msg.sender].add(amount);
 
-        tokensComitted = tokensComitted.add(amount);
+        tokensCommitted = tokensCommitted.add(amount);
         emit NewCommitment(msg.sender, amount);
     }
 
@@ -164,7 +164,7 @@ contract FixedPriceSale {
             "FixedPriceSale: endDate not passed"
         );
         require(
-            tokensComitted >= minimumRaise,
+            tokensCommitted >= minimumRaise,
             "FixedPriceSale: minumumRaise not reached"
         );
         isClosed = true;
@@ -184,7 +184,7 @@ contract FixedPriceSale {
             "FixedPriceSale: no tokens purchased by this investor"
         );
         require(
-            tokensComitted < minimumRaise,
+            tokensCommitted < minimumRaise,
             "FixedPriceSale: minumumRaise reached"
         );
 
@@ -237,7 +237,7 @@ contract FixedPriceSale {
         TransferHelper.safeTransfer(
             address(tokenOut),
             owner,
-            tokensForSale.sub(tokensComitted)
+            tokensForSale.sub(_getTokenAmount(tokensCommitted))
         );
     }
 
@@ -316,7 +316,7 @@ contract FixedPriceSale {
 
     /// @dev to get remaining token at any point of the sale
     function tokensRemaining() public view returns (uint256) {
-        return tokensForSale.sub(tokensComitted);
+        return tokensForSale.sub(_getTokenAmount(tokensCommitted));
     }
 
     /// @dev to get the remaining time of the sale in seconds
