@@ -150,7 +150,7 @@ contract FixedPriceSale {
         emit NewCommitment(msg.sender, amount);
     }
 
-    /// @dev close sale if ether minRaise is reached or endDate passed
+    /// @dev close sale if either minRaise is reached or endDate passed
     function closeSale() public {
         require(!isClosed, "FixedPriceSale: already closed");
         require(
