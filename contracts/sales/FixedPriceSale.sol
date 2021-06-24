@@ -29,15 +29,9 @@ contract FixedPriceSale {
         uint256 minimumRaise,
         address owner
     );
-
     event NewCommitment(address indexed user, uint256 indexed amount);
-
     event NewTokenWithdraw(address indexed user, uint256 indexed amount);
-
-    event DistributeAllTokensLeft(uint256 indexed amount);
-
     event NewTokenRelease(address indexed user, uint256 indexed amount);
-
     event SaleClosed();
 
     string public constant TEMPLATE_NAME = "FixedPriceSale";
@@ -54,7 +48,8 @@ contract FixedPriceSale {
     uint256 public allocationMax;
     uint256 public minimumRaise;
     bool public isClosed;
-    bool initialized;
+    bool public saleSucceeded;
+    bool private initialized;
 
     mapping(address => uint256) public commitment;
 
@@ -117,7 +112,6 @@ contract FixedPriceSale {
         allocationMax = _allocationMax;
         minimumRaise = _minimumRaise;
         owner = _owner;
-        isClosed = false;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
 
         emit SaleInitialized(
@@ -156,18 +150,40 @@ contract FixedPriceSale {
         emit NewCommitment(msg.sender, amount);
     }
 
-    /// @dev close sale if minRaise is reached
+    /// @dev close sale if ether minRaise is reached or endDate passed
     function closeSale() public {
         require(!isClosed, "FixedPriceSale: already closed");
         require(
-            block.timestamp > endDate,
-            "FixedPriceSale: endDate not passed"
+            block.timestamp > endDate ||
+                _getTokenAmount(tokensCommitted) == tokensForSale,
+            "FixedPriceSale: sale cannot be closed"
         );
-        require(
-            tokensCommitted >= minimumRaise,
-            "FixedPriceSale: minumumRaise not reached"
-        );
+
         isClosed = true;
+        if (tokensCommitted >= minimumRaise) {
+            saleSucceeded = true;
+            TransferHelper.safeTransfer(
+                address(tokenIn),
+                owner,
+                tokensCommitted
+            );
+            uint256 soldTokens = _getTokenAmount(tokensCommitted);
+            uint256 unsoldTokens = uint256(tokensForSale).sub(soldTokens);
+            if (unsoldTokens > 0) {
+                TransferHelper.safeTransfer(
+                    address(tokenOut),
+                    owner,
+                    unsoldTokens
+                );
+            }
+        } else {
+            TransferHelper.safeTransfer(
+                address(tokenOut),
+                owner,
+                tokensForSale.sub(_getTokenAmount(tokensCommitted))
+            );
+        }
+
         emit SaleClosed();
     }
 
@@ -195,17 +211,6 @@ contract FixedPriceSale {
         }
     }
 
-    /// @dev withdraw collected funds
-    function _withdrawFunds() internal {
-        require(isClosed, "FixedPriceSale: sale not closed");
-
-        TransferHelper.safeTransfer(
-            address(tokenIn),
-            owner,
-            IERC20(tokenIn).balanceOf(address(this))
-        );
-    }
-
     function _getTokenAmount(uint256 _amount) internal view returns (uint256) {
         return _amount.mul(uint256(tokenPrice)).div(1e18);
     }
@@ -218,23 +223,6 @@ contract FixedPriceSale {
         return
             block.timestamp > endDate ||
             _getTokenAmount(tokensCommitted) == tokensForSale;
-    }
-
-    /// @dev withdraw collected funds
-    // version with calldata see below
-    function withdrawFunds() external onlyOwner() {
-        _withdrawFunds();
-    }
-
-    /// @dev withdraw tokenOut which have no been sold
-    function withdrawUnsoldFunds() external {
-        require(isClosed, "FixedPriceSale: sale not closed");
-
-        TransferHelper.safeTransfer(
-            address(tokenOut),
-            owner,
-            tokensForSale.sub(_getTokenAmount(tokensCommitted))
-        );
     }
 
     /// @dev init function expexted to be called by SaleLauncher to init the sale
@@ -290,7 +278,7 @@ contract FixedPriceSale {
             block.timestamp > endDate,
             "FixedPriceSale: deadline not reached"
         );
-        if (isClosed) {
+        if (saleSucceeded) {
             require(
                 token != address(tokenOut),
                 "FixedPriceSale: cannot withdraw tokenOut"
