@@ -24,8 +24,8 @@ contract FixedPriceSale {
         uint256 tokensForSale,
         uint256 startDate,
         uint256 endDate,
-        uint256 allocationMin,
-        uint256 allocationMax,
+        uint256 minCommitment,
+        uint256 maxCommitment,
         uint256 minimumRaise,
         address owner
     );
@@ -44,8 +44,8 @@ contract FixedPriceSale {
     uint256 public tokensCommitted;
     uint256 public startDate;
     uint256 public endDate;
-    uint256 public allocationMin;
-    uint256 public allocationMax;
+    uint256 public minCommitment;
+    uint256 public maxCommitment;
     uint256 public minimumRaise;
     bool public isClosed;
     bool public saleSucceeded;
@@ -74,8 +74,8 @@ contract FixedPriceSale {
     /// @param _tokensForSale amount of tokens to be sold
     /// @param _startDate start date
     /// @param _endDate end date
-    /// @param _allocationMin minimum tokenOut to buy
-    /// @param _allocationMax maximum tokenOut to buy
+    /// @param _minCommitment minimum tokenOut to buy
+    /// @param _maxCommitment maximum tokenOut to buy
     /// @param _minimumRaise minimum amount an project is expected to raise, amount of tokenIn
     /// @param _owner owner of the sale
     function initSale(
@@ -85,8 +85,8 @@ contract FixedPriceSale {
         uint256 _tokensForSale,
         uint256 _startDate,
         uint256 _endDate,
-        uint256 _allocationMin,
-        uint256 _allocationMax,
+        uint256 _minCommitment,
+        uint256 _maxCommitment,
         uint256 _minimumRaise,
         address _owner
     ) internal {
@@ -108,8 +108,8 @@ contract FixedPriceSale {
         tokensForSale = _tokensForSale;
         startDate = _startDate;
         endDate = _endDate;
-        allocationMin = _allocationMin;
-        allocationMax = _allocationMax;
+        minCommitment = _minCommitment;
+        maxCommitment = _maxCommitment;
         minimumRaise = _minimumRaise;
         owner = _owner;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
@@ -121,8 +121,8 @@ contract FixedPriceSale {
             _tokensForSale,
             _startDate,
             _endDate,
-            _allocationMin,
-            _allocationMax,
+            _minCommitment,
+            _maxCommitment,
             _minimumRaise,
             _owner
         );
@@ -132,11 +132,11 @@ contract FixedPriceSale {
     /// @param amount of tokenIn to buy at a fixed price
     function commitTokens(uint256 amount) public {
         require(!isClosed, "FixedPriceSale: sale closed");
-        require(amount >= allocationMin, "FixedPriceSale: amount to low");
+        require(amount >= minCommitment, "FixedPriceSale: amount to low");
         require(
-            allocationMax == 0 ||
-                commitment[msg.sender].add(amount) <= allocationMax,
-            "FixedPriceSale: allocationMax reached"
+            maxCommitment == 0 ||
+                commitment[msg.sender].add(amount) <= maxCommitment,
+            "FixedPriceSale: maxCommitment reached"
         );
         require(block.timestamp < endDate, "FixedPriceSale: deadline passed");
         require(
@@ -160,7 +160,7 @@ contract FixedPriceSale {
         );
 
         isClosed = true;
-        if (tokensCommitted >= minimumRaise) {
+        if (minimumRaiseReached()) {
             saleSucceeded = true;
             TransferHelper.safeTransfer(
                 address(tokenIn),
@@ -235,8 +235,8 @@ contract FixedPriceSale {
             uint256 _tokensForSale,
             uint256 _startDate,
             uint256 _endDate,
-            uint256 _allocationMin,
-            uint256 _allocationMax,
+            uint256 _minCommitment,
+            uint256 _maxCommitment,
             uint256 _minimumRaise,
             address _owner
         ) = abi.decode(
@@ -262,8 +262,8 @@ contract FixedPriceSale {
             _tokensForSale,
             _startDate,
             _endDate,
-            _allocationMin,
-            _allocationMax,
+            _minCommitment,
+            _maxCommitment,
             _minimumRaise,
             _owner
         );
