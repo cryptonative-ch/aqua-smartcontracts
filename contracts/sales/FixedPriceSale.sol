@@ -26,7 +26,7 @@ contract FixedPriceSale {
         uint256 endDate,
         uint256 minCommitment,
         uint256 maxCommitment,
-        uint256 minimumRaise,
+        uint256 minRaise,
         address owner
     );
     event NewCommitment(address indexed user, uint256 indexed amount);
@@ -46,7 +46,7 @@ contract FixedPriceSale {
     uint256 public endDate;
     uint256 public minCommitment;
     uint256 public maxCommitment;
-    uint256 public minimumRaise;
+    uint256 public minRaise;
     bool public isClosed;
     bool public saleSucceeded;
     bool private initialized;
@@ -110,7 +110,7 @@ contract FixedPriceSale {
         endDate = _endDate;
         minCommitment = _minCommitment;
         maxCommitment = _maxCommitment;
-        minimumRaise = _minRaise;
+        minRaise = _minRaise;
         owner = _owner;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
 
@@ -168,7 +168,7 @@ contract FixedPriceSale {
         );
 
         isClosed = true;
-        if (isMinimumRaiseReached()) {
+        if (isMinRaiseReached()) {
             saleSucceeded = true;
             TransferHelper.safeTransfer(
                 address(tokenIn),
@@ -197,7 +197,7 @@ contract FixedPriceSale {
 
     /// @dev withdraws purchased tokens if sale successfull, if not releases committed tokens
     function withdrawTokens(address user) public {
-        if (isMinimumRaiseReached()) {
+        if (isMinRaiseReached()) {
             require(isClosed, "FixedPriceSale: not closed yet");
             uint256 withdrawAmount = _getTokenAmount(commitment[user]);
             commitment[user] = 0;
@@ -223,8 +223,8 @@ contract FixedPriceSale {
         return _amount.mul(uint256(tokenPrice)).div(1e18);
     }
 
-    function isMinimumRaiseReached() public view returns (bool) {
-        return tokensCommitted >= minimumRaise;
+    function isMinRaiseReached() public view returns (bool) {
+        return tokensCommitted >= minRaise;
     }
 
     function isSaleEnded() public view returns (bool) {
