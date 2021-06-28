@@ -76,7 +76,7 @@ contract FixedPriceSale {
     /// @param _endDate end date
     /// @param _minCommitment minimum tokenIn to buy
     /// @param _maxCommitment maximum tokenIn to buy
-    /// @param _minimumRaise minimum amount an project is expected to raise, amount of tokenIn
+    /// @param _minRaise minimum amount an project is expected to raise, amount of tokenIn
     /// @param _owner owner of the sale
     function initSale(
         IERC20 _tokenIn,
@@ -87,7 +87,7 @@ contract FixedPriceSale {
         uint256 _endDate,
         uint256 _minCommitment,
         uint256 _maxCommitment,
-        uint256 _minimumRaise,
+        uint256 _minRaise,
         address _owner
     ) internal {
         require(_tokenIn != _tokenOut, "FixedPriceSale: invalid tokens");
@@ -110,7 +110,7 @@ contract FixedPriceSale {
         endDate = _endDate;
         minCommitment = _minCommitment;
         maxCommitment = _maxCommitment;
-        minimumRaise = _minimumRaise;
+        minimumRaise = _minRaise;
         owner = _owner;
         tokenOut.safeTransferFrom(msg.sender, address(this), tokensForSale);
 
@@ -123,7 +123,7 @@ contract FixedPriceSale {
             _endDate,
             _minCommitment,
             _maxCommitment,
-            _minimumRaise,
+            _minRaise,
             _owner
         );
     }
@@ -245,7 +245,7 @@ contract FixedPriceSale {
             uint256 _endDate,
             uint256 _minCommitment,
             uint256 _maxCommitment,
-            uint256 _minimumRaise,
+            uint256 _minRaise,
             address _owner
         ) = abi.decode(
             _data,
@@ -272,7 +272,7 @@ contract FixedPriceSale {
             _endDate,
             _minCommitment,
             _maxCommitment,
-            _minimumRaise,
+            _minRaise,
             _owner
         );
     }

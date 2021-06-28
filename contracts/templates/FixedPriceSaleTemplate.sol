@@ -14,8 +14,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     address public tokenOut;
     uint256 public tokensForSale;
     bytes public encodedInitData;
-    bool initialized = false;
-    bool saleCreated = false;
+    bool public isInitialized;
+    bool public isSaleCreated;
 
     event TemplateInitialized(
         address tokenIn,
@@ -31,7 +31,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
 
     constructor() public {
         templateName = "FixedPriceSaleTemplate";
-        metadataContentHash = "0x"; // ToDo
+        metaDataContentHash = "0x"; // ToDo
     }
 
     /// @dev internal setup function to initialize the template, called by init()
@@ -44,9 +44,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     /// @param _tokensForSale amount of tokens to be sold
     /// @param _startDate unix timestamp when the sale starts
     /// @param _endDate unix timestamp when the sale ends
-    /// @param _minAllocation minimum amount of tokens an investor needs to purchase
-    /// @param _maxAllocation maximum amount of tokens an investor can purchase
-    /// @param _minimumRaise sale goal – if not reached investors can claim back tokens
+    /// @param _minCommitment minimum amount of tokens an investor needs to purchase
+    /// @param _maxCommitment maximum amount of tokens an investor can purchase
+    /// @param _minRaise sale goal – if not reached investors can claim back tokens
     function initTemplate(
         address _saleLauncher,
         uint256 _saleTemplateId,
@@ -57,11 +57,11 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         uint256 _tokensForSale,
         uint256 _startDate,
         uint256 _endDate,
-        uint256 _minAllocation,
-        uint256 _maxAllocation,
-        uint256 _minimumRaise
+        uint256 _minCommitment,
+        uint256 _maxCommitment,
+        uint256 _minRaise
     ) internal {
-        require(!initialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
+        require(!isInitialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
@@ -70,7 +70,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         tokensForSale = _tokensForSale;
         tokenOut = _tokenOut;
         tokenSupplier = _tokenSupplier;
-        initialized = true;
+        isInitialized = true;
 
         encodedInitData = abi.encode(
             IERC20(_tokenIn),
@@ -79,9 +79,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _tokensForSale,
             _startDate,
             _endDate,
-            _minAllocation,
-            _maxAllocation,
-            _minimumRaise,
+            _minCommitment,
+            _maxCommitment,
+            _minRaise,
             templateManager
         );
 
@@ -92,14 +92,14 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _tokensForSale,
             _startDate,
             _endDate,
-            _minAllocation,
-            _maxAllocation,
-            _minimumRaise
+            _minCommitment,
+            _maxCommitment,
+            _minRaise
         );
     }
 
     function createSale() public payable returns (address newSale) {
-        require(!saleCreated, "FixedPriceSaleTemplate: Sale already created");
+        require(!isSaleCreated, "FixedPriceSaleTemplate: Sale already created");
         require(
             msg.sender == tokenSupplier,
             "FixedPriceSaleTemplate: FORBIDDEN"
@@ -127,9 +127,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             uint256 _tokensForSale,
             uint256 _startDate,
             uint256 _endDate,
-            uint256 _minAllocation,
-            uint256 _maxAllocation,
-            uint256 _minimumRaise
+            uint256 _minCommitment,
+            uint256 _maxCommitment,
+            uint256 _minRaise
         ) = abi.decode(
             _data,
             (
@@ -158,9 +158,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _tokensForSale,
             _startDate,
             _endDate,
-            _minAllocation,
-            _maxAllocation,
-            _minimumRaise
+            _minCommitment,
+            _maxCommitment,
+            _minRaise
         );
     }
 }
