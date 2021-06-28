@@ -13,8 +13,8 @@ contract FairSaleTemplate is MesaTemplate {
     address public tokenOut;
     uint256 public tokensForSale;
     bytes public encodedInitData;
-    bool initialized = false;
-    bool saleCreated = false;
+    bool public isInitialized;
+    bool public isSaleCreated;
 
     event TemplateInitialized(
         address tokenIn,
@@ -30,7 +30,7 @@ contract FairSaleTemplate is MesaTemplate {
 
     constructor() public {
         templateName = "FairSaleTemplate";
-        metadataContentHash = "0x"; // ToDo
+        metaDataContentHash = "0x"; // ToDo
     }
 
     /// @dev internal setup function to initialize the template, called by init()
@@ -58,7 +58,7 @@ contract FairSaleTemplate is MesaTemplate {
         uint256 _minimumBiddingAmountPerOrder,
         address _tokenSupplier
     ) internal {
-        require(!initialized, "FairSaleTemplate: ALEADY_INITIALIZED");
+        require(!isInitialized, "FairSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
@@ -95,7 +95,7 @@ contract FairSaleTemplate is MesaTemplate {
     }
 
     function createSale() public payable returns (address newSale) {
-        require(!saleCreated, "FairSaleTemplate: Sale already created");
+        require(!isSaleCreated, "FairSaleTemplate: Sale already created");
         require(msg.sender == tokenSupplier, "FairSaleTemplate: FORBIDDEN");
         newSale = saleLauncher.createSale{value: msg.value}(
             saleTemplateId,
