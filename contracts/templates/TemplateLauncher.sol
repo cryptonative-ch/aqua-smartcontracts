@@ -13,15 +13,15 @@ contract TemplateLauncher is CloneFactory {
         address indexed newTemplate,
         uint256 templateId,
         address templateDeployer,
-        string metaData
+        string metaDataContentHash
     );
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
-    event TemplateRestrictionUpdated(bool restrictedTemplates);
-    event TemplateMetaDataUpdated(
+    event AllowPublicTemplatesUpdated(bool allowPublicTemplates);
+    event TemplatemetaDataContentHashUpdated(
         address _launchedTemplate,
-        string _newMetaData
+        string _newmetaDataContentHash
     );
 
     mapping(uint256 => address) private template;
@@ -30,14 +30,14 @@ contract TemplateLauncher is CloneFactory {
 
     struct TemplateData {
         address deployer;
-        string metaData;
+        string metaDataContentHash;
     }
 
     mapping(address => TemplateData) public launchedTemplate;
 
     uint256 templateCounter;
     address public factory;
-    bool public restrictedTemplates;
+    bool public allowPublicTemplates;
 
     modifier isTemplateManager {
         require(
@@ -57,7 +57,7 @@ contract TemplateLauncher is CloneFactory {
 
     modifier isAllowedToAddTemplate {
         require(
-            !restrictedTemplates ||
+            !allowPublicTemplates ||
                 msg.sender == IMesaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
         );
@@ -66,7 +66,7 @@ contract TemplateLauncher is CloneFactory {
 
     constructor(address _factory) public {
         factory = _factory;
-        restrictedTemplates = true;
+        allowPublicTemplates = false;
     }
 
     /// @dev function to launch a template on Mesa, called from MesaFactory
@@ -75,7 +75,7 @@ contract TemplateLauncher is CloneFactory {
     function launchTemplate(
         uint256 _templateId,
         bytes calldata _data,
-        string calldata _metaData,
+        string calldata _metaDataContentHash,
         address _templateDeployer
     ) external payable returns (address newTemplate) {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
@@ -90,13 +90,13 @@ contract TemplateLauncher is CloneFactory {
         newTemplate = _deployTemplate(_templateId);
         launchedTemplate[newTemplate] = TemplateData({
             deployer: _templateDeployer,
-            metaData: _metaData
+            metaDataContentHash: _metaDataContentHash
         });
         emit TemplateLaunched(
             address(newTemplate),
             _templateId,
             _templateDeployer,
-            _metaData
+            _metaDataContentHash
         );
         ITemplate(newTemplate).init(_data);
     }
@@ -152,25 +152,29 @@ contract TemplateLauncher is CloneFactory {
         emit TemplateVerified(template[_templateId], _templateId);
     }
 
-    /// @dev allows the template deployer to update the template metadata
+    /// @dev allows the template deployer to update the template metaDataContentHash
     /// @param _template launched template to be updated
-    /// @param _newMetaData ipfs hash to be set
-    function updateTemplateMetadata(
+    /// @param _newmetaDataContentHash ipfs hash to be set
+    function updateTemplatemetaDataContentHash(
         address _template,
-        string calldata _newMetaData
+        string calldata _newmetaDataContentHash
     ) external isTemplateDeployer(_template) {
-        launchedTemplate[_template].metaData = _newMetaData;
-        emit TemplateMetaDataUpdated(_template, _newMetaData);
+        launchedTemplate[_template]
+        .metaDataContentHash = _newmetaDataContentHash;
+        emit TemplatemetaDataContentHashUpdated(
+            _template,
+            _newmetaDataContentHash
+        );
     }
 
     /// @dev allows to switch on/off public template registrations
-    /// @param _restrictedTemplates turns on/off the option
-    function updateTemplateRestriction(bool _restrictedTemplates)
+    /// @param _allowPublicTemplates turns on/off the option
+    function updateAllowPublicTemplates(bool _allowPublicTemplates)
         external
         isTemplateManager
     {
-        restrictedTemplates = _restrictedTemplates;
-        emit TemplateRestrictionUpdated(_restrictedTemplates);
+        allowPublicTemplates = _allowPublicTemplates;
+        emit AllowPublicTemplatesUpdated(_allowPublicTemplates);
     }
 
     function getTemplate(uint256 _templateId) public view returns (address) {

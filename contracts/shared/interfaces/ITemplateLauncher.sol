@@ -5,7 +5,7 @@ interface ITemplateLauncher {
     function launchTemplate(
         uint256 _templateId,
         bytes calldata _data,
-        string calldata _metaData,
+        string calldata _metaDataContentHash,
         address _templateDeployer
     ) external payable returns (address newSale);
 }
