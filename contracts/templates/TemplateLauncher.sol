@@ -163,18 +163,13 @@ contract TemplateLauncher is CloneFactory {
         .metaDataContentHash = _newMetaDataContentHash;
         emit TemplateMetaDataContentHashUpdated(
             _template,
-            _newmetaDataContentHash
+            _newMetaDataContentHash
         );
     }
 
-    /// @dev allows to switch on/off public template registrations
-    /// @param _allowPublicTemplates turns on/off the option
-    function updateAllowPublicTemplates(bool _allowPublicTemplates)
-        external
-        isTemplateManager
-    {
-        allowPublicTemplates = _allowPublicTemplates;
-        emit AllowPublicTemplatesUpdated(_allowPublicTemplates);
+    function toggleAllowPublicTemplates() external isTemplateManager {
+        allowPublicTemplates = !allowPublicTemplates;
+        emit AllowPublicTemplatesUpdated(allowPublicTemplates);
     }
 
     function getTemplate(uint256 _templateId) public view returns (address) {
