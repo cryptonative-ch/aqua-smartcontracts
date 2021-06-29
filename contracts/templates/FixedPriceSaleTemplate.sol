@@ -46,7 +46,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     /// @param _endDate unix timestamp when the sale ends
     /// @param _minCommitment minimum tokenIn to buy
     /// @param _maxCommitment maximum tokenIn to buy
-    /// @param _minRaise sale goal,if not reached investors can claim back their committed tokens
+    /// @param _minRaise sale goal, if not reached,, investors can claim back their committed tokens
     function initTemplate(
         address _saleLauncher,
         uint256 _saleTemplateId,
