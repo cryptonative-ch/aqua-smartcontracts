@@ -36,7 +36,6 @@ contract FixedPriceSale {
 
     string public constant TEMPLATE_NAME = "FixedPriceSale";
     address public owner;
-    address private deployer;
     IERC20 public tokenIn;
     IERC20 public tokenOut;
     uint256 public tokenPrice;
@@ -56,15 +55,6 @@ contract FixedPriceSale {
     modifier onlyOwner {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
-    }
-
-    modifier onlyDeployer {
-        require(msg.sender == deployer, "FixedPriceSale: FORBIDDEN");
-        _;
-    }
-
-    constructor() public {
-        deployer = msg.sender;
     }
 
     /// @dev internal setup function to initialize the template, called by init()
@@ -197,6 +187,7 @@ contract FixedPriceSale {
 
     /// @dev withdraws purchased tokens if sale successfull, if not releases committed tokens
     function withdrawTokens(address user) public {
+        require(commitment[user] > 0, "FixedPriceSale: nothing to withdraw");
         if (isMinRaiseReached()) {
             require(isClosed, "FixedPriceSale: not closed yet");
             uint256 withdrawAmount = _getTokenAmount(commitment[user]);
@@ -235,7 +226,7 @@ contract FixedPriceSale {
 
     /// @dev init function expexted to be called by SaleLauncher to init the sale
     /// @param _data encoded init params
-    function init(bytes calldata _data) public notInitialized onlyDeployer {
+    function init(bytes calldata _data) public notInitialized {
         (
             IERC20 _tokenIn,
             IERC20 _tokenOut,

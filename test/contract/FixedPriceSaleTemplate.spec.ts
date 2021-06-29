@@ -16,9 +16,9 @@ let currentBlockNumber, currentBlock;
 
 const defaultTokenPrice = expandTo18Decimals(10);
 const defaultTokensForSale = expandTo18Decimals(2000);
-const defaultAllocationMin = expandTo18Decimals(2);
-const defaultAllocationMax = expandTo18Decimals(10);
-const defaultMinimumRaise = expandTo18Decimals(5000);
+const defaultMinCommitment = expandTo18Decimals(2);
+const defaultMaxCommitment = expandTo18Decimals(10);
+const defaultMinRaise = expandTo18Decimals(5000);
 let defaultStartDate: number;
 let defaultEndDate: number;
 
@@ -32,9 +32,9 @@ function encodeInitDataFixedPrice(
     tokensForSale: BigNumber,
     startDate: number,
     endDate: number,
-    allocationMin: BigNumber,
-    allocationMax: BigNumber,
-    minimumRaise: BigNumber,
+    minCommitment: BigNumber,
+    maxCommitment: BigNumber,
+    minRaise: BigNumber,
     owner: string
 ) {
     return ethers.utils.defaultAbiCoder.encode(
@@ -63,9 +63,9 @@ function encodeInitDataFixedPrice(
             tokensForSale,
             startDate,
             endDate,
-            allocationMin,
-            allocationMax,
-            minimumRaise,
+            minCommitment,
+            maxCommitment,
+            minRaise,
             owner,
         ]
     );
@@ -117,9 +117,9 @@ describe("FixedPriceSaleTemplate", async () => {
             defaultTokensForSale,
             defaultStartDate,
             defaultEndDate,
-            defaultAllocationMin,
-            defaultAllocationMax,
-            defaultMinimumRaise,
+            defaultMinCommitment,
+            defaultMaxCommitment,
+            defaultMinRaise,
             templateManager.address
         );
 
@@ -132,9 +132,9 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultTokensForSale,
                 defaultStartDate,
                 defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                defaultMinimumRaise
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise
             );
 
         await expect(fixedPriceSaleTemplate.init(initData)).to.be.revertedWith(
@@ -153,9 +153,9 @@ describe("FixedPriceSaleTemplate", async () => {
             defaultTokensForSale,
             defaultStartDate,
             defaultEndDate,
-            defaultAllocationMin,
-            defaultAllocationMax,
-            defaultMinimumRaise,
+            defaultMinCommitment,
+            defaultMaxCommitment,
+            defaultMinRaise,
             templateManager.address
         );
 
@@ -168,9 +168,9 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultTokensForSale,
                 defaultStartDate,
                 defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                defaultMinimumRaise
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise
             );
 
         await expect(

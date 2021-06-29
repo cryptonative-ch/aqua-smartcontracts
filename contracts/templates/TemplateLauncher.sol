@@ -57,7 +57,7 @@ contract TemplateLauncher is CloneFactory {
 
     modifier isAllowedToAddTemplate {
         require(
-            !allowPublicTemplates ||
+            allowPublicTemplates ||
                 msg.sender == IMesaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
         );
