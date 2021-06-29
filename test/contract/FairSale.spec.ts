@@ -28,7 +28,7 @@ import {
 // https://jamboard.google.com/d/1DMgMYCQQzsSLKPq_hlK3l32JNBbRdIhsOrLB1oHaEYY/edit?usp=sharing
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-describe("FairSale", async () => {
+describe.skip("FairSale", async () => {
     const [user_1, user_2, user_3] = waffle.provider.getWallets();
     let fairSale: Contract;
     beforeEach(async () => {

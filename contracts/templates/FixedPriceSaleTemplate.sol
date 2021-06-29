@@ -120,7 +120,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         (
             address _saleLauncher,
             uint256 _saleTemplateId,
-            address _tokenOutSupplier,
+            address _tokenSupplier,
             address _tokenIn,
             address _tokenOut,
             uint256 _tokenPrice,
@@ -151,7 +151,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         initTemplate(
             _saleLauncher,
             _saleTemplateId,
-            _tokenOutSupplier,
+            _tokenSupplier,
             _tokenIn,
             _tokenOut,
             _tokenPrice,

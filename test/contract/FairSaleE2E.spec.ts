@@ -9,7 +9,7 @@ import {
 import { createAuctionWithDefaults } from "./defaultContractInteractions";
 import { closeAuction } from "./utilities";
 
-describe("FairSale", async () => {
+describe.skip("FairSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
     let fairSale: Contract;
     beforeEach(async () => {
