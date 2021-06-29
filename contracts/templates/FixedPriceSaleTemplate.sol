@@ -24,9 +24,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         uint256 tokensForSale,
         uint256 startDate,
         uint256 endDate,
-        uint256 allocationMin,
-        uint256 allocationMax,
-        uint256 minimumRaise
+        uint256 minCommitment,
+        uint256 maxCommitment,
+        uint256 minRaise
     );
 
     constructor() public {

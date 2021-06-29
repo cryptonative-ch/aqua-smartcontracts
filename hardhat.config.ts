@@ -21,11 +21,7 @@ module.exports = {
             url: "https://xdai.poanetwork.dev",
             accounts: [process.env.PRIVATE_KEY],
         },
-        hardhat: {
-            accounts: {
-                count: 128,
-            },
-        },
+        hardhat: {},
     },
     mocha: {
         timeout: "600s",

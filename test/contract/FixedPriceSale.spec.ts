@@ -17,7 +17,7 @@ describe("FixedPriceSale", async () => {
     const defaultTokensForSale = expandTo18Decimals(2000);
     const defaultminCommitment = expandTo18Decimals(2);
     const defaultmaxCommitment = expandTo18Decimals(10);
-    const defaultMinimumRaise = expandTo18Decimals(5000);
+    const defaultMinRaise = expandTo18Decimals(5000);
     let defaultStartDate: number;
     let defaultEndDate: number;
 
@@ -30,7 +30,7 @@ describe("FixedPriceSale", async () => {
         endDate: number,
         minCommitment: BigNumber,
         maxCommitment: BigNumber,
-        minimumRaise: BigNumber,
+        minRaise: BigNumber,
         owner: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
@@ -55,7 +55,7 @@ describe("FixedPriceSale", async () => {
                 endDate,
                 minCommitment,
                 maxCommitment,
-                minimumRaise,
+                minRaise,
                 owner,
             ]
         );
@@ -94,7 +94,7 @@ describe("FixedPriceSale", async () => {
             defaultEndDate,
             defaultminCommitment,
             defaultmaxCommitment,
-            defaultMinimumRaise,
+            defaultMinRaise,
             user_1.address
         );
 
@@ -111,7 +111,7 @@ describe("FixedPriceSale", async () => {
                 defaultEndDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -130,7 +130,7 @@ describe("FixedPriceSale", async () => {
                 defaultEndDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -149,7 +149,7 @@ describe("FixedPriceSale", async () => {
                 defaultEndDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -168,7 +168,7 @@ describe("FixedPriceSale", async () => {
                 defaultEndDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -187,7 +187,7 @@ describe("FixedPriceSale", async () => {
                 defaultStartDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -208,7 +208,7 @@ describe("FixedPriceSale", async () => {
                 defaultEndDate,
                 defaultminCommitment,
                 defaultmaxCommitment,
-                defaultMinimumRaise,
+                defaultMinRaise,
                 user_1.address
             );
 
@@ -223,7 +223,7 @@ describe("FixedPriceSale", async () => {
                     defaultEndDate,
                     defaultminCommitment,
                     defaultmaxCommitment,
-                    defaultMinimumRaise,
+                    defaultMinRaise,
                     user_1.address
                 )
                 .to.emit(tokenB, "Transfer")

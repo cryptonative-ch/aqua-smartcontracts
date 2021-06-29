@@ -57,8 +57,6 @@ contract FixedPriceSale {
         _;
     }
 
-    constructor() public {}
-
     /// @dev internal setup function to initialize the template, called by init()
     /// @param _tokenIn token to make the bid in
     /// @param _tokenOut token to buy

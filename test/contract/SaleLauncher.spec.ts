@@ -19,23 +19,25 @@ describe("SaleLauncher", async () => {
 
     const defaultTokenPrice = expandTo18Decimals(10);
     const defaultTokensForSale = expandTo18Decimals(2000);
-    const defaultAllocationMin = expandTo18Decimals(2);
-    const defaultAllocationMax = expandTo18Decimals(10);
-    const defaultMinimumRaise = expandTo18Decimals(5000);
+    const defaultMinCommitment = expandTo18Decimals(2);
+    const defaultMaxCommitment = expandTo18Decimals(10);
+    const defaultMinRaise = expandTo18Decimals(5000);
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitDataFairSale(
+    function encodeInitDataFixedPrice(
         saleLauncher: string,
         saleTemplateId: number,
-        tokenOut: string,
         tokenIn: string,
-        duration: number,
-        tokenOutSupply: BigNumber,
-        minPrice: BigNumber,
-        minBuyAmount: BigNumber,
+        tokenOut: string,
+        tokenPrice: BigNumber,
+        tokensForSale: BigNumber,
+        startDate: number,
+        endDate: number,
+        minCommitment: BigNumber,
+        maxCommitment: BigNumber,
         minRaise: BigNumber,
-        tokenSupplier: string
+        owner: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -45,22 +47,26 @@ describe("SaleLauncher", async () => {
                 "address",
                 "uint256",
                 "uint256",
-                "uint96",
-                "uint96",
+                "uint256",
+                "uint256",
+                "uint256",
+                "uint256",
                 "uint256",
                 "address",
             ],
             [
                 saleLauncher,
                 saleTemplateId,
-                tokenOut,
                 tokenIn,
-                duration,
-                tokenOutSupply,
-                minPrice,
-                minBuyAmount,
+                tokenOut,
+                tokenPrice,
+                tokensForSale,
+                startDate,
+                endDate,
+                minCommitment,
+                maxCommitment,
                 minRaise,
-                tokenSupplier,
+                owner,
             ]
         );
     }
@@ -168,16 +174,18 @@ describe("SaleLauncher", async () => {
 
     describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = await await encodeInitDataFairSale(
+            const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
@@ -195,16 +203,18 @@ describe("SaleLauncher", async () => {
         it("throws if trying to launch sales without providing sales fee", async () => {
             await mesaFactory.setSaleFee(500);
 
-            const initData = await await encodeInitDataFairSale(
+            const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
@@ -219,21 +229,23 @@ describe("SaleLauncher", async () => {
             ).to.be.revertedWith("SaleLauncher: SALE_FEE_NOT_PROVIDED");
         });
 
-        it.skip("allows to create new sales", async () => {
+        it("allows to create new sales", async () => {
             await mesaFactory.setSaleFee(500);
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
-            const initData = await encodeInitDataFairSale(
+            const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
