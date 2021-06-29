@@ -19,7 +19,7 @@ contract TemplateLauncher is CloneFactory {
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
     event AllowPublicTemplatesUpdated(bool allowPublicTemplates);
-    event TemplatemetaDataContentHashUpdated(
+    event TemplateMetaDataContentHashUpdated(
         address _launchedTemplate,
         string _newmetaDataContentHash
     );
@@ -154,14 +154,14 @@ contract TemplateLauncher is CloneFactory {
 
     /// @dev allows the template deployer to update the template metaDataContentHash
     /// @param _template launched template to be updated
-    /// @param _newmetaDataContentHash ipfs hash to be set
-    function updateTemplatemetaDataContentHash(
+    /// @param _newMetaDataContentHash ipfs hash to be set
+    function updateTemplateMetaDataContentHash(
         address _template,
-        string calldata _newmetaDataContentHash
+        string calldata _newMetaDataContentHash
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template]
-        .metaDataContentHash = _newmetaDataContentHash;
-        emit TemplatemetaDataContentHashUpdated(
+        .metaDataContentHash = _newMetaDataContentHash;
+        emit TemplateMetaDataContentHashUpdated(
             _template,
             _newmetaDataContentHash
         );
