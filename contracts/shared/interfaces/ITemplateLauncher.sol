@@ -8,4 +8,6 @@ interface ITemplateLauncher {
         string calldata _metaDataContentHash,
         address _templateDeployer
     ) external payable returns (address newSale);
+
+    function participantListLaucher() external view returns (address);
 }

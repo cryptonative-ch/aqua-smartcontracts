@@ -37,6 +37,7 @@ contract TemplateLauncher is CloneFactory {
 
     uint256 templateCounter;
     address public factory;
+    address public participantListLaucher;
     bool public allowPublicTemplates;
 
     modifier isTemplateManager {
@@ -64,9 +65,10 @@ contract TemplateLauncher is CloneFactory {
         _;
     }
 
-    constructor(address _factory) public {
+    constructor(address _factory, address _participantListLaucher) public {
         factory = _factory;
         allowPublicTemplates = false;
+        participantListLaucher = _participantListLaucher;
     }
 
     /// @dev function to launch a template on Mesa, called from MesaFactory

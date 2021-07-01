@@ -12,6 +12,8 @@ describe("SaleLauncher", async () => {
     let templateLauncher: Contract;
     let fairSaleTemplate: Contract;
     let fairSaleTemplateDefault: Contract;
+    let participantListTemplate: Contract;
+    let participantListLauncher: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let defaultTemplate: String;
@@ -89,11 +91,27 @@ describe("SaleLauncher", async () => {
             0
         );
 
+        const ParticipantListTemplate = await ethers.getContractFactory(
+            "ParticipantList"
+        );
+        participantListTemplate = await ParticipantListTemplate.deploy();
+
+        const ParticipantListLauncher = await ethers.getContractFactory(
+            "ParticipantListLauncher"
+        );
+        participantListLauncher = await ParticipantListLauncher.deploy(
+            mesaFactory.address,
+            participantListTemplate.address
+        );
+
         const TemplateLauncher = await ethers.getContractFactory(
             "TemplateLauncher"
         );
 
-        templateLauncher = await TemplateLauncher.deploy(mesaFactory.address);
+        templateLauncher = await TemplateLauncher.deploy(
+            mesaFactory.address,
+            participantListLauncher.address
+        );
 
         await mesaFactory.setTemplateLauncher(templateLauncher.address);
 

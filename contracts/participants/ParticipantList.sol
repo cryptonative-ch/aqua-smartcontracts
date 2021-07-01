@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-newer
 pragma solidity >=0.6.8;
+import "hardhat/console.sol";
+
 
 contract ParticipantList {
     bool public initialized;
@@ -10,6 +12,8 @@ contract ParticipantList {
     event AmountsUpdated(address indexed account, uint256 amounts);
 
     function init(address[] memory managers) external {
+        console.log("Init:", msg.sender);
+        console.log("this:", address(this));
         require(!initialized, "ParticipantList: ALREADY_INITIALIZED");
         require(managers.length > 0, "ParticipantList: NO_MANAGERS");
         initialized = true;
@@ -27,6 +31,7 @@ contract ParticipantList {
         address[] memory accounts,
         uint256[] memory amounts
     ) external {
+        console.log("Caller:", msg.sender);
         require(listManagers[msg.sender], "ParticipantList: FORBIDDEN");
         require(
             accounts.length == amounts.length,

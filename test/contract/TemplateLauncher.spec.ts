@@ -15,6 +15,8 @@ describe("TemplateLauncher", async () => {
     let fixedPriceSaleTemplate: Contract;
     let fixedPriceSaleTemplateDefault: Contract;
     let newFixedPriceSaleTemplate: Contract;
+    let participantListTemplate: Contract;
+    let participantListLauncher: Contract;
     let tokenA: Contract;
     let tokenB: Contract;
     let defaultTemplate: String;
@@ -40,7 +42,8 @@ describe("TemplateLauncher", async () => {
         endDate: number,
         minCommitment: BigNumber,
         maxCommitment: BigNumber,
-        minRaise: BigNumber
+        minRaise: BigNumber,
+        partipantList: boolean
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -56,6 +59,7 @@ describe("TemplateLauncher", async () => {
                 "uint256",
                 "uint256",
                 "uint256",
+                "bool",
             ],
             [
                 saleLauncher,
@@ -70,6 +74,7 @@ describe("TemplateLauncher", async () => {
                 minCommitment,
                 maxCommitment,
                 minRaise,
+                partipantList,
             ]
         );
     }
@@ -92,11 +97,27 @@ describe("TemplateLauncher", async () => {
             0
         );
 
+        const ParticipantListTemplate = await ethers.getContractFactory(
+            "ParticipantList"
+        );
+        participantListTemplate = await ParticipantListTemplate.deploy();
+
+        const ParticipantListLauncher = await ethers.getContractFactory(
+            "ParticipantListLauncher"
+        );
+        participantListLauncher = await ParticipantListLauncher.deploy(
+            mesaFactory.address,
+            participantListTemplate.address
+        );
+
         const TemplateLauncher = await ethers.getContractFactory(
             "TemplateLauncher"
         );
 
-        templateLauncher = await TemplateLauncher.deploy(mesaFactory.address);
+        templateLauncher = await TemplateLauncher.deploy(
+            mesaFactory.address,
+            participantListLauncher.address
+        );
 
         await mesaFactory.setTemplateLauncher(templateLauncher.address);
 
@@ -257,7 +278,8 @@ describe("TemplateLauncher", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                true
             );
 
             await expect(
@@ -283,7 +305,8 @@ describe("TemplateLauncher", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                true
             );
 
             await expect(
@@ -306,7 +329,8 @@ describe("TemplateLauncher", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                true
             );
 
             await expect(
@@ -332,7 +356,77 @@ describe("TemplateLauncher", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                false
+            );
+
+            await tokenB.mint(
+                templateManager.address,
+                expandTo18Decimals(5000)
+            );
+            await tokenB.approve(
+                saleLauncher.address,
+                expandTo18Decimals(5000)
+            );
+            await tokenA.mint(
+                templateManager.address,
+                expandTo18Decimals(5000)
+            );
+            await tokenA.approve(
+                saleLauncher.address,
+                expandTo18Decimals(5000)
+            );
+
+            expect(await mesaFactory.numberOfTemplates()).to.be.equal(0);
+            const launchedTemplate = await mesaFactory.launchTemplate(
+                1,
+                initData,
+                "0x",
+                {
+                    value: 500,
+                }
+            );
+
+            expect(await mesaFactory.numberOfTemplates()).to.be.equal(1);
+
+            const launchedTemplateTx =
+                await ethers.provider.getTransactionReceipt(
+                    launchedTemplate.hash
+                );
+
+            newFixedPriceSaleTemplate = new ethers.Contract(
+                launchedTemplateTx.logs[1].address,
+                FixedPriceSaleTemplate.abi,
+                templateManager
+            );
+
+            await newFixedPriceSaleTemplate
+                .connect(templateManager)
+                .createSale({
+                    value: 500,
+                });
+        });
+
+        it("only templateDeployer can update Metadata", async () => {
+            await mesaFactory.setSaleFee(500);
+            await templateLauncher.addTemplate(
+                fixedPriceSaleTemplateDefault.address
+            );
+
+            const initData = await encodeInitDataFixedPrice(
+                saleLauncher.address,
+                1,
+                templateManager.address,
+                tokenA.address,
+                tokenB.address,
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
+                false
             );
 
             await tokenB.mint(
@@ -372,11 +466,23 @@ describe("TemplateLauncher", async () => {
                 templateManager
             );
 
-            await newFixedPriceSaleTemplate
-                .connect(templateManager)
-                .createSale({
-                    value: 500,
-                });
+            await expect(
+                templateLauncher
+                    .connect(user_2)
+                    .updateTemplateMetaDataContentHash(
+                        newFixedPriceSaleTemplate.address,
+                        "1x"
+                    )
+            ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
+
+            await expect(
+                templateLauncher.updateTemplateMetaDataContentHash(
+                    newFixedPriceSaleTemplate.address,
+                    "1x"
+                )
+            )
+                .to.emit(templateLauncher, "TemplateMetaDataContentHashUpdated")
+                .withArgs(newFixedPriceSaleTemplate.address, "1x");
         });
     });
 });
