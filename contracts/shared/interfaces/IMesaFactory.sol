@@ -8,6 +8,8 @@ interface IMesaFactory {
 
     function templateManager() external view returns (address);
 
+    function templateLauncher() external view returns (address);
+
     function templateFee() external view returns (uint256);
 
     function saleFee() external view returns (uint256);

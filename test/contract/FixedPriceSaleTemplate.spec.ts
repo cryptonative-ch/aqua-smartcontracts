@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { Contract, BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
+import ParticipantList from "../../build/artifacts/contracts/participants/ParticipantList.sol/ParticipantList.json";
 
 import { expandTo18Decimals } from "./utilities";
 
@@ -10,6 +11,10 @@ let saleLauncher: Contract;
 let mesaFactory: Contract;
 let tokenA: Contract;
 let tokenB: Contract;
+let templateLauncher: Contract;
+let participantListTemplate: Contract;
+let participantListLauncher: Contract;
+let participantList: Contract;
 let fixedPriceSaleTemplate: Contract;
 let fixedPriceSale: Contract;
 let currentBlockNumber, currentBlock;
@@ -35,7 +40,7 @@ function encodeInitDataFixedPrice(
     minCommitment: BigNumber,
     maxCommitment: BigNumber,
     minRaise: BigNumber,
-    owner: string
+    participantList: boolean
 ) {
     return ethers.utils.defaultAbiCoder.encode(
         [
@@ -51,7 +56,7 @@ function encodeInitDataFixedPrice(
             "uint256",
             "uint256",
             "uint256",
-            "address",
+            "bool",
         ],
         [
             saleLauncher,
@@ -66,7 +71,7 @@ function encodeInitDataFixedPrice(
             minCommitment,
             maxCommitment,
             minRaise,
-            owner,
+            participantList,
         ]
     );
 }
@@ -87,6 +92,30 @@ beforeEach(async () => {
         0,
         0
     );
+
+    const ParticipantListTemplate = await ethers.getContractFactory(
+        "ParticipantList"
+    );
+    participantListTemplate = await ParticipantListTemplate.deploy();
+
+    const ParticipantListLauncher = await ethers.getContractFactory(
+        "ParticipantListLauncher"
+    );
+    participantListLauncher = await ParticipantListLauncher.deploy(
+        mesaFactory.address,
+        participantListTemplate.address
+    );
+
+    const TemplateLauncher = await ethers.getContractFactory(
+        "TemplateLauncher"
+    );
+
+    templateLauncher = await TemplateLauncher.deploy(
+        mesaFactory.address,
+        participantListLauncher.address
+    );
+
+    await mesaFactory.setTemplateLauncher(templateLauncher.address);
 
     const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
     saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
@@ -120,7 +149,7 @@ describe("FixedPriceSaleTemplate", async () => {
             defaultMinCommitment,
             defaultMaxCommitment,
             defaultMinRaise,
-            templateManager.address
+            false
         );
 
         await expect(fixedPriceSaleTemplate.init(initData))
@@ -134,7 +163,8 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                false
             );
 
         await expect(fixedPriceSaleTemplate.init(initData)).to.be.revertedWith(
@@ -156,7 +186,7 @@ describe("FixedPriceSaleTemplate", async () => {
             defaultMinCommitment,
             defaultMaxCommitment,
             defaultMinRaise,
-            templateManager.address
+            true
         );
 
         await expect(fixedPriceSaleTemplate.init(initData))
@@ -170,7 +200,8 @@ describe("FixedPriceSaleTemplate", async () => {
                 defaultEndDate,
                 defaultMinCommitment,
                 defaultMaxCommitment,
-                defaultMinRaise
+                defaultMinRaise,
+                true
             );
 
         await expect(
@@ -181,5 +212,57 @@ describe("FixedPriceSaleTemplate", async () => {
         await fixedPriceSaleTemplate.createSale({
             value: 500,
         });
+    });
+
+    it("only tokenSupplier can manage the participantList", async () => {
+        const initData = encodeInitDataFixedPrice(
+            saleLauncher.address,
+            1,
+            templateManager.address,
+            tokenA.address,
+            tokenB.address,
+            defaultTokenPrice,
+            defaultTokensForSale,
+            defaultStartDate,
+            defaultEndDate,
+            defaultMinCommitment,
+            defaultMaxCommitment,
+            defaultMinRaise,
+            true
+        );
+
+        const launchedTemplate = await fixedPriceSaleTemplate.init(initData);
+
+        const launchedTemplateTx = await ethers.provider.getTransactionReceipt(
+            launchedTemplate.hash
+        );
+
+        const participantListAddress = ethers.utils.hexStripZeros(
+            launchedTemplateTx.logs[1].topics[1]
+        );
+
+        participantList = new ethers.Contract(
+            participantListAddress,
+            ParticipantList.abi,
+            templateManager
+        );
+
+        await expect(
+            await participantList.isInList(user_2.address)
+        ).to.be.equal(false);
+
+        await expect(
+            participantList
+                .connect(user_2)
+                .setParticipantAmounts([user_2.address], [100])
+        ).to.be.revertedWith("ParticipantList: FORBIDDEN");
+
+        await participantList
+            .connect(templateManager)
+            .setParticipantAmounts([user_2.address], [100]);
+
+        await expect(
+            await participantList.isInList(user_2.address)
+        ).to.be.equal(true);
     });
 });

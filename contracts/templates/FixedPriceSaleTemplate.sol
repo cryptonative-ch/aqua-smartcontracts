@@ -3,7 +3,11 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../shared/interfaces/ISaleLauncher.sol";
 import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/interfaces/ITemplateLauncher.sol";
 import "../shared/utils/MesaTemplate.sol";
+import "../shared/interfaces/IParticipantListLauncher.sol";
+import "../shared/interfaces/IParticipantList.sol";
+import "hardhat/console.sol";
 
 contract FixedPriceSaleTemplate is MesaTemplate {
     ISaleLauncher public saleLauncher;
@@ -16,6 +20,7 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     bytes public encodedInitData;
     bool public isInitialized;
     bool public isSaleCreated;
+    address public templateLauncher;
 
     event TemplateInitialized(
         address tokenIn,
@@ -26,7 +31,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         uint256 endDate,
         uint256 minCommitment,
         uint256 maxCommitment,
-        uint256 minRaise
+        uint256 minRaise,
+        bool participantList
     );
 
     constructor() public {
@@ -46,7 +52,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     /// @param _endDate unix timestamp when the sale ends
     /// @param _minCommitment minimum tokenIn to buy
     /// @param _maxCommitment maximum tokenIn to buy
-    /// @param _minRaise sale goal, if not reached,, investors can claim back their committed tokens
+    /// @param _minRaise sale goal,if not reached investors can claim back their committed tokens
+    /// @param _participantList defines if a participantList should be launched
     function initTemplate(
         address _saleLauncher,
         uint256 _saleTemplateId,
@@ -59,18 +66,32 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         uint256 _endDate,
         uint256 _minCommitment,
         uint256 _maxCommitment,
-        uint256 _minRaise
+        uint256 _minRaise,
+        bool _participantList
     ) internal {
         require(!isInitialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
         mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
         templateManager = mesaFactory.templateManager();
+        templateLauncher = mesaFactory.templateLauncher();
         saleTemplateId = _saleTemplateId;
         tokensForSale = _tokensForSale;
         tokenOut = _tokenOut;
         tokenSupplier = _tokenSupplier;
         isInitialized = true;
+        address participantList;
+
+        if (_participantList) {
+            address participantListLauncher = ITemplateLauncher(
+                templateLauncher
+            ).participantListLaucher();
+
+            address[] memory listManagers = new address[](1);
+            listManagers[0] = address(_tokenSupplier);
+            participantList = IParticipantListLauncher(participantListLauncher)
+            .launchParticipantList(listManagers);
+        }
 
         encodedInitData = abi.encode(
             IERC20(_tokenIn),
@@ -82,7 +103,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _minCommitment,
             _maxCommitment,
             _minRaise,
-            templateManager
+            templateManager,
+            participantList
         );
 
         emit TemplateInitialized(
@@ -94,7 +116,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _endDate,
             _minCommitment,
             _maxCommitment,
-            _minRaise
+            _minRaise,
+            _participantList
         );
     }
 
@@ -129,7 +152,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             uint256 _endDate,
             uint256 _minCommitment,
             uint256 _maxCommitment,
-            uint256 _minRaise
+            uint256 _minRaise,
+            bool _participantList
         ) = abi.decode(
             _data,
             (
@@ -144,7 +168,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
                 uint256,
                 uint256,
                 uint256,
-                uint256
+                uint256,
+                bool
             )
         );
 
@@ -160,7 +185,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
             _endDate,
             _minCommitment,
             _maxCommitment,
-            _minRaise
+            _minRaise,
+            _participantList
         );
     }
 }

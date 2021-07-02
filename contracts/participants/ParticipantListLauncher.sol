@@ -19,7 +19,7 @@ contract ParticipantListLauncher is CloneFactory {
 
     /// @dev function to launch a participant list
     /// @param managers addresses that can update the participantList
-    function launchParticipantManager(address[] memory managers)
+    function launchParticipantList(address[] memory managers)
         external
         returns (address newList)
     {

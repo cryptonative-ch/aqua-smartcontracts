@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { Contract, BigNumber, utils } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
@@ -31,7 +31,8 @@ describe("FixedPriceSale", async () => {
         minCommitment: BigNumber,
         maxCommitment: BigNumber,
         minRaise: BigNumber,
-        owner: string
+        owner: string,
+        partipantList: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -45,6 +46,7 @@ describe("FixedPriceSale", async () => {
                 "uint256",
                 "uint256",
                 "address",
+                "address",
             ],
             [
                 tokenIn,
@@ -57,6 +59,7 @@ describe("FixedPriceSale", async () => {
                 maxCommitment,
                 minRaise,
                 owner,
+                partipantList,
             ]
         );
     }
@@ -95,7 +98,8 @@ describe("FixedPriceSale", async () => {
             defaultminCommitment,
             defaultmaxCommitment,
             defaultMinRaise,
-            user_1.address
+            user_1.address,
+            ethers.constants.AddressZero
         );
 
         await saleIntialized.init(initData);
@@ -112,7 +116,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
@@ -131,7 +136,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
@@ -150,7 +156,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
@@ -169,7 +176,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
@@ -188,7 +196,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData)).to.be.revertedWith(
@@ -209,7 +218,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 defaultMinRaise,
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await expect(fixedPriceSale.init(initData))
@@ -224,7 +234,8 @@ describe("FixedPriceSale", async () => {
                     defaultminCommitment,
                     defaultmaxCommitment,
                     defaultMinRaise,
-                    user_1.address
+                    user_1.address,
+                    ethers.constants.AddressZero
                 )
                 .to.emit(tokenB, "Transfer")
                 .withArgs(
@@ -268,7 +279,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -333,7 +345,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -412,7 +425,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -439,7 +453,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -462,7 +477,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(10),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -485,7 +501,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(10),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -518,7 +535,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -547,7 +565,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(10),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -577,7 +596,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(10),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -600,7 +620,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(20),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -637,7 +658,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -661,7 +683,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -695,7 +718,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -727,7 +751,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -761,7 +786,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -803,7 +829,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -842,7 +869,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
@@ -898,7 +926,8 @@ describe("FixedPriceSale", async () => {
                 defaultminCommitment,
                 defaultmaxCommitment,
                 expandTo18Decimals(0),
-                user_1.address
+                user_1.address,
+                ethers.constants.AddressZero
             );
 
             await fixedPriceSale.init(initData);
