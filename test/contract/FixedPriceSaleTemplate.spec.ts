@@ -214,7 +214,7 @@ describe("FixedPriceSaleTemplate", async () => {
         });
     });
 
-    it.skip("only tokenSupplier can manage the participantList", async () => {
+    it("only tokenSupplier can manage the participantList", async () => {
         const initData = encodeInitDataFixedPrice(
             saleLauncher.address,
             1,
@@ -230,29 +230,39 @@ describe("FixedPriceSaleTemplate", async () => {
             defaultMinRaise,
             true
         );
-        
+
         const launchedTemplate = await fixedPriceSaleTemplate.init(initData);
 
-        const launchedTemplateTx =
-            await ethers.provider.getTransactionReceipt(
-                launchedTemplate.hash
+        const launchedTemplateTx = await ethers.provider.getTransactionReceipt(
+            launchedTemplate.hash
         );
 
+        const participantListAddress = ethers.utils.hexStripZeros(
+            launchedTemplateTx.logs[1].topics[1]
+        );
 
-        console.log("topic", launchedTemplateTx.logs[1].topics[1])
-        const participantListAddress = ethers.utils.zeroPad(launchedTemplateTx.logs[1].topics[1],20)
-
-        console.log("participantListAddress", participantListAddress)
-        /*
-        console.log(participantListAddress)
         participantList = new ethers.Contract(
             participantListAddress,
             ParticipantList.abi,
             templateManager
         );
 
-        await participantList.connect(user_2).setParticipantAmounts([user_2.address],[100])
-        await participantList.connect(templateManager).setParticipantAmounts([user_2.address],[100])
-        */
+        await expect(
+            await participantList.isInList(user_2.address)
+        ).to.be.equal(false);
+
+        await expect(
+            participantList
+                .connect(user_2)
+                .setParticipantAmounts([user_2.address], [100])
+        ).to.be.revertedWith("ParticipantList: FORBIDDEN");
+
+        await participantList
+            .connect(templateManager)
+            .setParticipantAmounts([user_2.address], [100]);
+
+        await expect(
+            await participantList.isInList(user_2.address)
+        ).to.be.equal(true);
     });
 });
