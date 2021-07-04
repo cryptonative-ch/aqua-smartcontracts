@@ -469,19 +469,19 @@ describe("TemplateLauncher", async () => {
             await expect(
                 templateLauncher
                     .connect(user_2)
-                    .updateTemplateMetaDataContentHash(
+                    .updateTemplateMetadataContentHash(
                         newFixedPriceSaleTemplate.address,
                         "1x"
                     )
             ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
 
             await expect(
-                templateLauncher.updateTemplateMetaDataContentHash(
+                templateLauncher.updateTemplateMetadataContentHash(
                     newFixedPriceSaleTemplate.address,
                     "1x"
                 )
             )
-                .to.emit(templateLauncher, "TemplateMetaDataContentHashUpdated")
+                .to.emit(templateLauncher, "TemplateMetadataContentHashUpdated")
                 .withArgs(newFixedPriceSaleTemplate.address, "1x");
         });
     });
