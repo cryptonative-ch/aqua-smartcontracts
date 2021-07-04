@@ -10,7 +10,7 @@ contract TemplateLauncher is CloneFactory {
     using SafeERC20 for IERC20;
 
     event TemplateLaunched(
-        address indexed newTemplate,
+        address indexed template,
         uint256 templateId,
         address templateDeployer,
         string metaDataContentHash
@@ -20,8 +20,8 @@ contract TemplateLauncher is CloneFactory {
     event TemplateVerified(address indexed template, uint256 templateId);
     event AllowPublicTemplatesUpdated(bool allowPublicTemplates);
     event TemplateMetaDataContentHashUpdated(
-        address _launchedTemplate,
-        string _newmetaDataContentHash
+        address template,
+        string newMetaDataContentHash
     );
 
     mapping(uint256 => address) private template;
