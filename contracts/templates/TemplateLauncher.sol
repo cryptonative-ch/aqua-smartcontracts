@@ -13,15 +13,15 @@ contract TemplateLauncher is CloneFactory {
         address indexed template,
         uint256 templateId,
         address templateDeployer,
-        string metaDataContentHash
+        string metadataContentHash
     );
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event TemplateVerified(address indexed template, uint256 templateId);
     event AllowPublicTemplatesUpdated(bool allowPublicTemplates);
-    event TemplateMetaDataContentHashUpdated(
+    event TemplateMetadataContentHashUpdated(
         address template,
-        string newMetaDataContentHash
+        string newdetaDataContentHash
     );
 
     mapping(uint256 => address) private template;
@@ -30,7 +30,7 @@ contract TemplateLauncher is CloneFactory {
 
     struct TemplateData {
         address deployer;
-        string metaDataContentHash;
+        string metadataContentHash;
     }
 
     mapping(address => TemplateData) public launchedTemplate;
@@ -77,7 +77,7 @@ contract TemplateLauncher is CloneFactory {
     function launchTemplate(
         uint256 _templateId,
         bytes calldata _data,
-        string calldata _metaDataContentHash,
+        string calldata _metadataContentHash,
         address _templateDeployer
     ) external payable returns (address newTemplate) {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
@@ -92,13 +92,13 @@ contract TemplateLauncher is CloneFactory {
         newTemplate = _deployTemplate(_templateId);
         launchedTemplate[newTemplate] = TemplateData({
             deployer: _templateDeployer,
-            metaDataContentHash: _metaDataContentHash
+            metadataContentHash: _metadataContentHash
         });
         emit TemplateLaunched(
             address(newTemplate),
             _templateId,
             _templateDeployer,
-            _metaDataContentHash
+            _metadataContentHash
         );
         ITemplate(newTemplate).init(_data);
     }
@@ -154,18 +154,18 @@ contract TemplateLauncher is CloneFactory {
         emit TemplateVerified(template[_templateId], _templateId);
     }
 
-    /// @dev allows the template deployer to update the template metaDataContentHash
+    /// @dev allows the template deployer to update the template metadataContentHash
     /// @param _template launched template to be updated
-    /// @param _newMetaDataContentHash ipfs hash to be set
+    /// @param _newMetadataContentHash ipfs hash to be set
     function updateTemplateMetaDataContentHash(
         address _template,
-        string calldata _newMetaDataContentHash
+        string calldata _newMetadataContentHash
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template]
-        .metaDataContentHash = _newMetaDataContentHash;
-        emit TemplateMetaDataContentHashUpdated(
+        .metadataContentHash = _newMetadataContentHash;
+        emit TemplateMetadataContentHashUpdated(
             _template,
-            _newMetaDataContentHash
+            _newMetadataContentHash
         );
     }
 
