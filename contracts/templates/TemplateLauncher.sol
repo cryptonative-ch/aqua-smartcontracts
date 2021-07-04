@@ -157,7 +157,7 @@ contract TemplateLauncher is CloneFactory {
     /// @dev allows the template deployer to update the template metadataContentHash
     /// @param _template launched template to be updated
     /// @param _newMetadataContentHash ipfs hash to be set
-    function updateTemplateMetaDataContentHash(
+    function updateTemplateMetadataContentHash(
         address _template,
         string calldata _newMetadataContentHash
     ) external isTemplateDeployer(_template) {
