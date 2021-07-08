@@ -30,27 +30,37 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
 
         const MesaFactory = hre.artifacts.require("MesaFactory");
 
-        const mesaFactory = await MesaFactory.new();
+        const mesaFactory = await MesaFactory.new(
+            feeManager,
+            feeTo,
+            templateManager,
+            templateFee,
+            feeNumerator,
+            saleFee
+        );
 
         const SaleLauncher = hre.artifacts.require("SaleLauncher");
 
         const saleLauncher = await SaleLauncher.new(mesaFactory.address);
 
+        const ParticipantList = hre.artifacts.require("ParticipantList");
+
+        const participantList = await ParticipantList.new();
+
+        const ParticipantListLauncher = hre.artifacts.require(
+            "ParticipantListLauncher"
+        );
+
+        const participantListLauncher = await ParticipantListLauncher.new(
+            mesaFactory.address,
+            participantList.address
+        );
+
         const TemplateLauncher = hre.artifacts.require("TemplateLauncher");
 
         const templateLauncher = await TemplateLauncher.new(
-            mesaFactory.address
-        );
-
-        // Initializes Factory
-        await mesaFactory.initialize(
-            feeManager,
-            feeTo,
-            templateManager,
-            templateLauncher.address,
-            templateFee,
-            feeNumerator,
-            saleFee
+            mesaFactory.address,
+            participantListLauncher.address
         );
 
         // Deploy FairSale
@@ -80,8 +90,14 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         await templateLauncher.addTemplate(fixedPriceSaleTemplate.address);
 
         if (verify) {
-            await hre.run("verify", {
+            await hre.run("verify:verify", {
                 address: mesaFactory.address,
+                constructorArguments: [feeManager,
+                    feeTo,
+                    templateManager,
+                    templateFee,
+                    feeNumerator,
+                    saleFee],
             });
 
             await hre.run("verify", {
@@ -99,7 +115,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
 
             await hre.run("verify:verify", {
                 address: templateLauncher.address,
-                constructorArguments: [mesaFactory.address],
+                constructorArguments: [mesaFactory.address, participantListLauncher.address],
             });
 
             await hre.run("verify:verify", {

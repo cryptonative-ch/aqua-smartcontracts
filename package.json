@@ -12,6 +12,7 @@
     "lint:ts": "eslint --max-warnings 0 .",
     "prettier": "prettier 'contracts/**/*.sol' -w && prettier '**/*.ts' -w && prettier 'tasks/*.js' -w",
     "coverage": "hardhat compile && hardhat coverage",
+    "flatten": "./tasks/flatten.sh",
     "deploy:rinkeby": "hardhat deploy --network rinkeby --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --sale-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --verify",
     "deploy:xdai": "hardhat deploy --network xdai --fee-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-to 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af --fee-numerator 0 --sale-fee 0 --template-fee 0 --template-manager 0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af"
   },

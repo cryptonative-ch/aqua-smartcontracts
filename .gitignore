@@ -8,3 +8,4 @@ yarn.lock
 coverage/
 coverage.json
 .env
+contracts/.flattened/
