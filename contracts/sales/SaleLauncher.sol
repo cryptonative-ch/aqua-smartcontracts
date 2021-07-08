@@ -4,7 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../shared/interfaces/ISale.sol";
-import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/interfaces/IAquaFactory.sol";
 import "../shared/libraries/TransferHelper.sol";
 import "../shared/utils/cloneFactory.sol";
 
@@ -33,7 +33,7 @@ contract SaleLauncher is CloneFactory {
 
     modifier isTemplateManager {
         require(
-            msg.sender == IMesaFactory(factory).templateManager(),
+            msg.sender == IAquaFactory(factory).templateManager(),
             "SaleLauncher: FORBIDDEN"
         );
         _;
@@ -51,7 +51,7 @@ contract SaleLauncher is CloneFactory {
         bytes calldata _data
     ) external payable returns (address newSale) {
         require(
-            msg.value >= IMesaFactory(factory).saleFee(),
+            msg.value >= IAquaFactory(factory).saleFee(),
             "SaleLauncher: SALE_FEE_NOT_PROVIDED"
         );
         require(
@@ -62,8 +62,8 @@ contract SaleLauncher is CloneFactory {
         newSale = _deploySale(_templateId);
 
         if (_tokenSupply > 0) {
-            uint256 feeDenominator = IMesaFactory(factory).feeDenominator();
-            uint256 feeNumerator = IMesaFactory(factory).feeNumerator();
+            uint256 feeDenominator = IAquaFactory(factory).feeDenominator();
+            uint256 feeNumerator = IAquaFactory(factory).feeNumerator();
 
             uint256 depositAmount = _tokenSupply
             .mul(feeDenominator.add(feeNumerator))
@@ -78,7 +78,7 @@ contract SaleLauncher is CloneFactory {
             TransferHelper.safeApprove(_token, newSale, _tokenSupply);
             TransferHelper.safeTransfer(
                 _token,
-                IMesaFactory(factory).feeTo(),
+                IAquaFactory(factory).feeTo(),
                 depositAmount.sub(_tokenSupply)
             );
         }
@@ -145,8 +145,8 @@ contract SaleLauncher is CloneFactory {
         view
         returns (uint256)
     {
-        uint256 feeDenominator = IMesaFactory(factory).feeDenominator();
-        uint256 feeNumerator = IMesaFactory(factory).feeNumerator();
+        uint256 feeDenominator = IAquaFactory(factory).feeDenominator();
+        uint256 feeNumerator = IAquaFactory(factory).feeNumerator();
         return
             _tokenSupply.mul(feeDenominator.add(feeNumerator)).div(
                 feeDenominator

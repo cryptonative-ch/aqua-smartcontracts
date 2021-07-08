@@ -9,7 +9,7 @@ import { expandTo18Decimals } from "./utilities";
 describe("TemplateLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
     let saleLauncher: Contract;
-    let mesaFactory: Contract;
+    let aquaFactory: Contract;
     let templateLauncher: Contract;
     let fixedPriceSale: Contract;
     let fixedPriceSaleTemplate: Contract;
@@ -86,9 +86,9 @@ describe("TemplateLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const MesaFactory = await ethers.getContractFactory("MesaFactory");
+        const AquaFactory = await ethers.getContractFactory("AquaFactory");
 
-        mesaFactory = await MesaFactory.deploy(
+        aquaFactory = await AquaFactory.deploy(
             templateManager.address,
             templateManager.address,
             templateManager.address,
@@ -106,7 +106,7 @@ describe("TemplateLauncher", async () => {
             "ParticipantListLauncher"
         );
         participantListLauncher = await ParticipantListLauncher.deploy(
-            mesaFactory.address,
+            aquaFactory.address,
             participantListTemplate.address
         );
 
@@ -115,15 +115,15 @@ describe("TemplateLauncher", async () => {
         );
 
         templateLauncher = await TemplateLauncher.deploy(
-            mesaFactory.address,
+            aquaFactory.address,
             participantListLauncher.address
         );
 
-        await mesaFactory.setTemplateLauncher(templateLauncher.address);
+        await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
         const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
 
-        saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
+        saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
         const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
         tokenA = await ERC20.deploy("tokenA", "tokA");
@@ -169,7 +169,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("throws if template fee is not provided", async () => {
-            await mesaFactory.setTemplateFee(500);
+            await aquaFactory.setTemplateFee(500);
 
             await expect(
                 templateLauncher.addTemplate(
@@ -179,7 +179,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("allows everybody to add new templates if restriction is turned off", async () => {
-            await mesaFactory.setTemplateFee(500);
+            await aquaFactory.setTemplateFee(500);
             await templateLauncher.toggleAllowPublicTemplates();
 
             await expect(
@@ -194,7 +194,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("allows template manager to add new templates if restriction is turned on", async () => {
-            await mesaFactory.setTemplateFee(500);
+            await aquaFactory.setTemplateFee(500);
 
             expect(
                 await templateLauncher.getTemplateId(
@@ -310,12 +310,12 @@ describe("TemplateLauncher", async () => {
             );
 
             await expect(
-                mesaFactory.launchTemplate(3, initData, "0x")
+                aquaFactory.launchTemplate(3, initData, "0x")
             ).to.be.revertedWith("TemplateLauncher: INVALID_TEMPLATE");
         });
 
         it("throws if trying to launch template without providing fee", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
 
             const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
@@ -334,12 +334,12 @@ describe("TemplateLauncher", async () => {
             );
 
             await expect(
-                mesaFactory.launchTemplate(1, initData, "0x")
+                aquaFactory.launchTemplate(1, initData, "0x")
             ).to.be.revertedWith("TemplateLauncher: SALE_FEE_NOT_PROVIDED");
         });
 
         it("allows to launch a template through factory", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
             await templateLauncher.addTemplate(
                 fixedPriceSaleTemplateDefault.address
             );
@@ -377,8 +377,8 @@ describe("TemplateLauncher", async () => {
                 expandTo18Decimals(5000)
             );
 
-            expect(await mesaFactory.numberOfTemplates()).to.be.equal(0);
-            const launchedTemplate = await mesaFactory.launchTemplate(
+            expect(await aquaFactory.numberOfTemplates()).to.be.equal(0);
+            const launchedTemplate = await aquaFactory.launchTemplate(
                 1,
                 initData,
                 "0x",
@@ -387,7 +387,7 @@ describe("TemplateLauncher", async () => {
                 }
             );
 
-            expect(await mesaFactory.numberOfTemplates()).to.be.equal(1);
+            expect(await aquaFactory.numberOfTemplates()).to.be.equal(1);
 
             const launchedTemplateTx =
                 await ethers.provider.getTransactionReceipt(
@@ -408,7 +408,7 @@ describe("TemplateLauncher", async () => {
         });
 
         it("only templateDeployer can update Metadata", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
             await templateLauncher.addTemplate(
                 fixedPriceSaleTemplateDefault.address
             );
@@ -446,7 +446,7 @@ describe("TemplateLauncher", async () => {
                 expandTo18Decimals(5000)
             );
 
-            const launchedTemplate = await mesaFactory.launchTemplate(
+            const launchedTemplate = await aquaFactory.launchTemplate(
                 1,
                 initData,
                 "0x",

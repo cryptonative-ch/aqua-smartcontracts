@@ -2,12 +2,12 @@
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../shared/interfaces/ISaleLauncher.sol";
-import "../shared/interfaces/IMesaFactory.sol";
-import "../shared/utils/MesaTemplate.sol";
+import "../shared/interfaces/IAquaFactory.sol";
+import "../shared/utils/AquaTemplate.sol";
 
-contract FairSaleTemplate is MesaTemplate {
+contract FairSaleTemplate is AquaTemplate {
     ISaleLauncher public saleLauncher;
-    IMesaFactory public mesaFactory;
+    IAquaFactory public aquaFactory;
     uint256 public saleTemplateId;
     address public tokenSupplier;
     address public tokenOut;
@@ -34,8 +34,8 @@ contract FairSaleTemplate is MesaTemplate {
     }
 
     /// @dev internal setup function to initialize the template, called by init()
-    /// @param _saleLauncher address of Mesa SaleLauncher
-    /// @param _saleTemplateId Mesa Auction TemplateId
+    /// @param _saleLauncher address of Aqua SaleLauncher
+    /// @param _saleTemplateId Aqua Auction TemplateId
     /// @param _tokenIn token to bid on auction
     /// @param _tokenOut token to be auctioned
     /// @param _duration auction duration in seconds
@@ -61,7 +61,7 @@ contract FairSaleTemplate is MesaTemplate {
         require(!isInitialized, "FairSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
-        mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
+        aquaFactory = IAquaFactory(ISaleLauncher(_saleLauncher).factory());
         saleTemplateId = _saleTemplateId;
 
         bool isAtomicClosureAllowed = false;

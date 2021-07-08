@@ -8,7 +8,7 @@ import { expandTo18Decimals } from "./utilities";
 
 const [templateManager, user_2] = waffle.provider.getWallets();
 let saleLauncher: Contract;
-let mesaFactory: Contract;
+let aquaFactory: Contract;
 let tokenA: Contract;
 let tokenB: Contract;
 let templateLauncher: Contract;
@@ -83,8 +83,8 @@ beforeEach(async () => {
     defaultStartDate = currentBlock.timestamp + 500;
     defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-    const MesaFactory = await ethers.getContractFactory("MesaFactory");
-    mesaFactory = await MesaFactory.deploy(
+    const AquaFactory = await ethers.getContractFactory("AquaFactory");
+    aquaFactory = await AquaFactory.deploy(
         templateManager.address,
         templateManager.address,
         templateManager.address,
@@ -102,7 +102,7 @@ beforeEach(async () => {
         "ParticipantListLauncher"
     );
     participantListLauncher = await ParticipantListLauncher.deploy(
-        mesaFactory.address,
+        aquaFactory.address,
         participantListTemplate.address
     );
 
@@ -111,14 +111,14 @@ beforeEach(async () => {
     );
 
     templateLauncher = await TemplateLauncher.deploy(
-        mesaFactory.address,
+        aquaFactory.address,
         participantListLauncher.address
     );
 
-    await mesaFactory.setTemplateLauncher(templateLauncher.address);
+    await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
     const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
-    saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
+    saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
     const FixedPriceSaleTemplate = await ethers.getContractFactory(
         "FixedPriceSaleTemplate"

@@ -1,8 +1,8 @@
 const { task, ethers } = require("hardhat/config");
 
 task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
-    .addParam("saleLauncher", "The address of the Mesa Sale Launcher")
-    .addParam("saleTemplateId", "The id of Mesa FairSale Template")
+    .addParam("saleLauncher", "The address of the Aqua Sale Launcher")
+    .addParam("saleTemplateId", "The id of Aqua FairSale Template")
     .addParam(
         "tokenOut",
         "The ERC20's address of the token that should be sold"
@@ -58,8 +58,8 @@ task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
             saleLauncher
         );
         const factoryAddress = await saleLauncherAdd.factory();
-        const mesaFactory = await hre.ethers.getContractAt(
-            "MesaFactory",
+        const aquaFactory = await hre.ethers.getContractAt(
+            "AquaFactory",
             factoryAddress
         );
 
@@ -79,7 +79,7 @@ task("launchFixedPriceSale", "Starts a new sale from FixedPriceSale template")
             owner
         );
 
-        const launchTemplateTx = await mesaFactory.launchTemplate(
+        const launchTemplateTx = await aquaFactory.launchTemplate(
             saleTemplateId,
             initData
         );
