@@ -3,7 +3,7 @@ pragma solidity >=0.6.8;
 
 import "./shared/interfaces/ITemplateLauncher.sol";
 
-contract MesaFactory {
+contract AquaFactory {
     event FactoryInitialized(
         address feeManager,
         address feeTo,
@@ -35,16 +35,16 @@ contract MesaFactory {
     bool public initialized = false;
 
     modifier isTemplateManager {
-        require(msg.sender == templateManager, "MesaFactory: FORBIDDEN");
+        require(msg.sender == templateManager, "AquaFactory: FORBIDDEN");
         _;
     }
 
     modifier isFeeManager {
-        require(msg.sender == feeManager, "MesaFactory: FORBIDDEN");
+        require(msg.sender == feeManager, "AquaFactory: FORBIDDEN");
         _;
     }
 
-    /// @dev setup function to initialize the Mesa Factory
+    /// @dev setup function to initialize the Aqua Factory
     /// @param _feeManager address that is allowed to update fees
     /// @param _feeTo address that receives fees
     /// @param _templateManager address that is allowed to manage templates
@@ -77,7 +77,7 @@ contract MesaFactory {
         );
     }
 
-    /// @dev function to launch a template on Mesa
+    /// @dev function to launch a template on Aqua
     /// @param _templateId template to be deployed
     /// @param _data encoded template parameters
     /// @param _metaData ipfsHash pointing to the metadata

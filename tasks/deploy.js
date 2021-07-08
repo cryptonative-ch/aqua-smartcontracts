@@ -1,6 +1,6 @@
 const { task } = require("hardhat/config");
 
-task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
+task("deploy", "Deploys the Aqua Contract suite and verifies on Etherscan")
     .addParam("feeManager", "The address which is able to update fees")
     .addParam("feeTo", "The receiver of fees")
     .addParam("feeNumerator", "Amount of fees")
@@ -28,9 +28,9 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         await hre.run("clean");
         await hre.run("compile");
 
-        const MesaFactory = hre.artifacts.require("MesaFactory");
+        const AquaFactory = hre.artifacts.require("AquaFactory");
 
-        const mesaFactory = await MesaFactory.new(
+        const aquaFactory = await AquaFactory.new(
             feeManager,
             feeTo,
             templateManager,
@@ -41,7 +41,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
 
         const SaleLauncher = hre.artifacts.require("SaleLauncher");
 
-        const saleLauncher = await SaleLauncher.new(mesaFactory.address);
+        const saleLauncher = await SaleLauncher.new(aquaFactory.address);
 
         const ParticipantList = hre.artifacts.require("ParticipantList");
 
@@ -52,14 +52,14 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
         );
 
         const participantListLauncher = await ParticipantListLauncher.new(
-            mesaFactory.address,
+            aquaFactory.address,
             participantList.address
         );
 
         const TemplateLauncher = hre.artifacts.require("TemplateLauncher");
 
         const templateLauncher = await TemplateLauncher.new(
-            mesaFactory.address,
+            aquaFactory.address,
             participantListLauncher.address
         );
 
@@ -91,7 +91,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
 
         if (verify) {
             await hre.run("verify:verify", {
-                address: mesaFactory.address,
+                address: aquaFactory.address,
                 constructorArguments: [feeManager,
                     feeTo,
                     templateManager,
@@ -110,12 +110,12 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
 
             await hre.run("verify:verify", {
                 address: saleLauncher.address,
-                constructorArguments: [mesaFactory.address],
+                constructorArguments: [aquaFactory.address],
             });
 
             await hre.run("verify:verify", {
                 address: templateLauncher.address,
-                constructorArguments: [mesaFactory.address, participantListLauncher.address],
+                constructorArguments: [aquaFactory.address, participantListLauncher.address],
             });
 
             await hre.run("verify:verify", {
@@ -129,7 +129,7 @@ task("deploy", "Deploys the Mesa Contract suite and verifies on Etherscan")
             console.log(`verified contracts successfully`);
         }
 
-        console.log(`MesaFactory deployed at ${mesaFactory.address}`);
+        console.log(`AquaFactory deployed at ${aquaFactory.address}`);
 
         console.log(`SaleLauncher deployed at address ${saleLauncher.address}`);
 

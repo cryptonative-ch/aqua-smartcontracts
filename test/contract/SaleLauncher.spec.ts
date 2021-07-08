@@ -8,7 +8,7 @@ import { expandTo18Decimals } from "./utilities";
 describe("SaleLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
     let saleLauncher: Contract;
-    let mesaFactory: Contract;
+    let aquaFactory: Contract;
     let templateLauncher: Contract;
     let fairSaleTemplate: Contract;
     let fairSaleTemplateDefault: Contract;
@@ -80,9 +80,9 @@ describe("SaleLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const MesaFactory = await ethers.getContractFactory("MesaFactory");
+        const AquaFactory = await ethers.getContractFactory("AquaFactory");
 
-        mesaFactory = await MesaFactory.deploy(
+        aquaFactory = await AquaFactory.deploy(
             templateManager.address,
             templateManager.address,
             templateManager.address,
@@ -100,7 +100,7 @@ describe("SaleLauncher", async () => {
             "ParticipantListLauncher"
         );
         participantListLauncher = await ParticipantListLauncher.deploy(
-            mesaFactory.address,
+            aquaFactory.address,
             participantListTemplate.address
         );
 
@@ -109,15 +109,15 @@ describe("SaleLauncher", async () => {
         );
 
         templateLauncher = await TemplateLauncher.deploy(
-            mesaFactory.address,
+            aquaFactory.address,
             participantListLauncher.address
         );
 
-        await mesaFactory.setTemplateLauncher(templateLauncher.address);
+        await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
         const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
 
-        saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
+        saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
         const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
         tokenA = await ERC20.deploy("tokenA", "tokA");
@@ -219,7 +219,7 @@ describe("SaleLauncher", async () => {
         });
 
         it("throws if trying to launch sales without providing sales fee", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
 
             const initData = await encodeInitDataFixedPrice(
                 saleLauncher.address,
@@ -248,7 +248,7 @@ describe("SaleLauncher", async () => {
         });
 
         it("allows to create new sales", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 

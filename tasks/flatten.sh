@@ -1,5 +1,5 @@
 mkdir ./contracts/.flattened
-npx hardhat flatten ./contracts/MesaFactory.sol > ./contracts/.flattened/MesaFactory.sol
+npx hardhat flatten ./contracts/AquaFactory.sol > ./contracts/.flattened/AquaFactory.sol
 npx hardhat flatten ./contracts/sales/SaleLauncher.sol > ./contracts/.flattened/SaleLauncher.sol
 npx hardhat flatten ./contracts/sales/FairSale.sol > ./contracts/.flattened/FairSale.sol
 npx hardhat flatten ./contracts/sales/FixedPriceSale.sol > ./contracts/.flattened/FixedPriceSale.sol

@@ -3,7 +3,7 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../shared/interfaces/ITemplate.sol";
-import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/interfaces/IAquaFactory.sol";
 import "../shared/utils/cloneFactory.sol";
 
 contract TemplateLauncher is CloneFactory {
@@ -42,7 +42,7 @@ contract TemplateLauncher is CloneFactory {
 
     modifier isTemplateManager {
         require(
-            msg.sender == IMesaFactory(factory).templateManager(),
+            msg.sender == IAquaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
         );
         _;
@@ -59,7 +59,7 @@ contract TemplateLauncher is CloneFactory {
     modifier isAllowedToAddTemplate {
         require(
             allowPublicTemplates ||
-                msg.sender == IMesaFactory(factory).templateManager(),
+                msg.sender == IAquaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
         );
         _;
@@ -71,7 +71,7 @@ contract TemplateLauncher is CloneFactory {
         participantListLaucher = _participantListLaucher;
     }
 
-    /// @dev function to launch a template on Mesa, called from MesaFactory
+    /// @dev function to launch a template on Aqua, called from AquaFactory
     /// @param _templateId template to be deployed
     /// @param _data encoded template parameters
     function launchTemplate(
@@ -82,7 +82,7 @@ contract TemplateLauncher is CloneFactory {
     ) external payable returns (address newTemplate) {
         require(address(msg.sender) == factory, "TemplateLauncher: FORBIDDEN");
         require(
-            msg.value >= IMesaFactory(factory).saleFee(),
+            msg.value >= IAquaFactory(factory).saleFee(),
             "TemplateLauncher: SALE_FEE_NOT_PROVIDED"
         );
         require(
@@ -121,7 +121,7 @@ contract TemplateLauncher is CloneFactory {
         returns (uint256)
     {
         require(
-            msg.value >= IMesaFactory(factory).templateFee(),
+            msg.value >= IAquaFactory(factory).templateFee(),
             "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"
         );
         require(

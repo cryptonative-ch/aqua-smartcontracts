@@ -2,16 +2,16 @@
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../shared/interfaces/ISaleLauncher.sol";
-import "../shared/interfaces/IMesaFactory.sol";
+import "../shared/interfaces/IAquaFactory.sol";
 import "../shared/interfaces/ITemplateLauncher.sol";
-import "../shared/utils/MesaTemplate.sol";
+import "../shared/utils/AquaTemplate.sol";
 import "../shared/interfaces/IParticipantListLauncher.sol";
 import "../shared/interfaces/IParticipantList.sol";
 import "hardhat/console.sol";
 
-contract FixedPriceSaleTemplate is MesaTemplate {
+contract FixedPriceSaleTemplate is AquaTemplate {
     ISaleLauncher public saleLauncher;
-    IMesaFactory public mesaFactory;
+    IAquaFactory public aquaFactory;
     address public templateManager;
     uint256 public saleTemplateId;
     address public tokenSupplier;
@@ -41,8 +41,8 @@ contract FixedPriceSaleTemplate is MesaTemplate {
     }
 
     /// @dev internal setup function to initialize the template, called by init()
-    /// @param _saleLauncher address of Mesa SaleLauncher
-    /// @param _saleTemplateId Mesa Sale TemplateId
+    /// @param _saleLauncher address of Aqua SaleLauncher
+    /// @param _saleTemplateId Aqua Sale TemplateId
     /// @param _tokenSupplier address that deposits the selling tokens
     /// @param _tokenIn token to buy tokens with
     /// @param _tokenOut token to be sold
@@ -72,9 +72,9 @@ contract FixedPriceSaleTemplate is MesaTemplate {
         require(!isInitialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
-        mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
-        templateManager = mesaFactory.templateManager();
-        templateLauncher = mesaFactory.templateLauncher();
+        aquaFactory = IAquaFactory(ISaleLauncher(_saleLauncher).factory());
+        templateManager = aquaFactory.templateManager();
+        templateLauncher = aquaFactory.templateLauncher();
         saleTemplateId = _saleTemplateId;
         tokensForSale = _tokensForSale;
         tokenOut = _tokenOut;
