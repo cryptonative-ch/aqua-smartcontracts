@@ -1,14 +1,17 @@
 {
   "parser": "babel-eslint",
-  "extends": ["eslint:recommended"],
+  "extends": [
+    "eslint:recommended",
+    "@typescript-eslint/parser"
+  ],
   "env": {
-      "node": true,
-      "es6": true,
-      "mocha": true
+    "node": true,
+    "es6": true,
+    "mocha": true
   },
   "globals": {
-      "web3": "readonly",
-      "artifacts": "readonly",
-      "contract": "readonly"
+    "web3": "readonly",
+    "artifacts": "readonly",
+    "contract": "readonly"
   }
 }
