@@ -1,4 +1,4 @@
-import { BigNumberish, BytesLike, Contract } from "ethers";
+import { BigNumberish, BytesLike, Contract, ContractFactory } from "ethers";
 
 export interface InitiateAuctionInput {
     tokenOut: Contract;
@@ -13,3 +13,7 @@ export interface InitiateAuctionInput {
     allowListManager: BytesLike;
     allowListData: BytesLike;
 }
+
+export const contractConstructorArgs = <T extends ContractFactory>(
+    ...args: Parameters<T["deploy"]>
+) => args;
