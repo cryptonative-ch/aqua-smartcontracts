@@ -1,27 +1,42 @@
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
-require("@nomiclabs/hardhat-truffle5");
-require("solidity-coverage");
-require("@nomiclabs/hardhat-etherscan");
-require("hardhat-gas-reporter");
-require("./tasks/deploy");
-require("./tasks/launch_FairSale");
-require("./tasks/launch_FixedPriceSale");
-require("dotenv").config();
+import "@nomiclabs/hardhat-etherscan";
+import "hardhat-deploy";
+import "solidity-coverage";
+import "hardhat-gas-reporter";
+import "./tasks/launch_FairSale";
+import "./tasks/launch_FixedPriceSale";
+import dotenv from "dotenv";
+import { HardhatUserConfig } from "hardhat/types";
 
-module.exports = {
+dotenv.config();
+
+export const config: HardhatUserConfig = {
+    // namedAccounts are used if no config is found for given network in deploy/deployment.config.ts 
+    namedAccounts: {
+        deployer: {
+            default: 0,
+        },
+    },
     networks: {
         mainnet: {
+            live: true,
+            saveDeployments: true,
             url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
         },
         rinkeby: {
+            live: false,
+            saveDeployments: true,
             url: `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`,
-            accounts: [process.env.PRIVATE_KEY],
+            accounts: [`${process.env.PRIVATE_KEY}`],
         },
         xdai: {
+            live: true,
+            saveDeployments: true,
             url: "https://xdai.poanetwork.dev",
-            accounts: [process.env.PRIVATE_KEY],
-        },
-        hardhat: {},
+            accounts: [`${process.env.PRIVATE_KEY}`],
+        }
     },
     mocha: {
         timeout: "600s",
@@ -29,8 +44,9 @@ module.exports = {
     paths: {
         artifacts: "build/artifacts",
         cache: "build/cache",
-        deploy: "src/deploy",
+        deploy: "deploy",
         sources: "contracts",
+        deployments: "deployments",
     },
     solidity: {
         compilers: [
@@ -52,4 +68,10 @@ module.exports = {
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
     },
+    typechain: {
+        outDir: "typechain",
+        target: "ethers-v5",
+    },
 };
+
+export default config;
