@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LGPL-3.0
+
 pragma solidity >=0.6.8;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
