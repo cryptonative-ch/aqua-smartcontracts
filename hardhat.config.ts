@@ -13,7 +13,7 @@ import { HardhatUserConfig } from "hardhat/types";
 dotenv.config();
 
 export const config: HardhatUserConfig = {
-    // namedAccounts are used if no config is found for given network in deploy/deployment.config.ts 
+    // namedAccounts are used if no config is found for given network in deploy/deployment.config.ts
     namedAccounts: {
         deployer: {
             default: 0,
@@ -36,7 +36,7 @@ export const config: HardhatUserConfig = {
             saveDeployments: true,
             url: "https://xdai.poanetwork.dev",
             accounts: [`${process.env.PRIVATE_KEY}`],
-        }
+        },
     },
     mocha: {
         timeout: "600s",

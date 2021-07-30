@@ -47,7 +47,7 @@ const deploymentConfig: { [k: string]: AquaDeploymentParams } = {
         saleFee: 0,
         templateFee: 0,
         feeNumerator: 0,
-    }
+    },
 };
 
 export const getDeploymentConfig = (networkName: string) => {

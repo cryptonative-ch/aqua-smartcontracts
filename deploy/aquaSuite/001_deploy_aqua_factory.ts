@@ -22,7 +22,7 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         config?.templateFee || 0,
         config?.feeNumerator || 0,
         config?.saleFee || 0
-    )
+    );
 
     const deployResult = await deploy("AquaFactory", {
         from: deployer,
@@ -33,7 +33,7 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     if (deployResult.newlyDeployed && deployResult.transactionHash) {
         await runVerify(hre, deployResult.transactionHash, {
             address: deployResult.address,
-            constructorArguments: constructorArgs
+            constructorArguments: constructorArgs,
         });
     }
 };

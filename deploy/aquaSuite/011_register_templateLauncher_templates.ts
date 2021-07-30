@@ -7,7 +7,8 @@ import { TemplateLauncher } from "../../typechain";
 const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, ethers } = hre;
 
-    const { TemplateLauncher, FixedPriceSaleTemplate, FairSaleTemplate } = await deployments.all();
+    const { TemplateLauncher, FixedPriceSaleTemplate, FairSaleTemplate } =
+        await deployments.all();
     const templateLauncherInstance =
         await ethers.getContractAt<TemplateLauncher>(
             "TemplateLauncher",

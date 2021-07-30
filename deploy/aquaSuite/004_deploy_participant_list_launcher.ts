@@ -15,21 +15,22 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const AquaFactory = await get("AquaFactory");
     const ParticipantList = await get("ParticipantList");
 
-    const constructorArgs = contractConstructorArgs<ParticipantListLauncher__factory>(
-        AquaFactory.address,
-        ParticipantList.address
-    )
+    const constructorArgs =
+        contractConstructorArgs<ParticipantListLauncher__factory>(
+            AquaFactory.address,
+            ParticipantList.address
+        );
 
     const deployResult = await deploy("ParticipantListLauncher", {
         from: deployer,
         args: constructorArgs,
-        log: true
+        log: true,
     });
 
     if (deployResult.newlyDeployed && deployResult.transactionHash) {
         await runVerify(hre, deployResult.transactionHash, {
             address: deployResult.address,
-            constructorArguments: constructorArgs
+            constructorArguments: constructorArgs,
         });
     }
 };

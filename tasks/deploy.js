@@ -92,12 +92,14 @@ task("deploy", "Deploys the Aqua Contract suite and verifies on Etherscan")
         if (verify) {
             await hre.run("verify:verify", {
                 address: aquaFactory.address,
-                constructorArguments: [feeManager,
+                constructorArguments: [
+                    feeManager,
                     feeTo,
                     templateManager,
                     templateFee,
                     feeNumerator,
-                    saleFee],
+                    saleFee,
+                ],
             });
 
             await hre.run("verify", {
@@ -115,7 +117,10 @@ task("deploy", "Deploys the Aqua Contract suite and verifies on Etherscan")
 
             await hre.run("verify:verify", {
                 address: templateLauncher.address,
-                constructorArguments: [aquaFactory.address, participantListLauncher.address],
+                constructorArguments: [
+                    aquaFactory.address,
+                    participantListLauncher.address,
+                ],
             });
 
             await hre.run("verify:verify", {

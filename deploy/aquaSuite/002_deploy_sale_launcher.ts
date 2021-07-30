@@ -15,18 +15,18 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const constructorArgs = contractConstructorArgs<SaleLauncher__factory>(
         AquaFactory.address
-    )
+    );
 
     const deployResult = await deploy("SaleLauncher", {
         from: deployer,
         args: constructorArgs,
-        log: true
+        log: true,
     });
 
     if (deployResult.newlyDeployed && deployResult.transactionHash) {
         await runVerify(hre, deployResult.transactionHash, {
             address: deployResult.address,
-            constructorArguments: constructorArgs
+            constructorArguments: constructorArgs,
         });
     }
 };
