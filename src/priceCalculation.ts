@@ -1,5 +1,6 @@
 import { Contract, BigNumber, Wallet } from "ethers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { ERC20Mintable, ERC20Mintable__factory, FairSale } from "../typechain";
 
 export interface Price {
     priceNumerator: BigNumber;
@@ -67,16 +68,16 @@ export function toReceivedFunds(result: [BigNumber, BigNumber]): ReceivedFunds {
     };
 }
 
-export async function getInitialOrder(fairSale: Contract): Promise<Order> {
+export async function getInitialOrder(fairSale: FairSale): Promise<Order> {
     return decodeOrder(await fairSale.initialAuctionOrder());
 }
 
-export async function getInterimOrder(fairSale: Contract): Promise<Order> {
+export async function getInterimOrder(fairSale: FairSale): Promise<Order> {
     return decodeOrder(await fairSale.interimOrder());
 }
 
 export async function getAuctionEndTimeStamp(
-    fairSale: Contract
+    fairSale: FairSale
 ): Promise<BigNumber> {
     const endDate = await fairSale.auctionEndDate();
     return endDate;
@@ -101,11 +102,12 @@ export function hasLowerClearingPrice(order1: Order, order2: Order): number {
 }
 
 export async function calculateClearingPrice(
-    fairSale: Contract,
+    fairSale: FairSale,
     debug = false
 ): Promise<{ clearingOrder: Order; numberOfOrdersToClear: number }> {
     const initialOrder = await getInitialOrder(fairSale);
     const sellOrders = await getAllSellOrders(fairSale);
+
     sellOrders.sort(function (a: Order, b: Order) {
         return hasLowerClearingPrice(a, b);
     });
@@ -229,15 +231,15 @@ export function findClearingPrice(
     }
 }
 
-export async function getAllSellOrders(fairSale: Contract): Promise<Order[]> {
+export async function getAllSellOrders(fairSale: FairSale): Promise<Order[]> {
     const filterSellOrders = fairSale.filters.NewSellOrder(null, null, null);
     const logs = await fairSale.queryFilter(filterSellOrders, 0, "latest");
-    const events = logs.map((log: any) => fairSale.interface.parseLog(log));
-    const sellOrders = events.map((x: any) => {
+    const events = logs.map((log) => fairSale.interface.parseLog(log));
+    const sellOrders = events.map((x) => {
         const order: Order = {
-            userId: x.args[1],
-            sellAmount: x.args[3],
-            buyAmount: x.args[2],
+            userId: x.args.userId,
+            sellAmount: x.args.sellAmount,
+            buyAmount: x.args.buyAmount,
         };
         return order;
     });
@@ -248,14 +250,14 @@ export async function getAllSellOrders(fairSale: Contract): Promise<Order[]> {
         0,
         "latest"
     );
-    const eventsForCancellations = logsForCancellations.map((log: any) =>
+    const eventsForCancellations = logsForCancellations.map((log) =>
         fairSale.interface.parseLog(log)
     );
-    const sellOrdersDeletions = eventsForCancellations.map((x: any) => {
+    const sellOrdersDeletions = eventsForCancellations.map((x) => {
         const order: Order = {
-            userId: x.args[1],
-            sellAmount: x.args[3],
-            buyAmount: x.args[2],
+            userId: x.args.userId,
+            sellAmount: x.args.sellAmount,
+            buyAmount: x.args.buyAmount,
         };
         return order;
     });
@@ -269,10 +271,12 @@ export async function createTokensAndMintAndApprove(
     fairSale: Contract,
     users: Wallet[],
     hre: HardhatRuntimeEnvironment
-): Promise<{ tokenOut: Contract; tokenIn: Contract }> {
-    const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
-    const tokenIn = await ERC20.deploy("BT", "BT");
-    const tokenOut = await ERC20.deploy("BT", "BT");
+): Promise<{ tokenOut: ERC20Mintable; tokenIn: ERC20Mintable }> {
+    const ERC20 = await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+        "ERC20Mintable"
+    );
+    const tokenIn = await ERC20.deploy("tokenIn", "tokIn");
+    const tokenOut = await ERC20.deploy("tokenOut", "tokOut");
 
     for (const user of users) {
         await tokenIn.mint(user.address, BigNumber.from(10).pow(30));
@@ -285,6 +289,7 @@ export async function createTokensAndMintAndApprove(
             .connect(user)
             .approve(fairSale.address, BigNumber.from(10).pow(30));
     }
+
     return { tokenOut: tokenOut, tokenIn: tokenIn };
 }
 
@@ -296,7 +301,7 @@ export function toPrice(result: [BigNumber, BigNumber]): Price {
 }
 
 export async function placeOrders(
-    fairSale: Contract,
+    fairSale: FairSale,
     sellOrders: Order[],
     hre: HardhatRuntimeEnvironment
 ): Promise<void> {
