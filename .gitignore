@@ -9,3 +9,6 @@ coverage/
 coverage.json
 .env
 contracts/.flattened/
+typechain
+deployments/hardhat
+deployments/localhost

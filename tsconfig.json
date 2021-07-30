@@ -9,6 +9,10 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2019",
-    "typeRoots": ["node_modules/@types", "typings"]
+    "typeRoots": [
+      "node_modules/@types",
+      "typings",
+      "typechain/*",
+    ]
   }
 }
