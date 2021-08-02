@@ -15,7 +15,7 @@ contract SaleLauncher is CloneFactory {
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event SaleLaunched(address indexed sale, uint256 templateId);
-    event SaleInitialized(address indexed sale, uint256 templateId, bytes data);
+    event SaleInitialized(address indexed sale, uint256 templateId, address indexed template, bytes data);
 
     struct Sale {
         bool exists;
@@ -48,8 +48,10 @@ contract SaleLauncher is CloneFactory {
         address _token,
         uint256 _tokenSupply,
         address _tokenSupplier,
-        bytes calldata _data
+        bytes calldata _data,
+        address _launchedTemplate
     ) external payable returns (address newSale) {
+
         require(
             msg.value >= IAquaFactory(factory).saleFee(),
             "SaleLauncher: SALE_FEE_NOT_PROVIDED"
@@ -83,7 +85,7 @@ contract SaleLauncher is CloneFactory {
             );
         }
         ISale(newSale).init(_data);
-        emit SaleInitialized(newSale, _templateId, _data);
+        emit SaleInitialized(newSale, _templateId, _launchedTemplate, _data);
         return address(newSale);
     }
 
