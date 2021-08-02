@@ -102,8 +102,7 @@ contract FairSaleTemplate is AquaTemplate {
             tokenOut,
             tokensForSale,
             tokenSupplier,
-            encodedInitData,
-            address(this)
+            encodedInitData
         );
     }
 
