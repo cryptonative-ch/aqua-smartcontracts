@@ -8,7 +8,10 @@ describe("AquaFactory", async () => {
     const [owner, user_2] = waffle.provider.getWallets();
 
     beforeEach(async () => {
-        const AquaFactory = await ethers.getContractFactory<AquaFactory__factory>("AquaFactory");
+        const AquaFactory =
+            await ethers.getContractFactory<AquaFactory__factory>(
+                "AquaFactory"
+            );
 
         aquaFactory = await AquaFactory.deploy(
             owner.address,

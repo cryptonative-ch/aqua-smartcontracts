@@ -3,23 +3,23 @@ import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { expandTo18Decimals } from "./utilities";
-import { 
-    AquaFactory, 
-    SaleLauncher, 
-    ERC20Mintable, 
-    FixedPriceSale, 
-    ParticipantList, 
-    TemplateLauncher, 
-    FixedPriceSaleTemplate, 
-    ParticipantListLauncher, 
-    AquaFactory__factory, 
-    SaleLauncher__factory, 
-    ERC20Mintable__factory, 
-    FixedPriceSale__factory, 
-    ParticipantList__factory, 
-    TemplateLauncher__factory, 
-    FixedPriceSaleTemplate__factory, 
-    ParticipantListLauncher__factory, 
+import {
+    AquaFactory,
+    SaleLauncher,
+    ERC20Mintable,
+    FixedPriceSale,
+    ParticipantList,
+    TemplateLauncher,
+    FixedPriceSaleTemplate,
+    ParticipantListLauncher,
+    AquaFactory__factory,
+    SaleLauncher__factory,
+    ERC20Mintable__factory,
+    FixedPriceSale__factory,
+    ParticipantList__factory,
+    TemplateLauncher__factory,
+    FixedPriceSaleTemplate__factory,
+    ParticipantListLauncher__factory,
 } from "../../typechain";
 import "@nomiclabs/hardhat-ethers";
 
@@ -102,7 +102,10 @@ describe("TemplateLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const AquaFactory = await ethers.getContractFactory<AquaFactory__factory>("AquaFactory");
+        const AquaFactory =
+            await ethers.getContractFactory<AquaFactory__factory>(
+                "AquaFactory"
+            );
 
         aquaFactory = await AquaFactory.deploy(
             templateManager.address,
@@ -113,22 +116,25 @@ describe("TemplateLauncher", async () => {
             0
         );
 
-        const ParticipantListTemplate = await ethers.getContractFactory<ParticipantList__factory>(
-            "ParticipantList"
-        );
+        const ParticipantListTemplate =
+            await ethers.getContractFactory<ParticipantList__factory>(
+                "ParticipantList"
+            );
         participantListTemplate = await ParticipantListTemplate.deploy();
 
-        const ParticipantListLauncher = await ethers.getContractFactory<ParticipantListLauncher__factory>(
-            "ParticipantListLauncher"
-        );
+        const ParticipantListLauncher =
+            await ethers.getContractFactory<ParticipantListLauncher__factory>(
+                "ParticipantListLauncher"
+            );
         participantListLauncher = await ParticipantListLauncher.deploy(
             aquaFactory.address,
             participantListTemplate.address
         );
 
-        const TemplateLauncher = await ethers.getContractFactory<TemplateLauncher__factory>(
-            "TemplateLauncher"
-        );
+        const TemplateLauncher =
+            await ethers.getContractFactory<TemplateLauncher__factory>(
+                "TemplateLauncher"
+            );
 
         templateLauncher = await TemplateLauncher.deploy(
             aquaFactory.address,
@@ -137,31 +143,37 @@ describe("TemplateLauncher", async () => {
 
         await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
-        const SaleLauncher = await ethers.getContractFactory<SaleLauncher__factory>("SaleLauncher");
+        const SaleLauncher =
+            await ethers.getContractFactory<SaleLauncher__factory>(
+                "SaleLauncher"
+            );
 
         saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
-        const ERC20 = await hre.ethers.getContractFactory<ERC20Mintable__factory>("ERC20Mintable");
+        const ERC20 =
+            await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                "ERC20Mintable"
+            );
         tokenA = await ERC20.deploy("tokenA", "tokA");
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const FixedPriceSaleTemplate = await ethers.getContractFactory<FixedPriceSaleTemplate__factory>(
-            "FixedPriceSaleTemplate"
-        );
+        const FixedPriceSaleTemplate =
+            await ethers.getContractFactory<FixedPriceSaleTemplate__factory>(
+                "FixedPriceSaleTemplate"
+            );
 
         fixedPriceSaleTemplate = await FixedPriceSaleTemplate.deploy();
 
         fixedPriceSaleTemplateDefault = await FixedPriceSaleTemplate.deploy();
 
-        const FixedPriceSale = await ethers.getContractFactory<FixedPriceSale__factory>(
-            "FixedPriceSale"
-        );
+        const FixedPriceSale =
+            await ethers.getContractFactory<FixedPriceSale__factory>(
+                "FixedPriceSale"
+            );
         fixedPriceSale = await FixedPriceSale.deploy();
 
-        await saleLauncher.addTemplate(
-            fixedPriceSale.address
-        );
+        await saleLauncher.addTemplate(fixedPriceSale.address);
     });
 
     describe("adding templates", async () => {
@@ -411,12 +423,14 @@ describe("TemplateLauncher", async () => {
                     launchedTemplate.hash
                 );
 
-            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(launchedTemplateTx.logs[1].address, templateManager)
+            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(
+                launchedTemplateTx.logs[1].address,
+                templateManager
+            );
 
-            await newFixedPriceSaleTemplate
-                .createSale({
-                    value: 500,
-                });
+            await newFixedPriceSaleTemplate.createSale({
+                value: 500,
+            });
         });
 
         it("only templateDeployer can update Metadata", async () => {
@@ -472,8 +486,10 @@ describe("TemplateLauncher", async () => {
                     launchedTemplate.hash
                 );
 
-            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(launchedTemplateTx.logs[1].address, templateManager)
-            
+            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(
+                launchedTemplateTx.logs[1].address,
+                templateManager
+            );
 
             await expect(
                 templateLauncher
