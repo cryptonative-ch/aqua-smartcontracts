@@ -1,25 +1,41 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
-import FixedPriceSaleTemplate from "../../build/artifacts/contracts/templates/FairSaleTemplate.sol/FairSaleTemplate.json";
-import "@nomiclabs/hardhat-ethers";
 
 import { expandTo18Decimals } from "./utilities";
+import { 
+    AquaFactory, 
+    SaleLauncher, 
+    ERC20Mintable, 
+    FixedPriceSale, 
+    ParticipantList, 
+    TemplateLauncher, 
+    FixedPriceSaleTemplate, 
+    ParticipantListLauncher, 
+    AquaFactory__factory, 
+    SaleLauncher__factory, 
+    ERC20Mintable__factory, 
+    FixedPriceSale__factory, 
+    ParticipantList__factory, 
+    TemplateLauncher__factory, 
+    FixedPriceSaleTemplate__factory, 
+    ParticipantListLauncher__factory, 
+} from "../../typechain";
+import "@nomiclabs/hardhat-ethers";
 
 describe("TemplateLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
-    let saleLauncher: Contract;
-    let aquaFactory: Contract;
-    let templateLauncher: Contract;
-    let fixedPriceSale: Contract;
-    let fixedPriceSaleTemplate: Contract;
-    let fixedPriceSaleTemplateDefault: Contract;
-    let newFixedPriceSaleTemplate: Contract;
-    let participantListTemplate: Contract;
-    let participantListLauncher: Contract;
-    let tokenA: Contract;
-    let tokenB: Contract;
-    let defaultTemplate: String;
+    let saleLauncher: SaleLauncher;
+    let aquaFactory: AquaFactory;
+    let templateLauncher: TemplateLauncher;
+    let fixedPriceSale: FixedPriceSale;
+    let fixedPriceSaleTemplate: FixedPriceSaleTemplate;
+    let fixedPriceSaleTemplateDefault: FixedPriceSaleTemplate;
+    let newFixedPriceSaleTemplate: FixedPriceSaleTemplate;
+    let participantListTemplate: ParticipantList;
+    let participantListLauncher: ParticipantListLauncher;
+    let tokenA: ERC20Mintable;
+    let tokenB: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
     const defaultTokenPrice = expandTo18Decimals(10);
@@ -86,7 +102,7 @@ describe("TemplateLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const AquaFactory = await ethers.getContractFactory("AquaFactory");
+        const AquaFactory = await ethers.getContractFactory<AquaFactory__factory>("AquaFactory");
 
         aquaFactory = await AquaFactory.deploy(
             templateManager.address,
@@ -97,12 +113,12 @@ describe("TemplateLauncher", async () => {
             0
         );
 
-        const ParticipantListTemplate = await ethers.getContractFactory(
+        const ParticipantListTemplate = await ethers.getContractFactory<ParticipantList__factory>(
             "ParticipantList"
         );
         participantListTemplate = await ParticipantListTemplate.deploy();
 
-        const ParticipantListLauncher = await ethers.getContractFactory(
+        const ParticipantListLauncher = await ethers.getContractFactory<ParticipantListLauncher__factory>(
             "ParticipantListLauncher"
         );
         participantListLauncher = await ParticipantListLauncher.deploy(
@@ -110,7 +126,7 @@ describe("TemplateLauncher", async () => {
             participantListTemplate.address
         );
 
-        const TemplateLauncher = await ethers.getContractFactory(
+        const TemplateLauncher = await ethers.getContractFactory<TemplateLauncher__factory>(
             "TemplateLauncher"
         );
 
@@ -121,16 +137,16 @@ describe("TemplateLauncher", async () => {
 
         await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
-        const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
+        const SaleLauncher = await ethers.getContractFactory<SaleLauncher__factory>("SaleLauncher");
 
         saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
-        const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+        const ERC20 = await hre.ethers.getContractFactory<ERC20Mintable__factory>("ERC20Mintable");
         tokenA = await ERC20.deploy("tokenA", "tokA");
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const FixedPriceSaleTemplate = await ethers.getContractFactory(
+        const FixedPriceSaleTemplate = await ethers.getContractFactory<FixedPriceSaleTemplate__factory>(
             "FixedPriceSaleTemplate"
         );
 
@@ -138,15 +154,16 @@ describe("TemplateLauncher", async () => {
 
         fixedPriceSaleTemplateDefault = await FixedPriceSaleTemplate.deploy();
 
-        const FixedPriceSale = await ethers.getContractFactory(
+        const FixedPriceSale = await ethers.getContractFactory<FixedPriceSale__factory>(
             "FixedPriceSale"
         );
         fixedPriceSale = await FixedPriceSale.deploy();
 
-        defaultTemplate = await saleLauncher.addTemplate(
+        await saleLauncher.addTemplate(
             fixedPriceSale.address
         );
     });
+
     describe("adding templates", async () => {
         it("throws if template added by non-admin & public templates are turned off", async () => {
             await expect(
@@ -394,14 +411,9 @@ describe("TemplateLauncher", async () => {
                     launchedTemplate.hash
                 );
 
-            newFixedPriceSaleTemplate = new ethers.Contract(
-                launchedTemplateTx.logs[1].address,
-                FixedPriceSaleTemplate.abi,
-                templateManager
-            );
+            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(launchedTemplateTx.logs[1].address, templateManager)
 
             await newFixedPriceSaleTemplate
-                .connect(templateManager)
                 .createSale({
                     value: 500,
                 });
@@ -413,7 +425,7 @@ describe("TemplateLauncher", async () => {
                 fixedPriceSaleTemplateDefault.address
             );
 
-            const initData = await encodeInitDataFixedPrice(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 templateManager.address,
@@ -460,11 +472,8 @@ describe("TemplateLauncher", async () => {
                     launchedTemplate.hash
                 );
 
-            newFixedPriceSaleTemplate = new ethers.Contract(
-                launchedTemplateTx.logs[1].address,
-                FixedPriceSaleTemplate.abi,
-                templateManager
-            );
+            newFixedPriceSaleTemplate = FixedPriceSaleTemplate__factory.connect(launchedTemplateTx.logs[1].address, templateManager)
+            
 
             await expect(
                 templateLauncher
