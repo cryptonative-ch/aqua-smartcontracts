@@ -1,16 +1,23 @@
 import { expect } from "chai";
-import { Contract, BigNumber, utils } from "ethers";
+import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
+import {
+    ERC20Mintable,
+    FixedPriceSale,
+    ERC20Mintable__factory,
+    FixedPriceSale__factory,
+    ParticipantList__factory,
+} from "../../typechain";
 import "@nomiclabs/hardhat-ethers";
 
 describe("FixedPriceSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
-    let fixedPriceSale: Contract;
-    let saleIntialized: Contract;
-    let tokenA: Contract;
-    let tokenB: Contract;
+    let fixedPriceSale: FixedPriceSale;
+    let saleIntialized: FixedPriceSale;
+    let tokenA: ERC20Mintable;
+    let tokenB: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
     const defaultTokenPrice = expandTo18Decimals(10);
@@ -71,11 +78,15 @@ describe("FixedPriceSale", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const FixedPriceSale = await ethers.getContractFactory(
-            "FixedPriceSale"
-        );
+        const FixedPriceSale =
+            await ethers.getContractFactory<FixedPriceSale__factory>(
+                "FixedPriceSale"
+            );
 
-        const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+        const ERC20 =
+            await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                "ERC20Mintable"
+            );
 
         fixedPriceSale = await FixedPriceSale.deploy();
         saleIntialized = await FixedPriceSale.deploy();
@@ -292,6 +303,43 @@ describe("FixedPriceSale", async () => {
             ).to.be.revertedWith("FixedPriceSale: sale closed");
         });
 
+        it("throws trying to purchase by non-whitelisted person", async () => {
+            const ParticipantList =
+                await ethers.getContractFactory<ParticipantList__factory>(
+                    "ParticipantList"
+                );
+            const participantList = await ParticipantList.deploy();
+            participantList.init([await user_1.getAddress()]);
+
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
+
+            const initData = encodeInitData(
+                tokenA.address,
+                tokenB.address,
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultminCommitment,
+                defaultmaxCommitment,
+                expandTo18Decimals(0),
+                user_1.address,
+                participantList.address
+            );
+
+            await fixedPriceSale.init(initData);
+            await participantList.setParticipantAmounts(
+                [await user_1.getAddress()],
+                [0]
+            );
+
+            await mineBlock(defaultStartDate);
+
+            await expect(
+                fixedPriceSale.commitTokens(expandTo18Decimals(10))
+            ).to.be.revertedWith("FixedPriceSale: account not allowed");
+        });
+
         it("allows to purchase tokens", async () => {
             await tokenA.approve(
                 saleIntialized.address,
@@ -488,7 +536,7 @@ describe("FixedPriceSale", async () => {
             );
         });
 
-        it("allows closing sale", async () => {
+        it("allows closing sale with minRaise reached", async () => {
             tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
 
             const initData = await encodeInitData(
@@ -512,6 +560,38 @@ describe("FixedPriceSale", async () => {
             );
             await mineBlock(defaultStartDate);
             await fixedPriceSale.commitTokens(expandTo18Decimals(10));
+            await mineBlock(defaultEndDate + 100);
+
+            await expect(fixedPriceSale.closeSale()).to.emit(
+                fixedPriceSale,
+                "SaleClosed"
+            );
+        });
+
+        it("allows closing sale with no minRaise reached", async () => {
+            tokenB.approve(fixedPriceSale.address, defaultTokensForSale);
+
+            const initData = encodeInitData(
+                tokenA.address,
+                tokenB.address,
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultminCommitment,
+                defaultmaxCommitment,
+                expandTo18Decimals(10),
+                user_1.address,
+                ethers.constants.AddressZero
+            );
+
+            await fixedPriceSale.init(initData);
+            await tokenA.approve(
+                fixedPriceSale.address,
+                expandTo18Decimals(10)
+            );
+            await mineBlock(defaultStartDate);
+            await fixedPriceSale.commitTokens(expandTo18Decimals(5));
             await mineBlock(defaultEndDate + 100);
 
             await expect(fixedPriceSale.closeSale()).to.emit(
