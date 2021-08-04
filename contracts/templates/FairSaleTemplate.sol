@@ -69,6 +69,8 @@ contract FairSaleTemplate is AquaTemplate {
         tokenOut = _tokenOut;
         tokensForSale = _tokensForSale;
 
+        isInitialized = true;
+
         encodedInitData = abi.encode(
             IERC20(_tokenIn),
             IERC20(_tokenOut),
