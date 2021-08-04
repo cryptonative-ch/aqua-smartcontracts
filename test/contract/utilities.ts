@@ -4,7 +4,7 @@ import { BigNumber, BigNumberish, Contract } from "ethers";
 import { FairSale } from "../../typechain";
 import { encodeOrder, Order } from "../../src/priceCalculation";
 
-export async function closeAuction(instance: FairSale): Promise<void> {
+export async function closeAuction(instance: Contract): Promise<void> {
     const time_remaining = (
         await instance.getSecondsRemainingInBatch()
     ).toNumber();
@@ -42,7 +42,6 @@ export function expandTo18Decimals(n: number): BigNumber {
 export async function sendTxAndGetReturnValue<T>(
     contract: Contract,
     fnName: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any[]
 ): Promise<T> {
     const result = await contract.callStatic[fnName](...args);

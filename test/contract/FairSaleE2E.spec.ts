@@ -1,19 +1,22 @@
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import {
     createTokensAndMintAndApprove,
     placeOrders,
 } from "../../src/priceCalculation";
-
-import { createAuctionWithDefaults } from "./defaultContractInteractions";
 import { closeAuction } from "./utilities";
+import { FairSale, FairSale__factory } from "../../typechain";
+import { createAuctionWithDefaults } from "./defaultContractInteractions";
 
-describe.skip("FairSale", async () => {
+describe("FairSale", async () => {
     const [user_1, user_2] = waffle.provider.getWallets();
-    let fairSale: Contract;
+    let fairSale: FairSale;
+
     beforeEach(async () => {
-        const FairSale = await ethers.getContractFactory("FairSale");
+        const FairSale = await ethers.getContractFactory<FairSale__factory>(
+            "FairSale"
+        );
 
         fairSale = await FairSale.deploy();
     });
