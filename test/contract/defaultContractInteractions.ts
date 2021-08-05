@@ -1,16 +1,15 @@
-import { Contract, BigNumber } from "ethers";
 import { ethers } from "hardhat";
 
+import { FairSale } from "../../typechain";
+import { encodeFairSaleInitData } from "./utilities";
 import { InitiateAuctionInput } from "../../src/ts/types";
-
-import { sendTxAndGetReturnValue } from "./utilities";
 
 type PartialAuctionInput = Partial<InitiateAuctionInput> &
     Pick<InitiateAuctionInput, "tokenOut" | "tokenIn">;
 
 async function createAuctionInputWithDefaults(
     parameters: PartialAuctionInput
-): Promise<unknown[]> {
+): Promise<Parameters<typeof encodeFairSaleInitData>> {
     const now = (await ethers.provider.getBlock("latest")).timestamp;
     return [
         parameters.tokenIn.address,
@@ -26,10 +25,11 @@ async function createAuctionInputWithDefaults(
 }
 
 export async function createAuctionWithDefaults(
-    fairSale: Contract,
+    fairSale: FairSale,
     parameters: PartialAuctionInput
-): Promise<unknown> {
-    return fairSale.initAuction(
-        ...(await createAuctionInputWithDefaults(parameters))
-    );
+) {
+    const defaultValues = await createAuctionInputWithDefaults(parameters);
+    const params = encodeFairSaleInitData(...defaultValues);
+
+    return fairSale.init(params);
 }

@@ -12,12 +12,12 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
     const deployResult = await deploy("FairSaleTemplate", {
         from: deployer,
-        log: true
+        log: true,
     });
 
     if (deployResult.newlyDeployed && deployResult.transactionHash) {
         await runVerify(hre, deployResult.transactionHash, {
-            address: deployResult.address
+            address: deployResult.address,
         });
     }
 };

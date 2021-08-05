@@ -1,18 +1,23 @@
 import { expect } from "chai";
-import { Contract, BigNumber, utils } from "ethers";
+import { BigNumber, utils } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
+import {
+    ERC20Mintable,
+    FixedPriceSale,
+    ERC20Mintable__factory,
+    FixedPriceSale__factory,
+} from "../../typechain";
 import "@nomiclabs/hardhat-ethers";
-import { parseEther } from "ethers/lib/utils";
 
 describe("E2E: FixedPriceSale", async () => {
     const [idoManager, user_1, user_2, user_3, user_4] =
         waffle.provider.getWallets();
-    let fixedPriceSale: Contract;
-    let saleIntialized: Contract;
-    let aToken: Contract;
-    let daiToken: Contract;
+    let fixedPriceSale: FixedPriceSale;
+    let saleIntialized: FixedPriceSale;
+    let aToken: ERC20Mintable;
+    let daiToken: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
     let startDate: number;
@@ -75,11 +80,15 @@ describe("E2E: FixedPriceSale", async () => {
             startDate = currentBlock.timestamp + 500;
             endDate = startDate + 86400; // 24 hours
 
-            const FixedPriceSale = await ethers.getContractFactory(
-                "FixedPriceSale"
-            );
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
 
-            const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
 
             fixedPriceSale = await FixedPriceSale.deploy();
             saleIntialized = await FixedPriceSale.deploy();
@@ -104,7 +113,7 @@ describe("E2E: FixedPriceSale", async () => {
                 .connect(user_3)
                 .approve(saleIntialized.address, tokensForSale);
 
-            const initData = await encodeInitData(
+            const initData = encodeInitData(
                 daiToken.address,
                 aToken.address,
                 tokenPrice,
@@ -211,11 +220,15 @@ describe("E2E: FixedPriceSale", async () => {
             startDate = currentBlock.timestamp + 500;
             endDate = startDate + 86400; // 24 hours
 
-            const FixedPriceSale = await ethers.getContractFactory(
-                "FixedPriceSale"
-            );
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
 
-            const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
 
             fixedPriceSale = await FixedPriceSale.deploy();
             saleIntialized = await FixedPriceSale.deploy();
@@ -322,11 +335,15 @@ describe("E2E: FixedPriceSale", async () => {
             startDate = currentBlock.timestamp + 500;
             endDate = startDate + 86400; // 24 hours
 
-            const FixedPriceSale = await ethers.getContractFactory(
-                "FixedPriceSale"
-            );
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
 
-            const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
 
             fixedPriceSale = await FixedPriceSale.deploy();
             saleIntialized = await FixedPriceSale.deploy();

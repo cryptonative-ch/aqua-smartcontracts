@@ -1,22 +1,37 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 
 import { expandTo18Decimals } from "./utilities";
+import {
+    AquaFactory,
+    SaleLauncher,
+    ERC20Mintable,
+    ParticipantList,
+    FairSaleTemplate,
+    TemplateLauncher,
+    ParticipantListLauncher,
+    AquaFactory__factory,
+    SaleLauncher__factory,
+    ERC20Mintable__factory,
+    ParticipantList__factory,
+    FairSaleTemplate__factory,
+    TemplateLauncher__factory,
+    ParticipantListLauncher__factory,
+} from "../../typechain";
 
 describe("SaleLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
-    let saleLauncher: Contract;
-    let aquaFactory: Contract;
-    let templateLauncher: Contract;
-    let fairSaleTemplate: Contract;
-    let fairSaleTemplateDefault: Contract;
-    let participantListTemplate: Contract;
-    let participantListLauncher: Contract;
-    let tokenA: Contract;
-    let tokenB: Contract;
-    let defaultTemplate: String;
+    let saleLauncher: SaleLauncher;
+    let aquaFactory: AquaFactory;
+    let templateLauncher: TemplateLauncher;
+    let fairSaleTemplate: FairSaleTemplate;
+    let fairSaleTemplateDefault: FairSaleTemplate;
+    let participantListTemplate: ParticipantList;
+    let participantListLauncher: ParticipantListLauncher;
+    let tokenA: ERC20Mintable;
+    let tokenB: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
     const defaultTokenPrice = expandTo18Decimals(10);
@@ -80,7 +95,10 @@ describe("SaleLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const AquaFactory = await ethers.getContractFactory("AquaFactory");
+        const AquaFactory =
+            await ethers.getContractFactory<AquaFactory__factory>(
+                "AquaFactory"
+            );
 
         aquaFactory = await AquaFactory.deploy(
             templateManager.address,
@@ -91,22 +109,25 @@ describe("SaleLauncher", async () => {
             0
         );
 
-        const ParticipantListTemplate = await ethers.getContractFactory(
-            "ParticipantList"
-        );
+        const ParticipantListTemplate =
+            await ethers.getContractFactory<ParticipantList__factory>(
+                "ParticipantList"
+            );
         participantListTemplate = await ParticipantListTemplate.deploy();
 
-        const ParticipantListLauncher = await ethers.getContractFactory(
-            "ParticipantListLauncher"
-        );
+        const ParticipantListLauncher =
+            await ethers.getContractFactory<ParticipantListLauncher__factory>(
+                "ParticipantListLauncher"
+            );
         participantListLauncher = await ParticipantListLauncher.deploy(
             aquaFactory.address,
             participantListTemplate.address
         );
 
-        const TemplateLauncher = await ethers.getContractFactory(
-            "TemplateLauncher"
-        );
+        const TemplateLauncher =
+            await ethers.getContractFactory<TemplateLauncher__factory>(
+                "TemplateLauncher"
+            );
 
         templateLauncher = await TemplateLauncher.deploy(
             aquaFactory.address,
@@ -115,26 +136,31 @@ describe("SaleLauncher", async () => {
 
         await aquaFactory.setTemplateLauncher(templateLauncher.address);
 
-        const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
+        const SaleLauncher =
+            await ethers.getContractFactory<SaleLauncher__factory>(
+                "SaleLauncher"
+            );
 
         saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
 
-        const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+        const ERC20 =
+            await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                "ERC20Mintable"
+            );
         tokenA = await ERC20.deploy("tokenA", "tokA");
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const FairSaleTemplate = await ethers.getContractFactory(
-            "FairSaleTemplate"
-        );
+        const FairSaleTemplate =
+            await ethers.getContractFactory<FairSaleTemplate__factory>(
+                "FairSaleTemplate"
+            );
 
         fairSaleTemplate = await FairSaleTemplate.deploy();
 
         fairSaleTemplateDefault = await FairSaleTemplate.deploy();
 
-        defaultTemplate = await saleLauncher.addTemplate(
-            fairSaleTemplateDefault.address
-        );
+        await saleLauncher.addTemplate(fairSaleTemplateDefault.address);
     });
     describe("adding templates", async () => {
         it("throws if template added by non-admin", async () => {
@@ -192,7 +218,7 @@ describe("SaleLauncher", async () => {
 
     describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = await encodeInitDataFixedPrice(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
@@ -221,7 +247,7 @@ describe("SaleLauncher", async () => {
         it("throws if trying to launch sales without providing sales fee", async () => {
             await aquaFactory.setSaleFee(500);
 
-            const initData = await encodeInitDataFixedPrice(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
@@ -252,7 +278,7 @@ describe("SaleLauncher", async () => {
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
-            const initData = await encodeInitDataFixedPrice(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,

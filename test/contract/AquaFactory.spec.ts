@@ -1,14 +1,17 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
-import hre, { ethers, waffle } from "hardhat";
+import { ethers, waffle } from "hardhat";
+import { AquaFactory, AquaFactory__factory } from "../../typechain";
 import "@nomiclabs/hardhat-ethers";
 
 describe("AquaFactory", async () => {
-    let aquaFactory: Contract;
+    let aquaFactory: AquaFactory;
     const [owner, user_2] = waffle.provider.getWallets();
 
     beforeEach(async () => {
-        const AquaFactory = await ethers.getContractFactory("AquaFactory");
+        const AquaFactory =
+            await ethers.getContractFactory<AquaFactory__factory>(
+                "AquaFactory"
+            );
 
         aquaFactory = await AquaFactory.deploy(
             owner.address,
