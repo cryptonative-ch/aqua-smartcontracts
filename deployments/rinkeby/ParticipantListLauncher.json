@@ -1,0 +1,147 @@
+{
+  "address": "0xD9b4a505A649eDE83Ad5AEd2a9504922EdA7eDB5",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_factory",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_participantListTemplate",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "participantList",
+          "type": "address"
+        }
+      ],
+      "name": "ListLaunched",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "factory",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "managers",
+          "type": "address[]"
+        }
+      ],
+      "name": "launchParticipantList",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "newList",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "participantListTemplate",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x7e46f53b9543335e1563c42d2b71ff5a37b119c7b749202f70117ee256ec2dde",
+  "receipt": {
+    "to": null,
+    "from": "0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af",
+    "contractAddress": "0xD9b4a505A649eDE83Ad5AEd2a9504922EdA7eDB5",
+    "transactionIndex": 14,
+    "gasUsed": "246348",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x1b6f5a3f3ac127f7c9356fc641800500ef87722fcd3e22315ba74a22600e5026",
+    "transactionHash": "0x7e46f53b9543335e1563c42d2b71ff5a37b119c7b749202f70117ee256ec2dde",
+    "logs": [],
+    "blockNumber": 9056040,
+    "cumulativeGasUsed": "1892100",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [
+    "0xa1Bf3bfDbC86Fd6eC7E2d9707609d7fAc0d93EeF",
+    "0xF564958AD0c645720a24E90B96c7b30B198B15aF"
+  ],
+  "solcInputHash": "56e11e7f090b053fac65151df0b20b53",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_factory\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_participantListTemplate\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"participantList\",\"type\":\"address\"}],\"name\":\"ListLaunched\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"factory\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"managers\",\"type\":\"address[]\"}],\"name\":\"launchParticipantList\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newList\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"participantListTemplate\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"launchParticipantList(address[])\":{\"details\":\"function to launch a participant list\",\"params\":{\"managers\":\"addresses that can update the participantList\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/participants/ParticipantListLauncher.sol\":\"ParticipantListLauncher\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/participants/ParticipantListLauncher.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\nimport \\\"../shared/utils/cloneFactory.sol\\\";\\n\\ninterface IParticipantList {\\n    function init(address[] memory managers) external;\\n}\\n\\ncontract ParticipantListLauncher is CloneFactory {\\n    address public participantListTemplate;\\n    address public factory;\\n\\n    event ListLaunched(address indexed participantList);\\n\\n    constructor(address _factory, address _participantListTemplate) public {\\n        factory = _factory;\\n        participantListTemplate = _participantListTemplate;\\n    }\\n\\n    /// @dev function to launch a participant list\\n    /// @param managers addresses that can update the participantList\\n    function launchParticipantList(address[] memory managers)\\n        external\\n        returns (address newList)\\n    {\\n        newList = createClone(participantListTemplate);\\n        IParticipantList(newList).init(managers);\\n        emit ListLaunched(newList);\\n    }\\n}\\n\",\"keccak256\":\"0xaa20473971ff4b07fcc6b9017bc3328c89dd12a73110fab319f39641830ed035\",\"license\":\"LGPL-3.0\"},\"contracts/shared/utils/cloneFactory.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\n\\n// ----------------------------------------------------------------------------\\n// CloneFactory.sol\\n// From\\n// https://github.com/optionality/clone-factory/blob/32782f82dfc5a00d103a7e61a17a5dedbd1e8e9d/contracts/CloneFactory.sol\\n// ----------------------------------------------------------------------------\\n\\n/*\\nThe MIT License (MIT)\\nCopyright (c) 2018 Murray Software, LLC.\\nPermission is hereby granted, free of charge, to any person obtaining\\na copy of this software and associated documentation files (the\\n\\\"Software\\\"), to deal in the Software without restriction, including\\nwithout limitation the rights to use, copy, modify, merge, publish,\\ndistribute, sublicense, and/or sell copies of the Software, and to\\npermit persons to whom the Software is furnished to do so, subject to\\nthe following conditions:\\nThe above copyright notice and this permission notice shall be included\\nin all copies or substantial portions of the Software.\\nTHE SOFTWARE IS PROVIDED \\\"AS IS\\\", WITHOUT WARRANTY OF ANY KIND, EXPRESS\\nOR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\\nIN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\\nCLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\\nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\\n*/\\n//solhint-disable max-line-length\\n//solhint-disable no-inline-assembly\\n\\ncontract CloneFactory {\\n    function createClone(address target) internal returns (address result) {\\n        bytes20 targetBytes = bytes20(target);\\n        assembly {\\n            let clone := mload(0x40)\\n            mstore(\\n                clone,\\n                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000\\n            )\\n            mstore(add(clone, 0x14), targetBytes)\\n            mstore(\\n                add(clone, 0x28),\\n                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000\\n            )\\n            result := create(0, clone, 0x37)\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xff9a1d9a7b0129299e7829439010b35cdb3c8ab890a76b019e4882e843b7aace\",\"license\":\"LGPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040516103213803806103218339818101604052604081101561003357600080fd5b508051602090910151600180546001600160a01b039384166001600160a01b031991821617909155600080549390921692169190911790556102a78061007a6000396000f3fe608060405234801561001057600080fd5b50600436106100415760003560e01c80630b64621e14610046578063c45a01551461006a578063d341c81314610072575b600080fd5b61004e610115565b604080516001600160a01b039092168252519081900360200190f35b61004e610124565b61004e6004803603602081101561008857600080fd5b8101906020810181356401000000008111156100a357600080fd5b8201836020820111156100b557600080fd5b803590602001918460208302840111640100000000831117156100d757600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610133945050505050565b6000546001600160a01b031681565b6001546001600160a01b031681565b60008054610149906001600160a01b031661021f565b604051636302262360e11b81526020600482018181528551602484015285519394506001600160a01b0385169363c6044c469387938392604490920191818601910280838360005b838110156101a9578181015183820152602001610191565b5050505090500192505050600060405180830381600087803b1580156101ce57600080fd5b505af11580156101e2573d6000803e3d6000fd5b50506040516001600160a01b03841692507fa2c24c2b6fd30a79f6f8a304395c55ba59281287136461353135de805191f49d9150600090a2919050565b6000808260601b9050604051733d602d80600a3d3981f3363d3d373d3d3d363d7360601b81528160148201526e5af43d82803e903d91602b57fd5bf360881b60288201526037816000f094935050505056fea264697066735822122061a287126d67a881336dd3dd40f6e9e3169ea72451d84c4ebbd02fbc8e93cb8364736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100415760003560e01c80630b64621e14610046578063c45a01551461006a578063d341c81314610072575b600080fd5b61004e610115565b604080516001600160a01b039092168252519081900360200190f35b61004e610124565b61004e6004803603602081101561008857600080fd5b8101906020810181356401000000008111156100a357600080fd5b8201836020820111156100b557600080fd5b803590602001918460208302840111640100000000831117156100d757600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610133945050505050565b6000546001600160a01b031681565b6001546001600160a01b031681565b60008054610149906001600160a01b031661021f565b604051636302262360e11b81526020600482018181528551602484015285519394506001600160a01b0385169363c6044c469387938392604490920191818601910280838360005b838110156101a9578181015183820152602001610191565b5050505090500192505050600060405180830381600087803b1580156101ce57600080fd5b505af11580156101e2573d6000803e3d6000fd5b50506040516001600160a01b03841692507fa2c24c2b6fd30a79f6f8a304395c55ba59281287136461353135de805191f49d9150600090a2919050565b6000808260601b9050604051733d602d80600a3d3981f3363d3d373d3d3d363d7360601b81528160148201526e5af43d82803e903d91602b57fd5bf360881b60288201526037816000f094935050505056fea264697066735822122061a287126d67a881336dd3dd40f6e9e3169ea72451d84c4ebbd02fbc8e93cb8364736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "launchParticipantList(address[])": {
+        "details": "function to launch a participant list",
+        "params": {
+          "managers": "addresses that can update the participantList"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 1877,
+        "contract": "contracts/participants/ParticipantListLauncher.sol:ParticipantListLauncher",
+        "label": "participantListTemplate",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 1879,
+        "contract": "contracts/participants/ParticipantListLauncher.sol:ParticipantListLauncher",
+        "label": "factory",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      }
+    }
+  }
+}
