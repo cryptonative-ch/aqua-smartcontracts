@@ -15,7 +15,12 @@ contract SaleLauncher is CloneFactory {
     event TemplateAdded(address indexed template, uint256 templateId);
     event TemplateRemoved(address indexed template, uint256 templateId);
     event SaleLaunched(address indexed sale, uint256 templateId);
-    event SaleInitialized(address indexed sale, uint256 templateId, bytes data);
+    event SaleInitialized(
+        address indexed sale,
+        uint256 templateId,
+        address indexed template,
+        bytes data
+    );
 
     struct Sale {
         bool exists;
@@ -83,7 +88,7 @@ contract SaleLauncher is CloneFactory {
             );
         }
         ISale(newSale).init(_data);
-        emit SaleInitialized(newSale, _templateId, _data);
+        emit SaleInitialized(newSale, _templateId, msg.sender, _data);
         return address(newSale);
     }
 
