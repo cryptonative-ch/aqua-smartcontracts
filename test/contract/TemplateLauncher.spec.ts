@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { BigNumber } from "ethers";
+import { BigNumber, constants } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { expandTo18Decimals } from "./utilities";
@@ -183,6 +183,18 @@ describe("TemplateLauncher", async () => {
                     .connect(user_2)
                     .addTemplate(fixedPriceSaleTemplateDefault.address)
             ).to.be.revertedWith("TemplateLauncher: FORBIDDEN");
+        });
+
+        it("throws if template address is zero", async () => {
+            await expect(
+                templateLauncher.addTemplate(constants.AddressZero) // Adding a sale module is good test case
+            ).to.be.revertedWith("TemplateLauncher: ZERO_ADDRESS");
+        });
+
+        it("throws if template contract is not implementing templateName method", async () => {
+            await expect(
+                templateLauncher.addTemplate(fixedPriceSale.address) // Adding a sale module is good test case
+            ).to.be.revertedWith("TemplateLauncher: TEMPLATE_NOT_COMPLIANT");
         });
 
         it("throws if template is added twice", async () => {
