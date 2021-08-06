@@ -121,6 +121,10 @@ contract TemplateLauncher is CloneFactory {
         returns (uint256)
     {
         require(
+            address(_template) != address(0),
+            "TemplateLauncher: ZERO_ADDRESS"
+        );
+        require(
             msg.value >= IAquaFactory(factory).templateFee(),
             "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"
         );
