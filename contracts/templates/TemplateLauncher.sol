@@ -132,6 +132,10 @@ contract TemplateLauncher is CloneFactory {
             templateToId[_template] == 0,
             "TemplateLauncher: TEMPLATE_DUPLICATE"
         );
+        require(
+            isTemplateCompliant(_template),
+            "TemplateLauncher: TEMPLATE_NOT_COMPLIANT"
+        );
 
         uint256 templateId = templateCounter;
         templateCounter++;
@@ -184,5 +188,17 @@ contract TemplateLauncher is CloneFactory {
 
     function getTemplateId(address _template) public view returns (uint256) {
         return templateToId[_template];
+    }
+
+    /// @dev verifies that a template address implements the AquaTemplate standard
+    /// @param _template the template contract address
+    function isTemplateCompliant(address _template) private returns (bool) {
+        try ITemplate(_template).templateName() {
+            return true;
+        } catch (
+            bytes memory /*lowLevelData*/
+        ) {
+            return false;
+        }
     }
 }
