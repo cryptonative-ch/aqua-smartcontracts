@@ -15,9 +15,10 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         );
 
     await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address)
+    deployments.log(`Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`)
 };
 
-deployment.tags = [TAGS.AQUA];
+deployment.tags = [TAGS.AQUA, TAGS.REGISTER_TEMPLATE_LAUNCHER];
 deployment.dependencies = [TAGS.TEMPLATE_LAUNCHER];
 
 export default deployment;
