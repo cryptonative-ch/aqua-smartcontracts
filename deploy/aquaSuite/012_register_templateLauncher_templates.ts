@@ -16,9 +16,13 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         );
 
     await templateLauncherInstance.addTemplate(FixedPriceSaleTemplate.address);
-    deployments.log(`FixedPriceSaleTemplate (${FixedPriceSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`)
+    deployments.log(
+        `FixedPriceSaleTemplate (${FixedPriceSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`
+    );
     await templateLauncherInstance.addTemplate(FairSaleTemplate.address);
-    deployments.log(`FairSaleTemplate (${FairSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`)
+    deployments.log(
+        `FairSaleTemplate (${FairSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`
+    );
 };
 
 deployment.tags = [TAGS.AQUA, TAGS.REGISTER_TEMPLATE_LAUNCHER_TEMPLATES];
