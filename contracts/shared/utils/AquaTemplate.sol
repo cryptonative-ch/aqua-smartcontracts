@@ -3,9 +3,11 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "./AquaTemplateId.sol";
 
-contract AquaTemplate is ERC165, AquaTemplateId {
+abstract contract AquaTemplate is ERC165, AquaTemplateId {
     string public templateName;
     string public metaDataContentHash;
+
+    function init(bytes calldata data) external virtual;
 
     constructor() public {
         _registerInterface(_INTERFACE_ID_TEMPLATE);

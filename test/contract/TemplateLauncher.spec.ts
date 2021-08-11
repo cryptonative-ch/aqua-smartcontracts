@@ -187,10 +187,11 @@ describe("TemplateLauncher", async () => {
 
         it("throws if template doesn't implement ITemplate interface", async () => {
             await expect(
-                templateLauncher
-                    .addTemplate(fixedPriceSale.address)
-            ).to.be.revertedWith("TemplateLauncher: TEMPLATE_INTERFACE_NOT_SUPPORTED");
-        })
+                templateLauncher.addTemplate(fixedPriceSale.address)
+            ).to.be.revertedWith(
+                "TemplateLauncher: TEMPLATE_INTERFACE_NOT_SUPPORTED"
+            );
+        });
 
         it("throws if template is added twice", async () => {
             await templateLauncher.addTemplate(

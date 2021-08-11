@@ -3,10 +3,10 @@ pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
-import "../shared/interfaces/ITemplate.sol";
 import "../shared/interfaces/IAquaFactory.sol";
 import "../shared/utils/cloneFactory.sol";
 import "../shared/utils/AquaTemplateId.sol";
+import "../shared/utils/AquaTemplate.sol";
 
 contract TemplateLauncher is CloneFactory, AquaTemplateId {
     using SafeERC20 for IERC20;
@@ -102,7 +102,7 @@ contract TemplateLauncher is CloneFactory, AquaTemplateId {
             _templateDeployer,
             _metadataContentHash
         );
-        ITemplate(newTemplate).init(_data);
+        AquaTemplate(newTemplate).init(_data);
     }
 
     /// @dev internal function to clone a template contract
@@ -168,7 +168,7 @@ contract TemplateLauncher is CloneFactory, AquaTemplateId {
         string calldata _newMetadataContentHash
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template]
-            .metadataContentHash = _newMetadataContentHash;
+        .metadataContentHash = _newMetadataContentHash;
         emit TemplateMetadataContentHashUpdated(
             _template,
             _newMetadataContentHash
