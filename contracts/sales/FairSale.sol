@@ -85,6 +85,7 @@ contract FairSale {
         IERC20 indexed tokenIn,
         uint256 orderCancellationEndDate,
         uint256 auctionEndDate,
+        uint256 auctionStartDate,
         uint64 userId,
         uint96 auctionedSellAmount,
         uint96 minBuyAmount,
@@ -103,6 +104,7 @@ contract FairSale {
     IERC20 public tokenOut;
     IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
+    uint256 public auctionStartDate,
     uint256 public auctionEndDate;
     bytes32 public initialAuctionOrder;
     uint256 public minimumBiddingAmountPerOrder;
@@ -135,6 +137,7 @@ contract FairSale {
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _orderCancellationEndDate,
+        uint256 _auctionStartDate,
         uint256 _auctionEndDate,
         uint96 _auctionedSellAmount,
         uint96 _minBuyAmount,
@@ -159,6 +162,7 @@ contract FairSale {
             _orderCancellationEndDate <= _auctionEndDate,
             "time periods are not configured correctly"
         );
+        require(_auctionStartDate => block.timestamp, "auction start date cannot be in the past");
         require(
             _auctionEndDate > block.timestamp,
             "auction end date must be in the future"
@@ -169,6 +173,7 @@ contract FairSale {
         tokenOut = _tokenOut;
         tokenIn = _tokenIn;
         orderCancellationEndDate = _orderCancellationEndDate;
+        auctionStartDate = _auctionStartDate;
         auctionEndDate = _auctionEndDate;
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             userId,
@@ -188,6 +193,7 @@ contract FairSale {
             _tokenOut,
             _tokenIn,
             _orderCancellationEndDate,
+            _auctionStartDate,
             _auctionEndDate,
             userId,
             _auctionedSellAmount,
