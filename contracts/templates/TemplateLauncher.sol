@@ -2,11 +2,13 @@
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "../shared/interfaces/ITemplate.sol";
+import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "../shared/interfaces/IAquaFactory.sol";
 import "../shared/utils/cloneFactory.sol";
+import "../shared/utils/AquaTemplateId.sol";
+import "../shared/utils/AquaTemplate.sol";
 
-contract TemplateLauncher is CloneFactory {
+contract TemplateLauncher is CloneFactory, AquaTemplateId {
     using SafeERC20 for IERC20;
 
     event TemplateLaunched(
@@ -40,7 +42,7 @@ contract TemplateLauncher is CloneFactory {
     address public participantListLaucher;
     bool public allowPublicTemplates;
 
-    modifier isTemplateManager {
+    modifier isTemplateManager() {
         require(
             msg.sender == IAquaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
@@ -56,7 +58,7 @@ contract TemplateLauncher is CloneFactory {
         _;
     }
 
-    modifier isAllowedToAddTemplate {
+    modifier isAllowedToAddTemplate() {
         require(
             allowPublicTemplates ||
                 msg.sender == IAquaFactory(factory).templateManager(),
@@ -100,7 +102,7 @@ contract TemplateLauncher is CloneFactory {
             _templateDeployer,
             _metadataContentHash
         );
-        ITemplate(newTemplate).init(_data);
+        AquaTemplate(newTemplate).init(_data);
     }
 
     /// @dev internal function to clone a template contract
@@ -120,6 +122,10 @@ contract TemplateLauncher is CloneFactory {
         isAllowedToAddTemplate
         returns (uint256)
     {
+        require(
+            ERC165Checker.supportsInterface(_template, _INTERFACE_ID_TEMPLATE),
+            "TemplateLauncher: TEMPLATE_INTERFACE_NOT_SUPPORTED"
+        );
         require(
             msg.value >= IAquaFactory(factory).templateFee(),
             "TemplateLauncher: TEMPLATE_FEE_NOT_PROVIDED"

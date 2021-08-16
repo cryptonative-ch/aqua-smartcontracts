@@ -139,7 +139,7 @@ contract FixedPriceSaleTemplate is AquaTemplate {
 
     /// @dev setup function expected to be called by templateLauncher to init the template
     /// @param _data encoded template params
-    function init(bytes calldata _data) public {
+    function init(bytes calldata _data) public override {
         (
             address _saleLauncher,
             uint256 _saleTemplateId,
