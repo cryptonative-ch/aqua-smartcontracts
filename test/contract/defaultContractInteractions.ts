@@ -15,6 +15,7 @@ async function createAuctionInputWithDefaults(
         parameters.tokenIn.address,
         parameters.tokenOut.address,
         parameters.orderCancellationEndDate ?? now + 3600,
+        parameters.auctionStartDate ?? now + 500,
         parameters.auctionEndDate ?? now + 3600,
         parameters.auctionedSellAmount ?? ethers.utils.parseEther("1"),
         parameters.minBuyAmount ?? ethers.utils.parseEther("1"),

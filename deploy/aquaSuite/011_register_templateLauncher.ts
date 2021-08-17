@@ -8,14 +8,15 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     const { deployments, ethers } = hre;
 
     const { TemplateLauncher, AquaFactory } = await deployments.all();
-    const aquaFactoryInstance =
-        await ethers.getContractAt<AquaFactory>(
-            "AquaFactory",
-            AquaFactory.address
-        );
+    const aquaFactoryInstance = await ethers.getContractAt<AquaFactory>(
+        "AquaFactory",
+        AquaFactory.address
+    );
 
-    await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address)
-    deployments.log(`Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`)
+    await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address);
+    deployments.log(
+        `Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`
+    );
 };
 
 deployment.tags = [TAGS.AQUA, TAGS.REGISTER_TEMPLATE_LAUNCHER];

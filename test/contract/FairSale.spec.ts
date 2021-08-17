@@ -127,6 +127,7 @@ describe("FairSale", async () => {
                     tokenIn,
                     orderCancellationEndDate: 0,
                     auctionEndDate: 0,
+                    auctionStartDate: 0,
                 })
             ).to.be.revertedWith("auction end date must be in the future");
         });
@@ -139,7 +140,8 @@ describe("FairSale", async () => {
             );
 
             const now = (await ethers.provider.getBlock("latest")).timestamp;
-            const orderCancellationEndDate = now + 42;
+            const orderCancellationEndDate = now + 1080;
+            const auctionStartDate = now + 420;
             const auctionEndDate = now + 1337;
             const initialAuctionOrder = {
                 sellAmount: ethers.utils.parseEther("1"),
@@ -153,6 +155,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 orderCancellationEndDate,
+                auctionStartDate,
                 auctionEndDate,
             });
 
@@ -162,6 +165,9 @@ describe("FairSale", async () => {
                 encodeOrder(initialAuctionOrder)
             );
             expect(await fairSale.auctionEndDate()).to.be.equal(auctionEndDate);
+            expect(await fairSale.auctionStartDate()).to.be.equal(
+                auctionStartDate
+            );
             expect(await fairSale.orderCancellationEndDate()).to.be.equal(
                 orderCancellationEndDate
             );
@@ -222,6 +228,8 @@ describe("FairSale", async () => {
             );
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
+
+            await increaseTime(501);
 
             await fairSale
                 .connect(user_1)
@@ -297,6 +305,7 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+            await increaseTime(501);
             await expect(
                 fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1").add(1)],
@@ -323,6 +332,7 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+            await increaseTime(501);
             await expect(
                 fairSale.placeSellOrders(
                     [ethers.utils.parseEther("0")],
@@ -342,6 +352,8 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+
+            await increaseTime(501);
             await expect(() =>
                 fairSale.placeSellOrders(
                     [ethers.utils.parseEther("1").sub(1)],
@@ -372,6 +384,7 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+            await increaseTime(501);
 
             const balanceBeforeOrderPlacement = await tokenIn.balanceOf(
                 user_1.address
@@ -404,6 +417,7 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+            await increaseTime(501);
 
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
@@ -446,6 +460,7 @@ describe("FairSale", async () => {
                     .parseEther("1")
                     .div(100),
             });
+            await increaseTime(501);
             await expect(
                 fairSale.placeSellOrders(
                     sellOrders.map((buyOrder) => buyOrder.buyAmount),
@@ -465,6 +480,7 @@ describe("FairSale", async () => {
                 tokenOut,
                 tokenIn,
             });
+            await increaseTime(501);
             const sellAmount = ethers.utils.parseEther("1").add(1);
             const buyAmount = ethers.utils.parseEther("1");
             await tokenIn.approve(
@@ -519,6 +535,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -552,6 +569,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -596,6 +614,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -652,6 +671,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -696,6 +716,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
 
             await placeOrders(fairSale, sellOrders, hre);
 
@@ -746,6 +767,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -806,6 +828,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -860,6 +883,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -914,6 +938,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -958,6 +983,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -994,6 +1020,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
 
             await closeAuction(fairSale);
 
@@ -1039,6 +1066,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1081,6 +1109,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1127,6 +1156,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1189,6 +1219,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1258,6 +1289,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1328,6 +1360,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1376,6 +1409,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1431,6 +1465,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1488,6 +1523,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1540,6 +1576,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1591,6 +1628,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 minFundingThreshold: ethers.utils.parseEther("5"),
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1645,6 +1683,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 minFundingThreshold: ethers.utils.parseEther("5"),
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -1682,6 +1721,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1725,6 +1765,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1779,6 +1820,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 minFundingThreshold: ethers.utils.parseEther("5"),
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1819,6 +1861,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -1868,6 +1911,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -1949,6 +1993,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -1997,6 +2042,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2052,6 +2098,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2100,6 +2147,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
             await closeAuction(fairSale);
             await fairSale.settleAuction();
@@ -2145,6 +2193,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2209,6 +2258,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: false,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2259,6 +2309,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: true,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2310,6 +2361,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: true,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2359,6 +2411,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: true,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2406,6 +2459,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: true,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2461,6 +2515,7 @@ describe("FairSale", async () => {
                 minBuyAmount: initialAuctionOrder.buyAmount,
                 isAtomicClosureAllowed: true,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -2510,6 +2565,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -2552,6 +2608,7 @@ describe("FairSale", async () => {
                 orderCancellationEndDate: now + 60 * 60,
                 auctionEndDate: now + 60 * 60 * 60,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await increaseTime(3601);
@@ -2593,6 +2650,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             // removes the order
@@ -2630,6 +2688,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await expect(
@@ -2664,6 +2723,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await placeOrders(fairSale, sellOrders, hre);
 
             await closeAuction(fairSale);
@@ -2694,6 +2754,7 @@ describe("FairSale", async () => {
                 auctionedSellAmount: initialAuctionOrder.sellAmount,
                 minBuyAmount: initialAuctionOrder.buyAmount,
             });
+            await increaseTime(501);
             await closeAuction(fairSale);
             expect(
                 await fairSale.callStatic.getSecondsRemainingInBatch()

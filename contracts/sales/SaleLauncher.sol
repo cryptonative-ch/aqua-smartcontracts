@@ -36,7 +36,7 @@ contract SaleLauncher is CloneFactory {
     uint256 public saleTemplateId;
     address public factory;
 
-    modifier isTemplateManager {
+    modifier isTemplateManager() {
         require(
             msg.sender == IAquaFactory(factory).templateManager(),
             "SaleLauncher: FORBIDDEN"
@@ -71,8 +71,8 @@ contract SaleLauncher is CloneFactory {
             uint256 feeNumerator = IAquaFactory(factory).feeNumerator();
 
             uint256 depositAmount = _tokenSupply
-            .mul(feeDenominator.add(feeNumerator))
-            .div(feeDenominator);
+                .mul(feeDenominator.add(feeNumerator))
+                .div(feeDenominator);
 
             TransferHelper.safeTransferFrom(
                 _token,
