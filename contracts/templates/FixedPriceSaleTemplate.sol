@@ -7,7 +7,6 @@ import "../shared/interfaces/ITemplateLauncher.sol";
 import "../shared/utils/AquaTemplate.sol";
 import "../shared/interfaces/IParticipantListLauncher.sol";
 import "../shared/interfaces/IParticipantList.sol";
-import "hardhat/console.sol";
 
 contract FixedPriceSaleTemplate is AquaTemplate {
     ISaleLauncher public saleLauncher;
@@ -103,7 +102,7 @@ contract FixedPriceSaleTemplate is AquaTemplate {
             _minCommitment,
             _maxCommitment,
             _minRaise,
-            templateManager,
+            tokenSupplier,
             participantList
         );
 
