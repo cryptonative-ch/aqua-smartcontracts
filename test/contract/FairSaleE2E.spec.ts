@@ -5,7 +5,7 @@ import {
     createTokensAndMintAndApprove,
     placeOrders,
 } from "../../src/priceCalculation";
-import { closeAuction } from "./utilities";
+import { closeAuction, increaseTime } from "./utilities";
 import { FairSale, FairSale__factory } from "../../typechain";
 import { createAuctionWithDefaults } from "./defaultContractInteractions";
 
@@ -34,6 +34,7 @@ describe("FairSale", async () => {
             auctionedSellAmount: ethers.utils.parseEther("1000"),
             minBuyAmount: ethers.utils.parseEther("1000"),
         });
+        await increaseTime(501);
         for (let i = 2; i < nrTests; i++) {
             const sellOrder = [
                 {
