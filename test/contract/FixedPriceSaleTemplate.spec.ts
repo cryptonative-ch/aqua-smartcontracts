@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
-import { expandTo18Decimals } from "./utilities";
+import { expandTo18Decimals, sendTxAndGetReturnValue } from "./utilities";
 import {
     AquaFactory,
     SaleLauncher,
@@ -25,7 +25,7 @@ import {
 import "@nomiclabs/hardhat-ethers";
 
 describe("FixedPriceSaleTemplate", async () => {
-    const [templateManager, user_2] = waffle.provider.getWallets();
+    const [templateManager, user_2, saleCreator] = waffle.provider.getWallets();
     let saleLauncher: SaleLauncher;
     let aquaFactory: AquaFactory;
     let tokenA: ERC20Mintable;
@@ -167,6 +167,7 @@ describe("FixedPriceSaleTemplate", async () => {
         tokenA = await ERC20.deploy("tokenA", "tokA");
         tokenB = await ERC20.deploy("tokenB", "tokB");
         await tokenB.mint(templateManager.address, expandTo18Decimals(3000));
+        await tokenB.mint(saleCreator.address, expandTo18Decimals(3000));
     });
 
     it("can only initialize once", async () => {
@@ -210,7 +211,7 @@ describe("FixedPriceSaleTemplate", async () => {
         const initData = encodeInitDataFixedPrice(
             saleLauncher.address,
             1,
-            templateManager.address,
+            saleCreator.address,
             tokenA.address,
             tokenB.address,
             defaultTokenPrice,
@@ -242,10 +243,20 @@ describe("FixedPriceSaleTemplate", async () => {
             fixedPriceSaleTemplate.connect(user_2).createSale()
         ).to.be.revertedWith("FixedPriceSaleTemplate: FORBIDDEN");
 
-        await tokenB.approve(saleLauncher.address, defaultTokensForSale);
-        await fixedPriceSaleTemplate.createSale({
-            value: 500,
-        });
+        // Make sure that tokenSupplier is also owner of the sale
+        await tokenB
+            .connect(saleCreator)
+            .approve(saleLauncher.address, defaultTokensForSale);
+        const fixedPriceSaleAddress = await sendTxAndGetReturnValue<string>(
+            fixedPriceSaleTemplate.connect(saleCreator),
+            "createSale()"
+        );
+        const fixedPriceSale = await ethers.getContractAt<FixedPriceSale>(
+            "FixedPriceSale",
+            fixedPriceSaleAddress
+        );
+
+        expect(await fixedPriceSale.owner()).to.be.equal(saleCreator.address);
     });
 
     it("only tokenSupplier can manage the participantList", async () => {
