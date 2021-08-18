@@ -32,7 +32,8 @@ contract FairSale {
 
     modifier atStageOrderPlacement() {
         require(
-            block.timestamp < auctionEndDate,
+            block.timestamp < auctionEndDate &&
+                block.timestamp >= auctionStartDate,
             "no longer in order placement phase"
         );
         _;
@@ -40,8 +41,9 @@ contract FairSale {
 
     modifier atStageOrderPlacementAndCancelation() {
         require(
-            block.timestamp < orderCancellationEndDate,
-            "no longer in order placement and cancelation phase"
+            block.timestamp < orderCancellationEndDate &&
+                block.timestamp >= auctionStartDate,
+            "no longer in order placement and cancellation phase"
         );
         _;
     }
@@ -85,6 +87,7 @@ contract FairSale {
         IERC20 indexed tokenIn,
         uint256 orderCancellationEndDate,
         uint256 auctionEndDate,
+        uint256 auctionStartDate,
         uint64 userId,
         uint96 auctionedSellAmount,
         uint96 minBuyAmount,
@@ -103,6 +106,7 @@ contract FairSale {
     IERC20 public tokenOut;
     IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
+    uint256 public auctionStartDate;
     uint256 public auctionEndDate;
     bytes32 public initialAuctionOrder;
     uint256 public minimumBiddingAmountPerOrder;
@@ -135,6 +139,7 @@ contract FairSale {
         IERC20 _tokenIn,
         IERC20 _tokenOut,
         uint256 _orderCancellationEndDate,
+        uint256 _auctionStartDate,
         uint256 _auctionEndDate,
         uint96 _auctionedSellAmount,
         uint96 _minBuyAmount,
@@ -160,8 +165,20 @@ contract FairSale {
             "time periods are not configured correctly"
         );
         require(
+            _orderCancellationEndDate >= _auctionStartDate,
+            "Cancellation date must be set after the auction start date"
+        );
+        require(
             _auctionEndDate > block.timestamp,
             "auction end date must be in the future"
+        );
+        require(
+            _auctionStartDate < _auctionEndDate,
+            "Start date must be set before end Date"
+        );
+        require(
+            _auctionStartDate >= block.timestamp,
+            "start date must be set in the future"
         );
         sellOrders.initializeEmptyList();
         uint64 userId = getUserId(msg.sender);
@@ -169,6 +186,7 @@ contract FairSale {
         tokenOut = _tokenOut;
         tokenIn = _tokenIn;
         orderCancellationEndDate = _orderCancellationEndDate;
+        auctionStartDate = _auctionStartDate;
         auctionEndDate = _auctionEndDate;
         initialAuctionOrder = IterableOrderedOrderSet.encodeOrder(
             userId,
@@ -188,6 +206,7 @@ contract FairSale {
             _tokenOut,
             _tokenIn,
             _orderCancellationEndDate,
+            _auctionStartDate,
             _auctionEndDate,
             userId,
             _auctionedSellAmount,
@@ -541,7 +560,8 @@ contract FairSale {
             IERC20 _tokenIn,
             IERC20 _tokenOut,
             uint256 _orderCancelationPeriodDuration,
-            uint256 _duration,
+            uint256 _auctionStartDate,
+            uint256 _auctionEndDate,
             uint96 _totalTokenOutAmount,
             uint96 _minBidAmountToReceive,
             uint256 _minimumBiddingAmountPerOrder,
@@ -552,6 +572,7 @@ contract FairSale {
                 (
                     IERC20,
                     IERC20,
+                    uint256,
                     uint256,
                     uint256,
                     uint96,
@@ -566,7 +587,8 @@ contract FairSale {
             _tokenIn,
             _tokenOut,
             _orderCancelationPeriodDuration,
-            _duration,
+            _auctionStartDate,
+            _auctionEndDate,
             _totalTokenOutAmount,
             _minBidAmountToReceive,
             _minimumBiddingAmountPerOrder,
@@ -609,7 +631,10 @@ contract FairSale {
     }
 
     function getSecondsRemainingInBatch() public view returns (uint256) {
-        if (auctionEndDate < block.timestamp) {
+        if (
+            auctionEndDate < block.timestamp ||
+            auctionStartDate > block.timestamp
+        ) {
             return 0;
         }
         return auctionEndDate.sub(block.timestamp);

@@ -4,6 +4,7 @@ export interface InitiateAuctionInput {
     tokenOut: Contract;
     tokenIn: Contract;
     orderCancellationEndDate: BigNumberish;
+    auctionStartDate: BigNumberish;
     auctionEndDate: BigNumberish;
     auctionedSellAmount: BigNumberish;
     minBuyAmount: BigNumberish;
