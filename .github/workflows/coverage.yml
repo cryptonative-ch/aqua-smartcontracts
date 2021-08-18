@@ -11,6 +11,7 @@ jobs:
         INFURA_KEY: ${{ secrets.INFURA_KEY }}
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
         ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        CODE_COVERAGE: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1

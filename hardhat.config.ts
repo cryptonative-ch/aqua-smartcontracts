@@ -37,6 +37,9 @@ export const config: HardhatUserConfig = {
             url: "https://xdai.poanetwork.dev",
             accounts: [`${process.env.PRIVATE_KEY}`],
         },
+        hardhat: {
+            hardfork: process.env.CODE_COVERAGE ? "berlin" : "london"
+        }
     },
     mocha: {
         timeout: "600s",
