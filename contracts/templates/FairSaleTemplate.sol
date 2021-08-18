@@ -106,6 +106,7 @@ contract FairSaleTemplate is AquaTemplate {
             tokenSupplier,
             encodedInitData
         );
+        isSaleCreated = true;
     }
 
     /// @dev setup function expexted to be called by templateLauncher to init the template
