@@ -27,6 +27,7 @@ contract FairSaleTemplate is AquaTemplate {
         uint256 orderCancelationPeriodDuration,
         uint256 minimumBiddingAmountPerOrder
     );
+    event SaleCreated();
 
     constructor() public {
         templateName = "FairSaleTemplate";
@@ -107,6 +108,7 @@ contract FairSaleTemplate is AquaTemplate {
             encodedInitData
         );
         isSaleCreated = true;
+        emit SaleCreated();
     }
 
     /// @dev setup function expexted to be called by templateLauncher to init the template
