@@ -90,7 +90,7 @@ contract FixedPriceSaleTemplate is AquaTemplate {
             address[] memory listManagers = new address[](1);
             listManagers[0] = address(_tokenSupplier);
             participantList = IParticipantListLauncher(participantListLauncher)
-            .launchParticipantList(listManagers);
+                .launchParticipantList(listManagers);
         }
 
         encodedInitData = abi.encode(
@@ -155,23 +155,23 @@ contract FixedPriceSaleTemplate is AquaTemplate {
             uint256 _minRaise,
             bool _participantList
         ) = abi.decode(
-            _data,
-            (
-                address,
-                uint256,
-                address,
-                address,
-                address,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                bool
-            )
-        );
+                _data,
+                (
+                    address,
+                    uint256,
+                    address,
+                    address,
+                    address,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    bool
+                )
+            );
 
         initTemplate(
             _saleLauncher,

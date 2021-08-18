@@ -64,7 +64,7 @@ contract FixedPriceSale {
     SaleStatus public saleStatus;
     mapping(address => uint256) public commitment;
 
-    modifier onlyOwner {
+    modifier onlyOwner() {
         require(msg.sender == owner, "FixedPriceSale: FORBIDDEN");
         _;
     }
@@ -286,21 +286,21 @@ contract FixedPriceSale {
             address _owner,
             address _participantList
         ) = abi.decode(
-            _data,
-            (
-                IERC20,
-                IERC20,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                uint256,
-                address,
-                address
-            )
-        );
+                _data,
+                (
+                    IERC20,
+                    IERC20,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    uint256,
+                    address,
+                    address
+                )
+            );
 
         initSale(
             _tokenIn,
@@ -320,7 +320,7 @@ contract FixedPriceSale {
     /// @dev withdraw any ERC20 token by owner
     /// @param token ERC20 token address
     /// @param amount Amount to withdraw
-    function ERC20Withdraw(address token, uint256 amount) external onlyOwner() {
+    function ERC20Withdraw(address token, uint256 amount) external onlyOwner {
         require(saleStatus.isClosed, "FixedPriceSale: sale not closed");
         require(
             block.timestamp > saleInfo.endDate,
@@ -337,7 +337,7 @@ contract FixedPriceSale {
 
     /// @dev withdraw ETH token by owner
     /// @param amount ETH amount to withdraw
-    function ETHWithdraw(uint256 amount) external onlyOwner() {
+    function ETHWithdraw(uint256 amount) external onlyOwner {
         require(saleStatus.isClosed, "FixedPriceSale: sale not closed");
         require(
             block.timestamp > saleInfo.endDate,
