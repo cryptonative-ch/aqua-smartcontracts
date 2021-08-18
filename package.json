@@ -15,16 +15,12 @@
     "coverage": "hardhat compile && hardhat coverage",
     "flatten": "./tasks/flatten.sh",
     "deploy:rinkeby": "hardhat deploy --network rinkeby --tags AQUA",
-    "deploy:xdai": "hardhat deploy --network xdai --tags AQUA"
+    "deploy:xdai": "hardhat deploy --network xdai --tags AQUA",
+    "aqua-sc:bundle": "ts-node scripts/bundler.ts",
+    "aqua-sc:publish:dev": "cd aqua-sc && npm version prerelease && npm publish --tag dev"
   },
   "repository": {
     "type": "git"
-  },
-  "dependencies": {
-    "babel-eslint": "^10.1.0",
-    "dotenv": "^8.2.0",
-    "hardhat-gas-reporter": "^1.0.4",
-    "solc": "0.6.8"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers",
@@ -48,9 +44,11 @@
     "eslint-plugin-prettier": "^3.1.4",
     "ethereum-waffle": "^3.2.0",
     "ethers": "^5.4.1",
+    "glob": "^7.1.7",
+    "glob-promise": "^4.2.0",
+    "hardhat": "^2.4.3",
     "hardhat-deploy": "^0.8.9",
     "hardhat-deploy-ethers": "^0.3.0-beta.10",
-    "hardhat": "^2.4.3",
     "prettier": "^2.1.2",
     "prettier-plugin-solidity": "^1.0.0-alpha.60",
     "solhint": "^3.3.2",
@@ -58,6 +56,10 @@
     "solidity-coverage": "^0.7.13",
     "ts-node": "^9.0.0",
     "typechain": "^5.1.1",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "babel-eslint": "^10.1.0",
+    "dotenv": "^8.2.0",
+    "hardhat-gas-reporter": "^1.0.4",
+    "solc": "0.6.8"
   }
 }
