@@ -10,8 +10,6 @@ import "../shared/libraries/IterableOrderedOrderSet.sol";
 import "../shared/libraries/IdToAddressBiMap.sol";
 import "../shared/libraries/SafeCast.sol";
 
-import "hardhat/console.sol";
-
 contract FairSale {
     using SafeERC20 for IERC20;
     using SafeMath for uint64;
@@ -45,7 +43,7 @@ contract FairSale {
         require(
             block.timestamp < orderCancellationEndDate &&
                 block.timestamp >= auctionStartDate,
-            "no longer in order placement and cancelation phase"
+            "no longer in order placement and cancellation phase"
         );
         _;
     }

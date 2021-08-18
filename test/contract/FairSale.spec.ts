@@ -41,6 +41,60 @@ describe("FairSale", async () => {
     });
 
     describe("initiate Auction", async () => {
+        it("throws if startDate is set in the past", async () => {
+            const now = (await ethers.provider.getBlock("latest")).timestamp;
+            const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
+                fairSale,
+                [user_1, user_2],
+                hre
+            );
+
+            await expect(
+                createAuctionWithDefaults(fairSale, {
+                    tokenOut,
+                    tokenIn,
+                    auctionStartDate: now - 1,
+                })
+            ).to.be.revertedWith("start date must be set in the future");
+        });
+        it("throws if startDate is set before cancellationEndDate", async () => {
+            const now = (await ethers.provider.getBlock("latest")).timestamp;
+            const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
+                fairSale,
+                [user_1, user_2],
+                hre
+            );
+
+            await expect(
+                createAuctionWithDefaults(fairSale, {
+                    tokenOut,
+                    tokenIn,
+                    auctionStartDate: now + 40,
+                    auctionEndDate: now + 30,
+                    orderCancellationEndDate: now + 25,
+                })
+            ).to.be.revertedWith(
+                "Cancellation date must be set after the auction start date"
+            );
+        });
+        it("throws if endDate is set equal to startDate", async () => {
+            const now = (await ethers.provider.getBlock("latest")).timestamp;
+            const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
+                fairSale,
+                [user_1, user_2],
+                hre
+            );
+
+            await expect(
+                createAuctionWithDefaults(fairSale, {
+                    tokenOut,
+                    tokenIn,
+                    auctionStartDate: now + 40,
+                    auctionEndDate: now + 40,
+                    orderCancellationEndDate: now + 40,
+                })
+            ).to.be.revertedWith("Start date must be set before end Date");
+        });
         it("throws if minimumBiddingAmountPerOrder is zero", async () => {
             const { tokenOut, tokenIn } = await createTokensAndMintAndApprove(
                 fairSale,
@@ -2615,13 +2669,13 @@ describe("FairSale", async () => {
             await expect(
                 fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             ).to.be.revertedWith(
-                "no longer in order placement and cancelation phase"
+                "no longer in order placement and cancellation phase"
             );
             await closeAuction(fairSale);
             await expect(
                 fairSale.cancelSellOrders([encodeOrder(sellOrders[0])])
             ).to.be.revertedWith(
-                "no longer in order placement and cancelation phase"
+                "no longer in order placement and cancellation phase"
             );
         });
 
