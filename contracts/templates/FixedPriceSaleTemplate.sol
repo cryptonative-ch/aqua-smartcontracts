@@ -1,72 +1,96 @@
-// SPDX-License-Identifier: LGPL-3.0-or-newer
+// SPDX-License-Identifier: LGPL-3.0
 pragma solidity >=0.6.8;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/ISaleLauncher.sol";
-import "../interfaces/IMesaFactory.sol";
+import "../shared/interfaces/ISaleLauncher.sol";
+import "../shared/interfaces/IAquaFactory.sol";
+import "../shared/interfaces/ITemplateLauncher.sol";
+import "../shared/utils/AquaTemplate.sol";
+import "../shared/interfaces/IParticipantListLauncher.sol";
+import "../shared/interfaces/IParticipantList.sol";
 
-contract FixedPriceSaleTemplate {
-    string public constant templateName = "FixedPriceSaleTemplate";
+contract FixedPriceSaleTemplate is AquaTemplate {
     ISaleLauncher public saleLauncher;
-    IMesaFactory public mesaFactory;
+    IAquaFactory public aquaFactory;
+    address public templateManager;
     uint256 public saleTemplateId;
-    bool initialized = false;
-    address tokenSupplier;
-    address tokenOut;
-    uint256 tokenOutSupply;
-    bytes encodedInitData;
+    address public tokenSupplier;
+    address public tokenOut;
+    uint256 public tokensForSale;
+    bytes public encodedInitData;
+    bool public isInitialized;
+    bool public isSaleCreated;
+    address public templateLauncher;
 
     event TemplateInitialized(
-        address tokenOut,
         address tokenIn,
+        address tokenOut,
         uint256 tokenPrice,
         uint256 tokensForSale,
         uint256 startDate,
         uint256 endDate,
-        uint256 allocationMin,
-        uint256 allocationMax,
-        uint256 minimumRaise,
-        address owner
+        uint256 minCommitment,
+        uint256 maxCommitment,
+        uint256 minRaise,
+        bool participantList
     );
 
-    constructor() public {}
+    constructor() public {
+        templateName = "FixedPriceSaleTemplate";
+        metaDataContentHash = "0x"; // ToDo
+    }
 
     /// @dev internal setup function to initialize the template, called by init()
-    /// @param _saleLauncher address of Mesa SaleLauncher
-    /// @param _saleTemplateId Mesa Sale TemplateId
+    /// @param _saleLauncher address of Aqua SaleLauncher
+    /// @param _saleTemplateId Aqua Sale TemplateId
     /// @param _tokenSupplier address that deposits the selling tokens
-    /// @param _tokenOut token to be sold
     /// @param _tokenIn token to buy tokens with
+    /// @param _tokenOut token to be sold
     /// @param _tokenPrice price of one tokenOut
     /// @param _tokensForSale amount of tokens to be sold
     /// @param _startDate unix timestamp when the sale starts
     /// @param _endDate unix timestamp when the sale ends
-    /// @param _allocationMin minimum amount of tokens an investor needs to purchase
-    /// @param _allocationMax maximum amount of tokens an investor can purchase
-    /// @param _minimumRaise sale goal – if not reached investors can claim back tokens
-    /// @param _owner address for privileged functions
+    /// @param _minCommitment minimum tokenIn to buy
+    /// @param _maxCommitment maximum tokenIn to buy
+    /// @param _minRaise sale goal,if not reached investors can claim back their committed tokens
+    /// @param _participantList defines if a participantList should be launched
     function initTemplate(
         address _saleLauncher,
         uint256 _saleTemplateId,
         address _tokenSupplier,
-        address _tokenOut,
         address _tokenIn,
+        address _tokenOut,
         uint256 _tokenPrice,
         uint256 _tokensForSale,
         uint256 _startDate,
         uint256 _endDate,
-        uint256 _allocationMin,
-        uint256 _allocationMax,
-        uint256 _minimumRaise,
-        address _owner
+        uint256 _minCommitment,
+        uint256 _maxCommitment,
+        uint256 _minRaise,
+        bool _participantList
     ) internal {
-        require(!initialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
+        require(!isInitialized, "FixedPriceSaleTemplate: ALEADY_INITIALIZED");
 
         saleLauncher = ISaleLauncher(_saleLauncher);
-        mesaFactory = IMesaFactory(ISaleLauncher(_saleLauncher).factory());
+        aquaFactory = IAquaFactory(ISaleLauncher(_saleLauncher).factory());
+        templateManager = aquaFactory.templateManager();
+        templateLauncher = aquaFactory.templateLauncher();
         saleTemplateId = _saleTemplateId;
-        tokenOutSupply = _tokensForSale;
+        tokensForSale = _tokensForSale;
         tokenOut = _tokenOut;
         tokenSupplier = _tokenSupplier;
+        isInitialized = true;
+        address participantList;
+
+        if (_participantList) {
+            address participantListLauncher = ITemplateLauncher(
+                templateLauncher
+            ).participantListLaucher();
+
+            address[] memory listManagers = new address[](1);
+            listManagers[0] = address(_tokenSupplier);
+            participantList = IParticipantListLauncher(participantListLauncher)
+                .launchParticipantList(listManagers);
+        }
 
         encodedInitData = abi.encode(
             IERC20(_tokenIn),
@@ -75,61 +99,62 @@ contract FixedPriceSaleTemplate {
             _tokensForSale,
             _startDate,
             _endDate,
-            _allocationMin,
-            _allocationMax,
-            _minimumRaise,
-            _owner
+            _minCommitment,
+            _maxCommitment,
+            _minRaise,
+            tokenSupplier,
+            participantList
         );
 
-        initialized = true;
-
         emit TemplateInitialized(
-            _tokenOut,
             _tokenIn,
+            _tokenOut,
             _tokenPrice,
             _tokensForSale,
             _startDate,
             _endDate,
-            _allocationMin,
-            _allocationMax,
-            _minimumRaise,
-            _owner
+            _minCommitment,
+            _maxCommitment,
+            _minRaise,
+            _participantList
         );
     }
 
     function createSale() public payable returns (address newSale) {
+        require(!isSaleCreated, "FixedPriceSaleTemplate: Sale already created");
         require(
             msg.sender == tokenSupplier,
             "FixedPriceSaleTemplate: FORBIDDEN"
         );
+
         newSale = saleLauncher.createSale{value: msg.value}(
             saleTemplateId,
             tokenOut,
-            tokenOutSupply,
+            tokensForSale,
             tokenSupplier,
             encodedInitData
         );
+        isSaleCreated = true;
     }
 
-    /// @dev setup function expexted to be called by templateLauncher to init the template
+    /// @dev setup function expected to be called by templateLauncher to init the template
     /// @param _data encoded template params
-    function init(bytes calldata _data) public {
+    function init(bytes calldata _data) public override {
         (
             address _saleLauncher,
             uint256 _saleTemplateId,
-            address _tokenOutSupplier,
-            address _tokenOut,
+            address _tokenSupplier,
             address _tokenIn,
+            address _tokenOut,
             uint256 _tokenPrice,
             uint256 _tokensForSale,
             uint256 _startDate,
             uint256 _endDate,
-            uint256 _allocationMin,
-            uint256 _allocationMax,
-            uint256 _minimumRaise,
-            address _owner
-        ) =
-            abi.decode(
+            uint256 _minCommitment,
+            uint256 _maxCommitment,
+            uint256 _minRaise,
+            bool _participantList
+        ) = abi.decode(
                 _data,
                 (
                     address,
@@ -144,24 +169,24 @@ contract FixedPriceSaleTemplate {
                     uint256,
                     uint256,
                     uint256,
-                    address
+                    bool
                 )
             );
 
         initTemplate(
             _saleLauncher,
             _saleTemplateId,
-            _tokenOutSupplier,
-            _tokenOut,
+            _tokenSupplier,
             _tokenIn,
+            _tokenOut,
             _tokenPrice,
             _tokensForSale,
             _startDate,
             _endDate,
-            _allocationMin,
-            _allocationMax,
-            _minimumRaise,
-            _owner
+            _minCommitment,
+            _maxCommitment,
+            _minRaise,
+            _participantList
         );
     }
 }

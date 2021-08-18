@@ -1,28 +1,27 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber, utils } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 
 import { mineBlock, expandTo18Decimals } from "./utilities";
+import {
+    ERC20Mintable,
+    FixedPriceSale,
+    ERC20Mintable__factory,
+    FixedPriceSale__factory,
+} from "../../typechain";
 import "@nomiclabs/hardhat-ethers";
 
-import { createTokensAndMintAndApprove } from "../../src/priceCalculation";
-
-describe("fixedPriceSaleE2E", async () => {
-    const [user_1, user_2] = waffle.provider.getWallets();
-
-    let fixedPriceSale: Contract;
-    let saleIntialized: Contract;
-    let tokenIn: Contract;
-    let tokenOut: Contract;
+describe("E2E: FixedPriceSale", async () => {
+    const [idoManager, user_1, user_2, user_3, user_4] =
+        waffle.provider.getWallets();
+    let fixedPriceSale: FixedPriceSale;
+    let saleIntialized: FixedPriceSale;
+    let aToken: ERC20Mintable;
+    let daiToken: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
-    const defaultTokenPrice = expandTo18Decimals(10);
-    const defaultTokensForSale = expandTo18Decimals(2000);
-    const defaultAllocationMin = expandTo18Decimals(2);
-    const defaultAllocationMax = expandTo18Decimals(10);
-    const defaultMinimumRaise = expandTo18Decimals(5000);
-    let defaultStartDate: number;
-    let defaultEndDate: number;
+    let startDate: number;
+    let endDate: number;
 
     function encodeInitData(
         tokenIn: string,
@@ -31,10 +30,11 @@ describe("fixedPriceSaleE2E", async () => {
         tokensForSale: BigNumber,
         startDate: number,
         endDate: number,
-        allocationMin: BigNumber,
-        allocationMax: BigNumber,
-        minimumRaise: BigNumber,
-        owner: string
+        minCommitment: BigNumber,
+        maxCommitment: BigNumber,
+        minRaise: BigNumber,
+        owner: string,
+        partipantList: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -48,6 +48,7 @@ describe("fixedPriceSaleE2E", async () => {
                 "uint256",
                 "uint256",
                 "address",
+                "address",
             ],
             [
                 tokenIn,
@@ -56,181 +57,382 @@ describe("fixedPriceSaleE2E", async () => {
                 tokensForSale,
                 startDate,
                 endDate,
-                allocationMin,
-                allocationMax,
-                minimumRaise,
+                minCommitment,
+                maxCommitment,
+                minRaise,
                 owner,
+                partipantList,
             ]
         );
     }
 
-    beforeEach(async () => {
-        const FixedPriceSale = await ethers.getContractFactory(
-            "FixedPriceSale"
-        );
+    describe("Test Sale: Selling 100 ATokens for 1 DAI each", async () => {
+        beforeEach("deploy sale", async () => {
+            const tokenPrice = expandTo18Decimals(1);
+            const tokensForSale = expandTo18Decimals(100);
+            const minCommitment = expandTo18Decimals(10);
+            const maxCommitment = expandTo18Decimals(40);
+            const minRaise = expandTo18Decimals(30);
 
-        const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+            currentBlockNumber = await ethers.provider.getBlockNumber();
+            currentBlock = await ethers.provider.getBlock(currentBlockNumber);
 
-        fixedPriceSale = await FixedPriceSale.deploy();
-        saleIntialized = await FixedPriceSale.deploy();
+            startDate = currentBlock.timestamp + 500;
+            endDate = startDate + 86400; // 24 hours
 
-        tokenIn = await ERC20.deploy("tokenIn", "tokA");
-        tokenOut = await ERC20.deploy("tokenOut", "tokB");
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
 
-        const accounts = await ethers.getSigners();
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
 
-        for (const wallet of accounts) {
-            await tokenIn.mint(wallet.address, BigNumber.from(10).pow(30));
-            await tokenOut.mint(wallet.address, BigNumber.from(10).pow(30));
+            fixedPriceSale = await FixedPriceSale.deploy();
+            saleIntialized = await FixedPriceSale.deploy();
 
-            await tokenIn
-                .connect(wallet)
-                .approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
-            await tokenOut
-                .connect(wallet)
-                .approve(fixedPriceSale.address, BigNumber.from(10).pow(30));
+            aToken = await ERC20.deploy("aToken", "aToken");
+            daiToken = await ERC20.deploy("daiToken", "dai");
 
-            await tokenIn
-                .connect(wallet)
-                .approve(saleIntialized.address, BigNumber.from(10).pow(30));
-            await tokenOut
-                .connect(wallet)
-                .approve(saleIntialized.address, BigNumber.from(10).pow(30));
-            //console.log(wallet.address);
-        }
+            await aToken.mint(idoManager.address, tokensForSale);
+            await aToken
+                .connect(idoManager)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_1.address, tokensForSale);
+            await daiToken
+                .connect(user_1)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_2.address, tokensForSale);
+            await daiToken
+                .connect(user_2)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_3.address, tokensForSale);
+            await daiToken
+                .connect(user_3)
+                .approve(saleIntialized.address, tokensForSale);
 
-        currentBlockNumber = await ethers.provider.getBlockNumber();
-        currentBlock = await ethers.provider.getBlock(currentBlockNumber);
-        defaultStartDate = currentBlock.timestamp + 500;
-        defaultEndDate = defaultStartDate + 86400; // 24 hours
-
-        const initData = await encodeInitData(
-            tokenIn.address,
-            tokenOut.address,
-            defaultTokenPrice,
-            defaultTokensForSale,
-            defaultStartDate,
-            defaultEndDate,
-            defaultAllocationMin,
-            defaultAllocationMax,
-            defaultMinimumRaise,
-            user_1.address
-        );
-        await saleIntialized.init(initData);
-    });
-    describe("allow distributeAllTokens ", async () => {
-        it("allows distributeAllTokens with 128 accounts", async () => {
-            const initData = await encodeInitData(
-                tokenIn.address,
-                tokenOut.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                expandTo18Decimals(0),
-                user_1.address
+            const initData = encodeInitData(
+                daiToken.address,
+                aToken.address,
+                tokenPrice,
+                tokensForSale,
+                startDate,
+                endDate,
+                minCommitment,
+                maxCommitment,
+                minRaise,
+                idoManager.address,
+                ethers.constants.AddressZero
             );
 
-            await fixedPriceSale.init(initData);
-            let ordersCount = 128;
+            await saleIntialized.connect(idoManager).init(initData);
+        });
+        it("distributes amounts correctly", async () => {
+            await mineBlock(startDate);
+            await saleIntialized
+                .connect(user_1)
+                .commitTokens(expandTo18Decimals(10));
+            await saleIntialized
+                .connect(user_2)
+                .commitTokens(expandTo18Decimals(30));
+            await saleIntialized
+                .connect(user_3)
+                .commitTokens(expandTo18Decimals(20));
+            await mineBlock(endDate);
 
-            const distributPerBlock = 100;
-            // console.log("distributPerBlock", distributPerBlock);
-
-            const accounts = await ethers.getSigners();
-            let i = 1;
-            for (let wallet of accounts) {
-                await fixedPriceSale
-                    .connect(wallet)
-                    .buyTokens(expandTo18Decimals(3));
-                if (i == ordersCount) {
-                    break;
-                }
-                i++;
-            }
-
-            await mineBlock(defaultEndDate + 10000);
-            await fixedPriceSale.closeSale();
-
-            while (true) {
-                ordersCount = ordersCount - distributPerBlock;
-
-                //console.log("ordersCount", ordersCount);
-
-                if (ordersCount < 0) {
-                    await expect(fixedPriceSale.distributeAllTokens())
-                        .to.emit(fixedPriceSale, "distributeAllTokensLeft")
-                        .withArgs(0);
-
-                    expect(await fixedPriceSale.ordersCount()).to.be.equal(0);
-                    break;
-                }
-
-                await expect(fixedPriceSale.distributeAllTokens())
-                    .to.emit(fixedPriceSale, "distributeAllTokensLeft")
-                    .withArgs(ordersCount);
-
-                expect(await fixedPriceSale.ordersCount()).to.be.equal(
-                    ordersCount
+            await expect(saleIntialized.closeSale())
+                .to.emit(daiToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    expandTo18Decimals(60)
+                )
+                .to.emit(aToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    expandTo18Decimals(40)
                 );
-            }
+
+            await expect(saleIntialized.withdrawTokens(user_1.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_1.address, expandTo18Decimals(10));
+
+            await expect(saleIntialized.withdrawTokens(user_2.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_2.address, expandTo18Decimals(30));
+
+            await expect(saleIntialized.withdrawTokens(user_3.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_3.address, expandTo18Decimals(20));
         });
 
-        it("Measure Gas Usage", async () => {
+        it("closes sale automatically with last commit & distributes amounts correctly", async () => {
+            await mineBlock(startDate);
+            await saleIntialized
+                .connect(user_1)
+                .commitTokens(expandTo18Decimals(30));
+            await saleIntialized
+                .connect(user_2)
+                .commitTokens(expandTo18Decimals(30));
+
+            // Commit that hits sale goal, should automatically close sale
+            await expect(
+                saleIntialized
+                    .connect(user_3)
+                    .commitTokens(expandTo18Decimals(40))
+            )
+                .to.emit(daiToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    expandTo18Decimals(100)
+                )
+                .to.not.emit(aToken, "Transfer");
+
+            await expect(saleIntialized.withdrawTokens(user_1.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_1.address, expandTo18Decimals(30));
+
+            await expect(saleIntialized.withdrawTokens(user_2.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_2.address, expandTo18Decimals(30));
+
+            await expect(saleIntialized.withdrawTokens(user_3.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_3.address, expandTo18Decimals(40));
+        });
+    });
+
+    describe("Test Sale: Selling 5555 ATokens for 0.1 DAI each", async () => {
+        beforeEach("deploy sale", async () => {
+            const tokenPrice = expandTo18Decimals(10);
+            const tokensForSale = expandTo18Decimals(5555);
+            const minCommitment = expandTo18Decimals(10);
+            const maxCommitment = expandTo18Decimals(40);
+            const minRaise = expandTo18Decimals(50);
+
+            currentBlockNumber = await ethers.provider.getBlockNumber();
+            currentBlock = await ethers.provider.getBlock(currentBlockNumber);
+
+            startDate = currentBlock.timestamp + 500;
+            endDate = startDate + 86400; // 24 hours
+
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
+
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
+
+            fixedPriceSale = await FixedPriceSale.deploy();
+            saleIntialized = await FixedPriceSale.deploy();
+
+            aToken = await ERC20.deploy("aToken", "aToken");
+            daiToken = await ERC20.deploy("daiToken", "dai");
+
+            await aToken.mint(idoManager.address, tokensForSale);
+            await aToken
+                .connect(idoManager)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_1.address, tokensForSale);
+            await daiToken
+                .connect(user_1)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_2.address, tokensForSale);
+            await daiToken
+                .connect(user_2)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_3.address, tokensForSale);
+            await daiToken
+                .connect(user_3)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_4.address, tokensForSale);
+            await daiToken
+                .connect(user_4)
+                .approve(saleIntialized.address, tokensForSale);
+
             const initData = await encodeInitData(
-                tokenIn.address,
-                tokenOut.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultAllocationMin,
-                defaultAllocationMax,
-                expandTo18Decimals(0),
-                user_1.address
+                daiToken.address,
+                aToken.address,
+                tokenPrice,
+                tokensForSale,
+                startDate,
+                endDate,
+                minCommitment,
+                maxCommitment,
+                minRaise,
+                idoManager.address,
+                ethers.constants.AddressZero
             );
 
-            await fixedPriceSale.init(initData);
-            let ordersCount = 128;
-            const distributPerBlock = 100;
+            await saleIntialized.connect(idoManager).init(initData);
+        });
+        it("distributes amounts correctly", async () => {
+            await mineBlock(startDate);
+            await saleIntialized
+                .connect(user_1)
+                .commitTokens(expandTo18Decimals(20));
+            await saleIntialized
+                .connect(user_2)
+                .commitTokens(expandTo18Decimals(25));
+            await saleIntialized
+                .connect(user_3)
+                .commitTokens(utils.parseEther("27.60"));
+            await saleIntialized
+                .connect(user_4)
+                .commitTokens(utils.parseEther("13.31420"));
+            await mineBlock(endDate);
 
-            const accounts = await ethers.getSigners();
-            let i = 1;
-            for (let wallet of accounts) {
-                await fixedPriceSale
-                    .connect(wallet)
-                    .buyTokens(expandTo18Decimals(3));
-                if (i == ordersCount) {
-                    break;
-                }
-                i++;
-            }
-
-            await mineBlock(defaultEndDate + 10000);
-            await fixedPriceSale.closeSale();
-
-            while (true) {
-                ordersCount = ordersCount - distributPerBlock;
-                //console.log("ordersCount", ordersCount);
-
-                if (ordersCount < 0) {
-                    const tx = await fixedPriceSale.distributeAllTokens();
-                    const gasUsed = (await tx.wait()).gasUsed;
-                    console.log(
-                        "Gas usage for distributeAllTokens",
-                        gasUsed.toString()
-                    );
-                    break;
-                }
-                const tx = await fixedPriceSale.distributeAllTokens();
-                const gasUsed = (await tx.wait()).gasUsed;
-                console.log(
-                    "Gas usage for distributeAllTokens",
-                    gasUsed.toString()
+            await expect(saleIntialized.closeSale())
+                .to.emit(daiToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    utils.parseEther("85.9142")
+                )
+                .to.emit(aToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    utils.parseEther("4695.858")
                 );
-            }
-        }); // it
+
+            await expect(saleIntialized.withdrawTokens(user_1.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_1.address, expandTo18Decimals(200));
+
+            await expect(saleIntialized.withdrawTokens(user_2.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_2.address, expandTo18Decimals(250));
+
+            await expect(saleIntialized.withdrawTokens(user_3.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_3.address, expandTo18Decimals(276));
+
+            await expect(saleIntialized.withdrawTokens(user_4.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_4.address, utils.parseEther("133.142"));
+        });
+    });
+
+    describe("Test Sale: Selling 1000 ATokens for 8 DAI each", async () => {
+        beforeEach("deploy sale", async () => {
+            const tokenPrice = utils.parseEther("0.125");
+            const tokensForSale = expandTo18Decimals(1000);
+            const minCommitment = expandTo18Decimals(50);
+            const maxCommitment = expandTo18Decimals(300);
+            const minRaise = expandTo18Decimals(500);
+
+            currentBlockNumber = await ethers.provider.getBlockNumber();
+            currentBlock = await ethers.provider.getBlock(currentBlockNumber);
+
+            startDate = currentBlock.timestamp + 500;
+            endDate = startDate + 86400; // 24 hours
+
+            const FixedPriceSale =
+                await ethers.getContractFactory<FixedPriceSale__factory>(
+                    "FixedPriceSale"
+                );
+
+            const ERC20 =
+                await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                    "ERC20Mintable"
+                );
+
+            fixedPriceSale = await FixedPriceSale.deploy();
+            saleIntialized = await FixedPriceSale.deploy();
+
+            aToken = await ERC20.deploy("aToken", "aToken");
+            daiToken = await ERC20.deploy("daiToken", "dai");
+
+            await aToken.mint(idoManager.address, tokensForSale);
+            await aToken
+                .connect(idoManager)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_1.address, tokensForSale);
+            await daiToken
+                .connect(user_1)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_2.address, tokensForSale);
+            await daiToken
+                .connect(user_2)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_3.address, tokensForSale);
+            await daiToken
+                .connect(user_3)
+                .approve(saleIntialized.address, tokensForSale);
+            await daiToken.mint(user_4.address, tokensForSale);
+            await daiToken
+                .connect(user_4)
+                .approve(saleIntialized.address, tokensForSale);
+
+            const initData = await encodeInitData(
+                daiToken.address,
+                aToken.address,
+                tokenPrice,
+                tokensForSale,
+                startDate,
+                endDate,
+                minCommitment,
+                maxCommitment,
+                minRaise,
+                idoManager.address,
+                ethers.constants.AddressZero
+            );
+
+            await saleIntialized.connect(idoManager).init(initData);
+        });
+        it("distributes amounts correctly", async () => {
+            await mineBlock(startDate);
+            await saleIntialized
+                .connect(user_1)
+                .commitTokens(expandTo18Decimals(150));
+            await saleIntialized
+                .connect(user_2)
+                .commitTokens(expandTo18Decimals(300));
+            await saleIntialized
+                .connect(user_3)
+                .commitTokens(expandTo18Decimals(280));
+            await saleIntialized
+                .connect(user_4)
+                .commitTokens(utils.parseEther("250.25412"));
+            await mineBlock(endDate);
+
+            await expect(saleIntialized.closeSale())
+                .to.emit(daiToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    utils.parseEther("980.25412")
+                )
+                .to.emit(aToken, "Transfer")
+                .withArgs(
+                    saleIntialized.address,
+                    idoManager.address,
+                    utils.parseEther("877.468235")
+                );
+
+            await expect(saleIntialized.withdrawTokens(user_1.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_1.address, utils.parseEther("18.75"));
+
+            await expect(saleIntialized.withdrawTokens(user_2.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_2.address, utils.parseEther("37.5"));
+
+            await expect(saleIntialized.withdrawTokens(user_3.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_3.address, expandTo18Decimals(35));
+
+            await expect(saleIntialized.withdrawTokens(user_4.address))
+                .to.emit(saleIntialized, "NewTokenWithdraw")
+                .withArgs(user_4.address, utils.parseEther("31.281765"));
+        });
     });
 });

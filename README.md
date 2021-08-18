@@ -1,4 +1,4 @@
-# Mesa Contracts
+# Aqua Contracts
 
 ## Getting started
 To run the tests, follow these steps. You must have at least node v10 and [yarn](https://yarnpkg.com/) installed.
@@ -6,13 +6,13 @@ To run the tests, follow these steps. You must have at least node v10 and [yarn]
 First clone the repository:
 
 ```sh
-git clone https://github.com/cryptonative-ch/mesa-smartcontracts.git
+git clone https://github.com/cryptonative-ch/aqua-smartcontracts.git
 ```
 
-Move into the mesa-contracts working directory
+Move into the aqua-contracts working directory
 
 ```sh
-cd mesa-contracts/
+cd aqua-contracts/
 ```
 
 Install dependencies

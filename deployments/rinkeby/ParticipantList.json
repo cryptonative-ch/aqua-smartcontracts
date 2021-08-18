@@ -1,0 +1,228 @@
+{
+  "address": "0xF564958AD0c645720a24E90B96c7b30B198B15aF",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amounts",
+          "type": "uint256"
+        }
+      ],
+      "name": "AmountsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address[]",
+          "name": "managers",
+          "type": "address[]"
+        }
+      ],
+      "name": "ListInitialized",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "managers",
+          "type": "address[]"
+        }
+      ],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "initialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "isInList",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "listManagers",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "participantAmounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "accounts",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "amounts",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "setParticipantAmounts",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x5cec3ac6bcde1d31af4e427df48f6da626c1396d821f4c3fb078c77b6b81fe7e",
+  "receipt": {
+    "to": null,
+    "from": "0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af",
+    "contractAddress": "0xF564958AD0c645720a24E90B96c7b30B198B15aF",
+    "transactionIndex": 2,
+    "gasUsed": "399438",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xe8f2889633bb26320f7eea66d1c1134624903e134090699a9484e19406db4a42",
+    "transactionHash": "0x5cec3ac6bcde1d31af4e427df48f6da626c1396d821f4c3fb078c77b6b81fe7e",
+    "logs": [],
+    "blockNumber": 9056034,
+    "cumulativeGasUsed": "706943",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "e05f8115070246b5217265d34dc7ff88",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amounts\",\"type\":\"uint256\"}],\"name\":\"AmountsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"managers\",\"type\":\"address[]\"}],\"name\":\"ListInitialized\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"managers\",\"type\":\"address[]\"}],\"name\":\"init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"initialized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"isInList\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"listManagers\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"participantAmounts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"accounts\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"amounts\",\"type\":\"uint256[]\"}],\"name\":\"setParticipantAmounts\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/participants/ParticipantList.sol\":\"ParticipantList\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/participants/ParticipantList.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\n\\ncontract ParticipantList {\\n    bool public initialized;\\n    mapping(address => uint256) public participantAmounts;\\n    mapping(address => bool) public listManagers;\\n\\n    event ListInitialized(address[] managers);\\n    event AmountsUpdated(address indexed account, uint256 amounts);\\n\\n    function init(address[] memory managers) external {\\n        require(!initialized, \\\"ParticipantList: ALREADY_INITIALIZED\\\");\\n        require(managers.length > 0, \\\"ParticipantList: NO_MANAGERS\\\");\\n        initialized = true;\\n        for (uint256 i = 0; i < managers.length; i++) {\\n            listManagers[managers[i]] = true;\\n        }\\n        emit ListInitialized(managers);\\n    }\\n\\n    function isInList(address account) public view returns (bool) {\\n        return participantAmounts[account] > 0;\\n    }\\n\\n    function setParticipantAmounts(\\n        address[] memory accounts,\\n        uint256[] memory amounts\\n    ) external {\\n        require(listManagers[msg.sender], \\\"ParticipantList: FORBIDDEN\\\");\\n        require(\\n            accounts.length == amounts.length,\\n            \\\"ParticipantList: INVALID_LENGTH\\\"\\n        );\\n        for (uint256 i = 0; i < accounts.length; i++) {\\n            address account = accounts[i];\\n            uint256 amount = amounts[i];\\n\\n            participantAmounts[account] = amount;\\n            emit AmountsUpdated(account, amount);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xf473b266d7a0a7e6f9b8aa9fdd4f51c460dcf2977ccba127968f0a803c08e716\",\"license\":\"LGPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50610645806100206000396000f3fe608060405234801561001057600080fd5b50600436106100615760003560e01c8062f2a33814610066578063158ef93e1461009e578063597ba1cb146100ba578063a33f4a3f146100e0578063c6044c4614610209578063fa33bcf3146102ac575b600080fd5b61008c6004803603602081101561007c57600080fd5b50356001600160a01b03166102d2565b60408051918252519081900360200190f35b6100a66102e4565b604080519115158252519081900360200190f35b6100a6600480360360208110156100d057600080fd5b50356001600160a01b03166102ed565b610207600480360360408110156100f657600080fd5b81019060208101813564010000000081111561011157600080fd5b82018360208201111561012357600080fd5b8035906020019184602083028401116401000000008311171561014557600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929594936020810193503591505064010000000081111561019557600080fd5b8201836020820111156101a757600080fd5b803590602001918460208302840111640100000000831117156101c957600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610302945050505050565b005b6102076004803603602081101561021f57600080fd5b81019060208101813564010000000081111561023a57600080fd5b82018360208201111561024c57600080fd5b8035906020019184602083028401116401000000008311171561026e57600080fd5b91908080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525092955061045a945050505050565b6100a6600480360360208110156102c257600080fd5b50356001600160a01b03166105ce565b60016020526000908152604090205481565b60005460ff1681565b60026020526000908152604090205460ff1681565b3360009081526002602052604090205460ff16610366576040805162461bcd60e51b815260206004820152601a60248201527f5061727469636970616e744c6973743a20464f5242494444454e000000000000604482015290519081900360640190fd5b80518251146103bc576040805162461bcd60e51b815260206004820152601f60248201527f5061727469636970616e744c6973743a20494e56414c49445f4c454e47544800604482015290519081900360640190fd5b60005b82518110156104555760008382815181106103d657fe5b6020026020010151905060008383815181106103ee57fe5b6020908102919091018101516001600160a01b0384166000818152600184526040908190208390558051838152905192945090927fcf867fcf1a6489767a1862f902876e256149ea0c26627c9b843673ad23f3baa192918290030190a250506001016103bf565b505050565b60005460ff161561049c5760405162461bcd60e51b81526004018080602001828103825260248152602001806105ec6024913960400191505060405180910390fd5b60008151116104f2576040805162461bcd60e51b815260206004820152601c60248201527f5061727469636970616e744c6973743a204e4f5f4d414e414745525300000000604482015290519081900360640190fd5b6000805460ff191660011781555b81518110156105555760016002600084848151811061051b57fe5b6020908102919091018101516001600160a01b03168252810191909152604001600020805460ff1916911515919091179055600101610500565b507f736b4011e57e4f45501c3efcf0eba7ccd14c15164ab518a88fdf15a272bcd1f0816040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156105b85781810151838201526020016105a0565b505050509050019250505060405180910390a150565b6001600160a01b031660009081526001602052604090205415159056fe5061727469636970616e744c6973743a20414c52454144595f494e495449414c495a4544a2646970667358221220813b79eb8f1fc802ef8f33542900d8964d3cdd97c1eb90c117a56f4a3f62dd3964736f6c634300060c0033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100615760003560e01c8062f2a33814610066578063158ef93e1461009e578063597ba1cb146100ba578063a33f4a3f146100e0578063c6044c4614610209578063fa33bcf3146102ac575b600080fd5b61008c6004803603602081101561007c57600080fd5b50356001600160a01b03166102d2565b60408051918252519081900360200190f35b6100a66102e4565b604080519115158252519081900360200190f35b6100a6600480360360208110156100d057600080fd5b50356001600160a01b03166102ed565b610207600480360360408110156100f657600080fd5b81019060208101813564010000000081111561011157600080fd5b82018360208201111561012357600080fd5b8035906020019184602083028401116401000000008311171561014557600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929594936020810193503591505064010000000081111561019557600080fd5b8201836020820111156101a757600080fd5b803590602001918460208302840111640100000000831117156101c957600080fd5b919080806020026020016040519081016040528093929190818152602001838360200280828437600092019190915250929550610302945050505050565b005b6102076004803603602081101561021f57600080fd5b81019060208101813564010000000081111561023a57600080fd5b82018360208201111561024c57600080fd5b8035906020019184602083028401116401000000008311171561026e57600080fd5b91908080602002602001604051908101604052809392919081815260200183836020028082843760009201919091525092955061045a945050505050565b6100a6600480360360208110156102c257600080fd5b50356001600160a01b03166105ce565b60016020526000908152604090205481565b60005460ff1681565b60026020526000908152604090205460ff1681565b3360009081526002602052604090205460ff16610366576040805162461bcd60e51b815260206004820152601a60248201527f5061727469636970616e744c6973743a20464f5242494444454e000000000000604482015290519081900360640190fd5b80518251146103bc576040805162461bcd60e51b815260206004820152601f60248201527f5061727469636970616e744c6973743a20494e56414c49445f4c454e47544800604482015290519081900360640190fd5b60005b82518110156104555760008382815181106103d657fe5b6020026020010151905060008383815181106103ee57fe5b6020908102919091018101516001600160a01b0384166000818152600184526040908190208390558051838152905192945090927fcf867fcf1a6489767a1862f902876e256149ea0c26627c9b843673ad23f3baa192918290030190a250506001016103bf565b505050565b60005460ff161561049c5760405162461bcd60e51b81526004018080602001828103825260248152602001806105ec6024913960400191505060405180910390fd5b60008151116104f2576040805162461bcd60e51b815260206004820152601c60248201527f5061727469636970616e744c6973743a204e4f5f4d414e414745525300000000604482015290519081900360640190fd5b6000805460ff191660011781555b81518110156105555760016002600084848151811061051b57fe5b6020908102919091018101516001600160a01b03168252810191909152604001600020805460ff1916911515919091179055600101610500565b507f736b4011e57e4f45501c3efcf0eba7ccd14c15164ab518a88fdf15a272bcd1f0816040518080602001828103825283818151815260200191508051906020019060200280838360005b838110156105b85781810151838201526020016105a0565b505050509050019250505060405180910390a150565b6001600160a01b031660009081526001602052604090205415159056fe5061727469636970616e744c6973743a20414c52454144595f494e495449414c495a4544a2646970667358221220813b79eb8f1fc802ef8f33542900d8964d3cdd97c1eb90c117a56f4a3f62dd3964736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3,
+        "contract": "contracts/participants/ParticipantList.sol:ParticipantList",
+        "label": "initialized",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_bool"
+      },
+      {
+        "astId": 7,
+        "contract": "contracts/participants/ParticipantList.sol:ParticipantList",
+        "label": "participantAmounts",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 11,
+        "contract": "contracts/participants/ParticipantList.sol:ParticipantList",
+        "label": "listManagers",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_bool)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

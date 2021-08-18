@@ -1,6 +1,7 @@
-import { BigNumber, Contract } from "ethers";
 import { ethers } from "hardhat";
+import { BigNumber, BigNumberish, Contract } from "ethers";
 
+import { FairSale } from "../../typechain";
 import { encodeOrder, Order } from "../../src/priceCalculation";
 
 export async function closeAuction(instance: Contract): Promise<void> {
@@ -11,7 +12,7 @@ export async function closeAuction(instance: Contract): Promise<void> {
 }
 
 export async function claimFromAllOrders(
-    fairSale: Contract,
+    fairSale: FairSale,
     orders: Order[]
 ): Promise<void> {
     for (const order of orders) {
@@ -41,10 +42,89 @@ export function expandTo18Decimals(n: number): BigNumber {
 export async function sendTxAndGetReturnValue<T>(
     contract: Contract,
     fnName: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...args: any[]
 ): Promise<T> {
     const result = await contract.callStatic[fnName](...args);
     await contract.functions[fnName](...args);
     return result;
 }
+
+export const encodeFairSaleInitData = (
+    tokenIn: string,
+    tokenOut: string,
+    orderCancelationPeriodDuration: BigNumberish,
+    duration: BigNumberish,
+    totalTokenOutAmount: BigNumberish,
+    minBidAmountToReceive: BigNumberish,
+    minimumBiddingAmountPerOrder: BigNumberish,
+    minSellThreshold: BigNumberish,
+    isAtomicClosureAllowed: boolean
+) => {
+    return ethers.utils.defaultAbiCoder.encode(
+        [
+            "address",
+            "address",
+            "uint256",
+            "uint256",
+            "uint96",
+            "uint96",
+            "uint256",
+            "uint256",
+            "bool",
+        ],
+        [
+            tokenIn,
+            tokenOut,
+            orderCancelationPeriodDuration,
+            duration,
+            totalTokenOutAmount,
+            minBidAmountToReceive,
+            minimumBiddingAmountPerOrder,
+            minSellThreshold,
+            isAtomicClosureAllowed,
+        ]
+    );
+};
+
+export const encodeFixedPriceSaleInitData = (
+    tokenIn: string,
+    tokenOut: string,
+    tokenPrice: BigNumber,
+    tokensForSale: BigNumber,
+    startDate: number,
+    endDate: number,
+    minCommitment: BigNumber,
+    maxCommitment: BigNumber,
+    minRaise: BigNumber,
+    owner: string,
+    partipantList: string
+) => {
+    return ethers.utils.defaultAbiCoder.encode(
+        [
+            "address",
+            "address",
+            "uint256",
+            "uint256",
+            "uint256",
+            "uint256",
+            "uint256",
+            "uint256",
+            "uint256",
+            "address",
+            "address",
+        ],
+        [
+            tokenIn,
+            tokenOut,
+            tokenPrice,
+            tokensForSale,
+            startDate,
+            endDate,
+            minCommitment,
+            maxCommitment,
+            minRaise,
+            owner,
+            partipantList,
+        ]
+    );
+};

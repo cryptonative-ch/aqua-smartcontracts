@@ -1,0 +1,407 @@
+{
+  "address": "0xEa46e2411f1555Bf58061aA0AF6B8B7Cd8b021E7",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "tokenIn",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "tokenOut",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "tokensForSale",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint96",
+          "name": "minPrice",
+          "type": "uint96"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint96",
+          "name": "minBuyAmount",
+          "type": "uint96"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minRaise",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "orderCancelationPeriodDuration",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minimumBiddingAmountPerOrder",
+          "type": "uint256"
+        }
+      ],
+      "name": "TemplateInitialized",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "aquaFactory",
+      "outputs": [
+        {
+          "internalType": "contract IAquaFactory",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "createSale",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "newSale",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "encodedInitData",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_data",
+          "type": "bytes"
+        }
+      ],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isInitialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isSaleCreated",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "metaDataContentHash",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "saleLauncher",
+      "outputs": [
+        {
+          "internalType": "contract ISaleLauncher",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "saleTemplateId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "templateName",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tokenOut",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tokenSupplier",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tokensForSale",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x85744cbdf27192a8719aa2f3d54bab6efa39076db0920f7a1c53cfc2681d7504",
+  "receipt": {
+    "to": null,
+    "from": "0xA601aeD34dda12fF760d8ABb64Fd4Eb3664E35Af",
+    "contractAddress": "0xEa46e2411f1555Bf58061aA0AF6B8B7Cd8b021E7",
+    "transactionIndex": 15,
+    "gasUsed": "667778",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x738b4770552f386ec1c242768aa1586bcbd27807434ec8cddd0ec98341751780",
+    "transactionHash": "0x85744cbdf27192a8719aa2f3d54bab6efa39076db0920f7a1c53cfc2681d7504",
+    "logs": [],
+    "blockNumber": 9056066,
+    "cumulativeGasUsed": "3595359",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "solcInputHash": "56e11e7f090b053fac65151df0b20b53",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.12+commit.27d51765\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenIn\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"tokenOut\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"tokensForSale\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint96\",\"name\":\"minPrice\",\"type\":\"uint96\"},{\"indexed\":false,\"internalType\":\"uint96\",\"name\":\"minBuyAmount\",\"type\":\"uint96\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minRaise\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"orderCancelationPeriodDuration\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"minimumBiddingAmountPerOrder\",\"type\":\"uint256\"}],\"name\":\"TemplateInitialized\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"aquaFactory\",\"outputs\":[{\"internalType\":\"contract IAquaFactory\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"createSale\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"newSale\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"encodedInitData\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_data\",\"type\":\"bytes\"}],\"name\":\"init\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isInitialized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isSaleCreated\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"metaDataContentHash\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"saleLauncher\",\"outputs\":[{\"internalType\":\"contract ISaleLauncher\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"saleTemplateId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"templateName\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenOut\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenSupplier\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokensForSale\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"init(bytes)\":{\"details\":\"setup function expexted to be called by templateLauncher to init the template\",\"params\":{\"_data\":\"encoded template params\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/templates/FairSaleTemplate.sol\":\"FairSaleTemplate\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.6.0 <0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x5f02220344881ce43204ae4a6281145a67bc52c2bb1290a791857df3d19d78f5\",\"license\":\"MIT\"},\"contracts/shared/interfaces/IAquaFactory.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\n\\ninterface IAquaFactory {\\n    function allSales() external view returns (address[] calldata);\\n\\n    function numberOfSales() external view returns (uint256);\\n\\n    function templateManager() external view returns (address);\\n\\n    function templateLauncher() external view returns (address);\\n\\n    function templateFee() external view returns (uint256);\\n\\n    function saleFee() external view returns (uint256);\\n\\n    function feeDenominator() external view returns (uint256);\\n\\n    function feeNumerator() external view returns (uint256);\\n\\n    function feeTo() external view returns (address);\\n\\n    function addTemplate(address _template) external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xf588d2009192b85de15083f06b466ae714b50349a7f6ed6e8f15d7b03cfc6f13\",\"license\":\"LGPL-3.0\"},\"contracts/shared/interfaces/ISaleLauncher.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\n\\ninterface ISaleLauncher {\\n    function factory() external view returns (address);\\n\\n    function createSale(\\n        uint256 _templateId,\\n        address _token,\\n        uint256 _tokenSupply,\\n        address _tokenSupplier,\\n        bytes calldata _data\\n    ) external payable returns (address);\\n\\n    function getDepositAmountWithFees(uint256 _tokenSupply)\\n        external\\n        view\\n        returns (uint256);\\n}\\n\",\"keccak256\":\"0x74e138c0890eeaf3dcabda972eeb1b4cb8464d0baf506b26b9837e8fb1139536\",\"license\":\"LGPL-3.0\"},\"contracts/shared/utils/AquaTemplate.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\n\\ncontract AquaTemplate {\\n    string public templateName;\\n    string public metaDataContentHash;\\n}\\n\",\"keccak256\":\"0xcb54e1098128f7947f8a60094dad3a9a0dd16155f49612520ff85820c007dfeb\",\"license\":\"LGPL-3.0\"},\"contracts/templates/FairSaleTemplate.sol\":{\"content\":\"// SPDX-License-Identifier: LGPL-3.0\\npragma solidity >=0.6.8;\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"../shared/interfaces/ISaleLauncher.sol\\\";\\nimport \\\"../shared/interfaces/IAquaFactory.sol\\\";\\nimport \\\"../shared/utils/AquaTemplate.sol\\\";\\n\\ncontract FairSaleTemplate is AquaTemplate {\\n    ISaleLauncher public saleLauncher;\\n    IAquaFactory public aquaFactory;\\n    uint256 public saleTemplateId;\\n    address public tokenSupplier;\\n    address public tokenOut;\\n    uint256 public tokensForSale;\\n    bytes public encodedInitData;\\n    bool public isInitialized;\\n    bool public isSaleCreated;\\n\\n    event TemplateInitialized(\\n        address tokenIn,\\n        address tokenOut,\\n        uint256 duration,\\n        uint256 tokensForSale,\\n        uint96 minPrice,\\n        uint96 minBuyAmount,\\n        uint256 minRaise,\\n        uint256 orderCancelationPeriodDuration,\\n        uint256 minimumBiddingAmountPerOrder\\n    );\\n\\n    constructor() public {\\n        templateName = \\\"FairSaleTemplate\\\";\\n        metaDataContentHash = \\\"0x\\\"; // ToDo\\n    }\\n\\n    /// @dev internal setup function to initialize the template, called by init()\\n    /// @param _saleLauncher address of Aqua SaleLauncher\\n    /// @param _saleTemplateId Aqua Auction TemplateId\\n    /// @param _tokenIn token to bid on auction\\n    /// @param _tokenOut token to be auctioned\\n    /// @param _duration auction duration in seconds\\n    /// @param _tokensForSale amount of tokens to be auctioned\\n    /// @param _minPrice minimum Price that token should be auctioned for\\n    /// @param _minBuyAmount minimum amount of tokens an investor has to buy\\n    /// @param _minRaise minimum amount an project is expected to raise\\n    /// @param _tokenSupplier address that deposits the tokens\\n    function initTemplate(\\n        address _saleLauncher,\\n        uint256 _saleTemplateId,\\n        address _tokenIn,\\n        address _tokenOut,\\n        uint256 _duration,\\n        uint256 _tokensForSale,\\n        uint96 _minPrice,\\n        uint96 _minBuyAmount,\\n        uint256 _minRaise,\\n        uint256 _orderCancelationPeriodDuration,\\n        uint256 _minimumBiddingAmountPerOrder,\\n        address _tokenSupplier\\n    ) internal {\\n        require(!isInitialized, \\\"FairSaleTemplate: ALEADY_INITIALIZED\\\");\\n\\n        saleLauncher = ISaleLauncher(_saleLauncher);\\n        aquaFactory = IAquaFactory(ISaleLauncher(_saleLauncher).factory());\\n        saleTemplateId = _saleTemplateId;\\n\\n        bool isAtomicClosureAllowed = false;\\n        tokenSupplier = _tokenSupplier;\\n        tokenOut = _tokenOut;\\n        tokensForSale = _tokensForSale;\\n\\n        encodedInitData = abi.encode(\\n            IERC20(_tokenIn),\\n            IERC20(_tokenOut),\\n            _orderCancelationPeriodDuration,\\n            _duration,\\n            uint96(_tokensForSale),\\n            _minBuyAmount,\\n            _minimumBiddingAmountPerOrder,\\n            _minRaise,\\n            isAtomicClosureAllowed\\n        );\\n\\n        emit TemplateInitialized(\\n            _tokenIn,\\n            _tokenOut,\\n            _duration,\\n            _tokensForSale,\\n            _minPrice,\\n            _minBuyAmount,\\n            _minRaise,\\n            _orderCancelationPeriodDuration,\\n            _minimumBiddingAmountPerOrder\\n        );\\n    }\\n\\n    function createSale() public payable returns (address newSale) {\\n        require(!isSaleCreated, \\\"FairSaleTemplate: Sale already created\\\");\\n        require(msg.sender == tokenSupplier, \\\"FairSaleTemplate: FORBIDDEN\\\");\\n        newSale = saleLauncher.createSale{value: msg.value}(\\n            saleTemplateId,\\n            tokenOut,\\n            tokensForSale,\\n            tokenSupplier,\\n            encodedInitData\\n        );\\n    }\\n\\n    /// @dev setup function expexted to be called by templateLauncher to init the template\\n    /// @param _data encoded template params\\n    function init(bytes calldata _data) public {\\n        (\\n            address _saleLauncher,\\n            uint256 _saleTemplateId,\\n            address _tokenIn,\\n            address _tokenOut,\\n            uint256 _duration,\\n            uint256 _tokensForSale,\\n            uint96 _minPrice,\\n            uint96 _minBuyAmount,\\n            uint256 _minRaise,\\n            uint256 _orderCancelationPeriodDuration,\\n            uint256 _minimumBiddingAmountPerOrder,\\n            address _tokenSupplier\\n        ) = abi.decode(\\n            _data,\\n            (\\n                address,\\n                uint256,\\n                address,\\n                address,\\n                uint256,\\n                uint256,\\n                uint96,\\n                uint96,\\n                uint256,\\n                uint256,\\n                uint256,\\n                address\\n            )\\n        );\\n\\n        return\\n            initTemplate(\\n                _saleLauncher,\\n                _saleTemplateId,\\n                _tokenIn,\\n                _tokenOut,\\n                _duration,\\n                _tokensForSale,\\n                _minPrice,\\n                _minBuyAmount,\\n                _minRaise,\\n                _orderCancelationPeriodDuration,\\n                _minimumBiddingAmountPerOrder,\\n                _tokenSupplier\\n            );\\n    }\\n}\\n\",\"keccak256\":\"0x7a23b36c9bbb48652a1ebc8536d1ce4e874cff14647c13d59daaabc36d06ab76\",\"license\":\"LGPL-3.0\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506040805180820190915260108082526f4661697253616c6554656d706c61746560801b602090920191825261004891600091610078565b5060408051808201909152600280825261060f60f31b602090920191825261007291600191610078565b5061010b565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f106100b957805160ff19168380011785556100e6565b828001600101855582156100e6579182015b828111156100e65782518255916020019190600101906100cb565b506100f29291506100f6565b5090565b5b808211156100f257600081556001016100f7565b610a3d8061011a6000396000f3fe6080604052600436106100c25760003560e01c8063613bb30b1161007f57806369f30fd11161005957806369f30fd1146102a5578063906652be146102ba578063d0202d3b146102c2578063f569720d146102d7576100c2565b8063613bb30b1461026657806366b210c21461027b57806369708c6914610290576100c2565b8063047f6fe6146100c757806312aef8c3146100f85780632a98bdbd1461011f578063392e53cd146101a95780634ddf47d4146101d25780635aeb431e14610251575b600080fd5b3480156100d357600080fd5b506100dc6102ec565b604080516001600160a01b039092168252519081900360200190f35b34801561010457600080fd5b5061010d6102fb565b60408051918252519081900360200190f35b34801561012b57600080fd5b50610134610301565b6040805160208082528351818301528351919283929083019185019080838360005b8381101561016e578181015183820152602001610156565b50505050905090810190601f16801561019b5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b3480156101b557600080fd5b506101be61038f565b604080519115158252519081900360200190f35b3480156101de57600080fd5b5061024f600480360360208110156101f557600080fd5b81019060208101813564010000000081111561021057600080fd5b82018360208201111561022257600080fd5b8035906020019184600183028401116401000000008311171561024457600080fd5b509092509050610398565b005b34801561025d57600080fd5b506101be610450565b34801561027257600080fd5b5061010d61045e565b34801561028757600080fd5b50610134610464565b34801561029c57600080fd5b506100dc6104be565b3480156102b157600080fd5b506101346104cd565b6100dc610528565b3480156102ce57600080fd5b506100dc6106fc565b3480156102e357600080fd5b506100dc61070b565b6003546001600160a01b031681565b60075481565b6008805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b820191906000526020600020905b81548152906001019060200180831161036a57829003601f168201915b505050505081565b60095460ff1681565b6000806000806000806000806000806000808d8d6101808110156103bb57600080fd5b506001600160a01b03813581169d5060208201359c50604082013581169b50606082013581169a506080820135995060a082013598506001600160601b0360c08301358116985060e0830135169650610100820135955061012082013594506101408201359350610160909101351690506104408c8c8c8c8c8c8c8c8c8c8c8c61071a565b5050505050505050505050505050565b600954610100900460ff1681565b60045481565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b6002546001600160a01b031681565b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b600954600090610100900460ff16156105725760405162461bcd60e51b81526004018080602001828103825260268152602001806109be6026913960400191505060405180910390fd5b6005546001600160a01b031633146105d1576040805162461bcd60e51b815260206004820152601b60248201527f4661697253616c6554656d706c6174653a20464f5242494444454e0000000000604482015290519081900360640190fd5b600280546004805460065460075460055460405163da550d8960e01b81529485018481526001600160a01b0393841660248701819052604487018490529184166064870181905260a0608488019081526008805460001960018216156101000201169a909a0460a48901819052959098169863da550d8998349894969294919392909160c40190849080156106a75780601f1061067c576101008083540402835291602001916106a7565b820191906000526020600020905b81548152906001019060200180831161068a57829003601f168201915b505096505050505050506020604051808303818588803b1580156106ca57600080fd5b505af11580156106de573d6000803e3d6000fd5b50505050506040513d60208110156106f557600080fd5b5051919050565b6006546001600160a01b031681565b6005546001600160a01b031681565b60095460ff161561075c5760405162461bcd60e51b81526004018080602001828103825260248152602001806109e46024913960400191505060405180910390fd5b600280546001600160a01b0319166001600160a01b038e169081179091556040805163c45a015560e01b8152905163c45a015591600480820192602092909190829003018186803b1580156107b057600080fd5b505afa1580156107c4573d6000803e3d6000fd5b505050506040513d60208110156107da57600080fd5b5051600380546001600160a01b039283166001600160a01b03199182161790915560048d905560058054848416908316179055600680548c8416921682179055600789905560408051928d166020848101919091528382019290925260608301869052608083018b90526001600160601b03808b1660a0850152881660c084015260e0830185905261010083018790526000610120808501829052825180860390910181526101409094019091528251909261089b9260089291019061092a565b50604080516001600160a01b03808e1682528c1660208201528082018b9052606081018a90526001600160601b03808a166080830152881660a082015260c0810187905260e08101869052610100810185905290517fdb951fb0128c55104d700e63111aabdc0dbcf723794a15d962ed1749eb02b7c1918190036101200190a150505050505050505050505050565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061096b57805160ff1916838001178555610998565b82800160010185558215610998579182015b8281111561099857825182559160200191906001019061097d565b506109a49291506109a8565b5090565b5b808211156109a457600081556001016109a956fe4661697253616c6554656d706c6174653a2053616c6520616c726561647920637265617465644661697253616c6554656d706c6174653a20414c454144595f494e495449414c495a4544a26469706673582212203dd35c8b0993c21f0455af9861b3d04a5c8b50918b83af1fa6e30cb59699a3b664736f6c634300060c0033",
+  "deployedBytecode": "0x6080604052600436106100c25760003560e01c8063613bb30b1161007f57806369f30fd11161005957806369f30fd1146102a5578063906652be146102ba578063d0202d3b146102c2578063f569720d146102d7576100c2565b8063613bb30b1461026657806366b210c21461027b57806369708c6914610290576100c2565b8063047f6fe6146100c757806312aef8c3146100f85780632a98bdbd1461011f578063392e53cd146101a95780634ddf47d4146101d25780635aeb431e14610251575b600080fd5b3480156100d357600080fd5b506100dc6102ec565b604080516001600160a01b039092168252519081900360200190f35b34801561010457600080fd5b5061010d6102fb565b60408051918252519081900360200190f35b34801561012b57600080fd5b50610134610301565b6040805160208082528351818301528351919283929083019185019080838360005b8381101561016e578181015183820152602001610156565b50505050905090810190601f16801561019b5780820380516001836020036101000a031916815260200191505b509250505060405180910390f35b3480156101b557600080fd5b506101be61038f565b604080519115158252519081900360200190f35b3480156101de57600080fd5b5061024f600480360360208110156101f557600080fd5b81019060208101813564010000000081111561021057600080fd5b82018360208201111561022257600080fd5b8035906020019184600183028401116401000000008311171561024457600080fd5b509092509050610398565b005b34801561025d57600080fd5b506101be610450565b34801561027257600080fd5b5061010d61045e565b34801561028757600080fd5b50610134610464565b34801561029c57600080fd5b506100dc6104be565b3480156102b157600080fd5b506101346104cd565b6100dc610528565b3480156102ce57600080fd5b506100dc6106fc565b3480156102e357600080fd5b506100dc61070b565b6003546001600160a01b031681565b60075481565b6008805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b820191906000526020600020905b81548152906001019060200180831161036a57829003601f168201915b505050505081565b60095460ff1681565b6000806000806000806000806000806000808d8d6101808110156103bb57600080fd5b506001600160a01b03813581169d5060208201359c50604082013581169b50606082013581169a506080820135995060a082013598506001600160601b0360c08301358116985060e0830135169650610100820135955061012082013594506101408201359350610160909101351690506104408c8c8c8c8c8c8c8c8c8c8c8c61071a565b5050505050505050505050505050565b600954610100900460ff1681565b60045481565b60018054604080516020600284861615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b6002546001600160a01b031681565b6000805460408051602060026001851615610100026000190190941693909304601f810184900484028201840190925281815292918301828280156103875780601f1061035c57610100808354040283529160200191610387565b600954600090610100900460ff16156105725760405162461bcd60e51b81526004018080602001828103825260268152602001806109be6026913960400191505060405180910390fd5b6005546001600160a01b031633146105d1576040805162461bcd60e51b815260206004820152601b60248201527f4661697253616c6554656d706c6174653a20464f5242494444454e0000000000604482015290519081900360640190fd5b600280546004805460065460075460055460405163da550d8960e01b81529485018481526001600160a01b0393841660248701819052604487018490529184166064870181905260a0608488019081526008805460001960018216156101000201169a909a0460a48901819052959098169863da550d8998349894969294919392909160c40190849080156106a75780601f1061067c576101008083540402835291602001916106a7565b820191906000526020600020905b81548152906001019060200180831161068a57829003601f168201915b505096505050505050506020604051808303818588803b1580156106ca57600080fd5b505af11580156106de573d6000803e3d6000fd5b50505050506040513d60208110156106f557600080fd5b5051919050565b6006546001600160a01b031681565b6005546001600160a01b031681565b60095460ff161561075c5760405162461bcd60e51b81526004018080602001828103825260248152602001806109e46024913960400191505060405180910390fd5b600280546001600160a01b0319166001600160a01b038e169081179091556040805163c45a015560e01b8152905163c45a015591600480820192602092909190829003018186803b1580156107b057600080fd5b505afa1580156107c4573d6000803e3d6000fd5b505050506040513d60208110156107da57600080fd5b5051600380546001600160a01b039283166001600160a01b03199182161790915560048d905560058054848416908316179055600680548c8416921682179055600789905560408051928d166020848101919091528382019290925260608301869052608083018b90526001600160601b03808b1660a0850152881660c084015260e0830185905261010083018790526000610120808501829052825180860390910181526101409094019091528251909261089b9260089291019061092a565b50604080516001600160a01b03808e1682528c1660208201528082018b9052606081018a90526001600160601b03808a166080830152881660a082015260c0810187905260e08101869052610100810185905290517fdb951fb0128c55104d700e63111aabdc0dbcf723794a15d962ed1749eb02b7c1918190036101200190a150505050505050505050505050565b828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061096b57805160ff1916838001178555610998565b82800160010185558215610998579182015b8281111561099857825182559160200191906001019061097d565b506109a49291506109a8565b5090565b5b808211156109a457600081556001016109a956fe4661697253616c6554656d706c6174653a2053616c6520616c726561647920637265617465644661697253616c6554656d706c6174653a20414c454144595f494e495449414c495a4544a26469706673582212203dd35c8b0993c21f0455af9861b3d04a5c8b50918b83af1fa6e30cb59699a3b664736f6c634300060c0033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "init(bytes)": {
+        "details": "setup function expexted to be called by templateLauncher to init the template",
+        "params": {
+          "_data": "encoded template params"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 6080,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "templateName",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 6082,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "metaDataContentHash",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_string_storage"
+      },
+      {
+        "astId": 6112,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "saleLauncher",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(ISaleLauncher)4868"
+      },
+      {
+        "astId": 6114,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "aquaFactory",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(IAquaFactory)4795"
+      },
+      {
+        "astId": 6116,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "saleTemplateId",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6118,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "tokenSupplier",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_address"
+      },
+      {
+        "astId": 6120,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "tokenOut",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_address"
+      },
+      {
+        "astId": 6122,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "tokensForSale",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 6124,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "encodedInitData",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_bytes_storage"
+      },
+      {
+        "astId": 6126,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "isInitialized",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_bool"
+      },
+      {
+        "astId": 6128,
+        "contract": "contracts/templates/FairSaleTemplate.sol:FairSaleTemplate",
+        "label": "isSaleCreated",
+        "offset": 1,
+        "slot": "9",
+        "type": "t_bool"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes_storage": {
+        "encoding": "bytes",
+        "label": "bytes",
+        "numberOfBytes": "32"
+      },
+      "t_contract(IAquaFactory)4795": {
+        "encoding": "inplace",
+        "label": "contract IAquaFactory",
+        "numberOfBytes": "20"
+      },
+      "t_contract(ISaleLauncher)4868": {
+        "encoding": "inplace",
+        "label": "contract ISaleLauncher",
+        "numberOfBytes": "20"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

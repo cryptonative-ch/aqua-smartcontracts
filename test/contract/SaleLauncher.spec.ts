@@ -1,41 +1,60 @@
 import { expect } from "chai";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 
 import { expandTo18Decimals } from "./utilities";
+import {
+    AquaFactory,
+    SaleLauncher,
+    ERC20Mintable,
+    ParticipantList,
+    FairSaleTemplate,
+    TemplateLauncher,
+    ParticipantListLauncher,
+    AquaFactory__factory,
+    SaleLauncher__factory,
+    ERC20Mintable__factory,
+    ParticipantList__factory,
+    FairSaleTemplate__factory,
+    TemplateLauncher__factory,
+    ParticipantListLauncher__factory,
+} from "../../typechain";
 
 describe("SaleLauncher", async () => {
     const [templateManager, user_2] = waffle.provider.getWallets();
-    let saleLauncher: Contract;
-    let mesaFactory: Contract;
-    let templateLauncher: Contract;
-    let fairSaleTemplate: Contract;
-    let fairSaleTemplateDefault: Contract;
-    let tokenA: Contract;
-    let tokenB: Contract;
-    let defaultTemplate: String;
+    let saleLauncher: SaleLauncher;
+    let aquaFactory: AquaFactory;
+    let templateLauncher: TemplateLauncher;
+    let fairSaleTemplate: FairSaleTemplate;
+    let fairSaleTemplateDefault: FairSaleTemplate;
+    let participantListTemplate: ParticipantList;
+    let participantListLauncher: ParticipantListLauncher;
+    let tokenA: ERC20Mintable;
+    let tokenB: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
     const defaultTokenPrice = expandTo18Decimals(10);
     const defaultTokensForSale = expandTo18Decimals(2000);
-    const defaultAllocationMin = expandTo18Decimals(2);
-    const defaultAllocationMax = expandTo18Decimals(10);
-    const defaultMinimumRaise = expandTo18Decimals(5000);
+    const defaultMinCommitment = expandTo18Decimals(2);
+    const defaultMaxCommitment = expandTo18Decimals(10);
+    const defaultMinRaise = expandTo18Decimals(5000);
     let defaultStartDate: number;
     let defaultEndDate: number;
 
-    function encodeInitDataFairSale(
+    function encodeInitDataFixedPrice(
         saleLauncher: string,
         saleTemplateId: number,
-        tokenOut: string,
         tokenIn: string,
-        duration: number,
-        tokenOutSupply: BigNumber,
-        minPrice: BigNumber,
-        minBuyAmount: BigNumber,
+        tokenOut: string,
+        tokenPrice: BigNumber,
+        tokensForSale: BigNumber,
+        startDate: number,
+        endDate: number,
+        minCommitment: BigNumber,
+        maxCommitment: BigNumber,
         minRaise: BigNumber,
-        tokenSupplier: string
+        owner: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -45,22 +64,26 @@ describe("SaleLauncher", async () => {
                 "address",
                 "uint256",
                 "uint256",
-                "uint96",
-                "uint96",
+                "uint256",
+                "uint256",
+                "uint256",
+                "uint256",
                 "uint256",
                 "address",
             ],
             [
                 saleLauncher,
                 saleTemplateId,
-                tokenOut,
                 tokenIn,
-                duration,
-                tokenOutSupply,
-                minPrice,
-                minBuyAmount,
+                tokenOut,
+                tokenPrice,
+                tokensForSale,
+                startDate,
+                endDate,
+                minCommitment,
+                maxCommitment,
                 minRaise,
-                tokenSupplier,
+                owner,
             ]
         );
     }
@@ -72,46 +95,72 @@ describe("SaleLauncher", async () => {
         defaultStartDate = currentBlock.timestamp + 500;
         defaultEndDate = defaultStartDate + 86400; // 24 hours
 
-        const MesaFactory = await ethers.getContractFactory("MesaFactory");
+        const AquaFactory =
+            await ethers.getContractFactory<AquaFactory__factory>(
+                "AquaFactory"
+            );
 
-        mesaFactory = await MesaFactory.deploy();
-
-        const TemplateLauncher = await ethers.getContractFactory(
-            "TemplateLauncher"
-        );
-
-        templateLauncher = await TemplateLauncher.deploy(mesaFactory.address);
-
-        await mesaFactory.initialize(
+        aquaFactory = await AquaFactory.deploy(
             templateManager.address,
             templateManager.address,
             templateManager.address,
-            templateLauncher.address,
             0,
             0,
             0
         );
 
-        const SaleLauncher = await ethers.getContractFactory("SaleLauncher");
+        const ParticipantListTemplate =
+            await ethers.getContractFactory<ParticipantList__factory>(
+                "ParticipantList"
+            );
+        participantListTemplate = await ParticipantListTemplate.deploy();
 
-        saleLauncher = await SaleLauncher.deploy(mesaFactory.address);
+        const ParticipantListLauncher =
+            await ethers.getContractFactory<ParticipantListLauncher__factory>(
+                "ParticipantListLauncher"
+            );
+        participantListLauncher = await ParticipantListLauncher.deploy(
+            aquaFactory.address,
+            participantListTemplate.address
+        );
 
-        const ERC20 = await hre.ethers.getContractFactory("ERC20Mintable");
+        const TemplateLauncher =
+            await ethers.getContractFactory<TemplateLauncher__factory>(
+                "TemplateLauncher"
+            );
+
+        templateLauncher = await TemplateLauncher.deploy(
+            aquaFactory.address,
+            participantListLauncher.address
+        );
+
+        await aquaFactory.setTemplateLauncher(templateLauncher.address);
+
+        const SaleLauncher =
+            await ethers.getContractFactory<SaleLauncher__factory>(
+                "SaleLauncher"
+            );
+
+        saleLauncher = await SaleLauncher.deploy(aquaFactory.address);
+
+        const ERC20 =
+            await hre.ethers.getContractFactory<ERC20Mintable__factory>(
+                "ERC20Mintable"
+            );
         tokenA = await ERC20.deploy("tokenA", "tokA");
         await tokenA.mint(templateManager.address, BigNumber.from(10).pow(30));
         tokenB = await ERC20.deploy("tokenB", "tokB");
 
-        const FairSaleTemplate = await ethers.getContractFactory(
-            "FairSaleTemplate"
-        );
+        const FairSaleTemplate =
+            await ethers.getContractFactory<FairSaleTemplate__factory>(
+                "FairSaleTemplate"
+            );
 
         fairSaleTemplate = await FairSaleTemplate.deploy();
 
         fairSaleTemplateDefault = await FairSaleTemplate.deploy();
 
-        defaultTemplate = await saleLauncher.addTemplate(
-            fairSaleTemplateDefault.address
-        );
+        await saleLauncher.addTemplate(fairSaleTemplateDefault.address);
     });
     describe("adding templates", async () => {
         it("throws if template added by non-admin", async () => {
@@ -169,16 +218,18 @@ describe("SaleLauncher", async () => {
 
     describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = await await encodeInitDataFairSale(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
@@ -194,18 +245,20 @@ describe("SaleLauncher", async () => {
         });
 
         it("throws if trying to launch sales without providing sales fee", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
 
-            const initData = await await encodeInitDataFairSale(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
@@ -221,20 +274,22 @@ describe("SaleLauncher", async () => {
         });
 
         it("allows to create new sales", async () => {
-            await mesaFactory.setSaleFee(500);
+            await aquaFactory.setSaleFee(500);
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
-            const initData = await encodeInitDataFairSale(
+            const initData = encodeInitDataFixedPrice(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                500,
-                expandTo18Decimals(20),
-                expandTo18Decimals(5),
-                expandTo18Decimals(5),
-                expandTo18Decimals(20),
+                defaultTokenPrice,
+                defaultTokensForSale,
+                defaultStartDate,
+                defaultEndDate,
+                defaultMinCommitment,
+                defaultMaxCommitment,
+                defaultMinRaise,
                 templateManager.address
             );
 
