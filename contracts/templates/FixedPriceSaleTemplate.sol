@@ -33,6 +33,7 @@ contract FixedPriceSaleTemplate is AquaTemplate {
         uint256 minRaise,
         bool participantList
     );
+    event SaleCreated();
 
     constructor() public {
         templateName = "FixedPriceSaleTemplate";
@@ -135,6 +136,7 @@ contract FixedPriceSaleTemplate is AquaTemplate {
             encodedInitData
         );
         isSaleCreated = true;
+        emit SaleCreated();
     }
 
     /// @dev setup function expected to be called by templateLauncher to init the template
