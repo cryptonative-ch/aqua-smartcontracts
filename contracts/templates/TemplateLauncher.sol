@@ -40,7 +40,7 @@ contract TemplateLauncher is CloneFactory {
     address public participantListLaucher;
     bool public allowPublicTemplates;
 
-    modifier isTemplateManager {
+    modifier isTemplateManager() {
         require(
             msg.sender == IAquaFactory(factory).templateManager(),
             "TemplateLauncher: FORBIDDEN"
@@ -56,7 +56,7 @@ contract TemplateLauncher is CloneFactory {
         _;
     }
 
-    modifier isAllowedToAddTemplate {
+    modifier isAllowedToAddTemplate() {
         require(
             allowPublicTemplates ||
                 msg.sender == IAquaFactory(factory).templateManager(),
@@ -162,7 +162,7 @@ contract TemplateLauncher is CloneFactory {
         string calldata _newMetadataContentHash
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template]
-        .metadataContentHash = _newMetadataContentHash;
+            .metadataContentHash = _newMetadataContentHash;
         emit TemplateMetadataContentHashUpdated(
             _template,
             _newMetadataContentHash

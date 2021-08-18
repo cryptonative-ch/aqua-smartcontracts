@@ -125,22 +125,22 @@ contract FairSaleTemplate is AquaTemplate {
             uint256 _minimumBiddingAmountPerOrder,
             address _tokenSupplier
         ) = abi.decode(
-            _data,
-            (
-                address,
-                uint256,
-                address,
-                address,
-                uint256,
-                uint256,
-                uint96,
-                uint96,
-                uint256,
-                uint256,
-                uint256,
-                address
-            )
-        );
+                _data,
+                (
+                    address,
+                    uint256,
+                    address,
+                    address,
+                    uint256,
+                    uint256,
+                    uint96,
+                    uint96,
+                    uint256,
+                    uint256,
+                    uint256,
+                    address
+                )
+            );
 
         return
             initTemplate(
