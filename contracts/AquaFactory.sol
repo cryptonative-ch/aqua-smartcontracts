@@ -34,12 +34,12 @@ contract AquaFactory {
     uint256 public templateId;
     bool public initialized = false;
 
-    modifier isTemplateManager {
+    modifier isTemplateManager() {
         require(msg.sender == templateManager, "AquaFactory: FORBIDDEN");
         _;
     }
 
-    modifier isFeeManager {
+    modifier isFeeManager() {
         require(msg.sender == feeManager, "AquaFactory: FORBIDDEN");
         _;
     }

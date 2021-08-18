@@ -168,7 +168,7 @@ contract TemplateLauncher is CloneFactory, AquaTemplateId {
         string calldata _newMetadataContentHash
     ) external isTemplateDeployer(_template) {
         launchedTemplate[_template]
-        .metadataContentHash = _newMetadataContentHash;
+            .metadataContentHash = _newMetadataContentHash;
         emit TemplateMetadataContentHashUpdated(
             _template,
             _newMetadataContentHash

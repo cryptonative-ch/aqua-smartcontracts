@@ -25,7 +25,7 @@ contract FairSale {
         _;
     }
 
-    modifier onlyDeployer {
+    modifier onlyDeployer() {
         require(msg.sender == deployer, "FixedPriceSale: FORBIDDEN");
         _;
     }
@@ -330,7 +330,7 @@ contract FairSale {
         // require that the sum of SellAmounts times the price of the last order
         // is not more than initially sold amount
         (, uint96 buyAmountOfIter, uint96 sellAmountOfIter) = iterOrder
-        .decodeOrder();
+            .decodeOrder();
         require(
             sumBidAmount.mul(buyAmountOfIter) <
                 auctioneerSellAmount.mul(sellAmountOfIter),
@@ -377,7 +377,7 @@ contract FairSale {
     // @dev function settling the auction and calculating the price
     function settleAuction()
         public
-        atStageSolutionSubmission()
+        atStageSolutionSubmission
         returns (bytes32 clearingOrder)
     {
         (
@@ -457,9 +457,9 @@ contract FairSale {
                     minAuctionedBuyAmount
                 );
                 fillVolumeOfAuctioneerOrder = currentBidSum
-                .mul(fullAuctionedAmount)
-                .div(minAuctionedBuyAmount)
-                .toUint96();
+                    .mul(fullAuctionedAmount)
+                    .div(minAuctionedBuyAmount)
+                    .toUint96();
             }
         }
         clearingPriceOrder = clearingOrder;
@@ -494,13 +494,12 @@ contract FairSale {
         }
 
         (, uint96 priceNumerator, uint96 priceDenominator) = clearingPriceOrder
-        .decodeOrder();
+            .decodeOrder();
         (uint64 userId, , ) = orders[0].decodeOrder();
         for (uint256 i = 0; i < orders.length; i++) {
             (uint64 userIdOrder, uint96 buyAmount, uint96 sellAmount) = orders[
                 i
-            ]
-            .decodeOrder();
+            ].decodeOrder();
             require(
                 userIdOrder == userId,
                 "only allowed to claim for same user"
@@ -549,19 +548,19 @@ contract FairSale {
             uint256 _minSellThreshold,
             bool _isAtomicClosureAllowed
         ) = abi.decode(
-            _data,
-            (
-                IERC20,
-                IERC20,
-                uint256,
-                uint256,
-                uint96,
-                uint96,
-                uint256,
-                uint256,
-                bool
-            )
-        );
+                _data,
+                (
+                    IERC20,
+                    IERC20,
+                    uint256,
+                    uint256,
+                    uint96,
+                    uint96,
+                    uint256,
+                    uint256,
+                    bool
+                )
+            );
 
         initAuction(
             _tokenIn,
