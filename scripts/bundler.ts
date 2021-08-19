@@ -41,7 +41,8 @@ const config = {
             // Array of globs to be omitted
             "**/*.dbg.json",
             "**/build-info/*.*",
-            "**/test/**/*.*",
+            "**/@openzeppelin/**/*[!ERC20]*.*",
+            "**/test/**/[!ERC]*.*",
             "**/libraries/**/*.*",
             "**/hardhat/**/*.*",
             `**/I*.json`, // interfaces
