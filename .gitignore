@@ -12,3 +12,7 @@ contracts/.flattened/
 typechain
 deployments/hardhat
 deployments/localhost
+aqua-sc/*
+!aqua-sc/package.json
+!aqua-sc/README.md
+!aqua-sc/CHANGELOG.md
