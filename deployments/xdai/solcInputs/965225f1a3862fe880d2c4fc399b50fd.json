@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/participants/ParticipantList.sol": {
+      "content": "// SPDX-License-Identifier: LGPL-3.0\npragma solidity >=0.6.8;\n\ncontract ParticipantList {\n    bool public initialized;\n    mapping(address => uint256) public participantAmounts;\n    mapping(address => bool) public listManagers;\n\n    event ListInitialized(address[] managers);\n    event AmountsUpdated(address indexed account, uint256 amounts);\n\n    function init(address[] memory managers) external {\n        require(!initialized, \"ParticipantList: ALREADY_INITIALIZED\");\n        require(managers.length > 0, \"ParticipantList: NO_MANAGERS\");\n        initialized = true;\n        for (uint256 i = 0; i < managers.length; i++) {\n            listManagers[managers[i]] = true;\n        }\n        emit ListInitialized(managers);\n    }\n\n    function isInList(address account) public view returns (bool) {\n        return participantAmounts[account] > 0;\n    }\n\n    function setParticipantAmounts(\n        address[] memory accounts,\n        uint256[] memory amounts\n    ) external {\n        require(listManagers[msg.sender], \"ParticipantList: FORBIDDEN\");\n        require(\n            accounts.length == amounts.length,\n            \"ParticipantList: INVALID_LENGTH\"\n        );\n        for (uint256 i = 0; i < accounts.length; i++) {\n            address account = accounts[i];\n            uint256 amount = amounts[i];\n\n            participantAmounts[account] = amount;\n            emit AmountsUpdated(account, amount);\n        }\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
