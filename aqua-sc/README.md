@@ -1,12 +1,12 @@
 # Aqua-sc
 ## Package contains:
-- artifacts used across Aqua intrastructure,
-- addresses of deployed contracts,
-- typings generated with `typechain/ethers-v5`
+- Artifacts used across Aqua infrastructure
+- Addresses of deployed contracts
+- Typings generated with `typechain/ethers-v5`
 
 ## Installation
 
-To install latest production release use:
+To install the latest production release use:
 
 ```shell 
 $ npm install aqua-sc
@@ -16,13 +16,12 @@ or
 $ yarn add aqua-sc
 ```
 
-Development prereleases are following `0.0.0-dev.x` versioning along with `dev` tag. 
-To install latest dev version, use:
+Development prereleases are following `0.0.0-dev.x` versioning along with `dev` tag. To install the latest dev version, use:
 ```shell 
 $ npm i aqua-sc@>=0.0.0-dev.0 <0.0.0
 ```
 or
-```shell 
+```shell
 $ yarn add aqua-sc@>=0.0.0-dev.0 <0.0.0
 ```
 
