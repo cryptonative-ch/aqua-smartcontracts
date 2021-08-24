@@ -13,10 +13,19 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         AquaFactory.address
     );
 
-    await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address);
-    deployments.log(
-        `Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`
-    );
+    const currentTemplateLauncher =
+        await aquaFactoryInstance.templateLauncher();
+
+    if (
+        currentTemplateLauncher.toLowerCase() !==
+        TemplateLauncher.address.toLowerCase()
+    ) {
+        deployments.log(`Registering Template Launcher on AquaFactory...`);
+        await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address);
+        deployments.log(
+            `Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`
+        );
+    }
 };
 
 deployment.tags = [TAGS.AQUA, TAGS.REGISTER_TEMPLATE_LAUNCHER];
