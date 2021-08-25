@@ -34,27 +34,29 @@ describe("SaleLauncher", async () => {
     let tokenB: ERC20Mintable;
     let currentBlockNumber, currentBlock;
 
-    const defaultTokenPrice = expandTo18Decimals(10);
     const defaultTokensForSale = expandTo18Decimals(2000);
-    const defaultMinCommitment = expandTo18Decimals(2);
-    const defaultMaxCommitment = expandTo18Decimals(10);
     const defaultMinRaise = expandTo18Decimals(5000);
-    let defaultStartDate: number;
-    let defaultEndDate: number;
+    const defaultMinPrice = expandTo18Decimals(1);
+    const defaultMinBuyAmount = expandTo18Decimals(1);
+    const defaultMinimumBiddingAmountPerOrder = expandTo18Decimals(10);
 
-    function encodeInitDataFixedPrice(
+    let defaultOrderCancelationPeriodDuration: number;
+    let defaultStartDate: number;
+    let defaultDuration: number;
+
+    function encodeInitDataFairSale(
         saleLauncher: string,
         saleTemplateId: number,
         tokenIn: string,
         tokenOut: string,
-        tokenPrice: BigNumber,
+        duration: number,
         tokensForSale: BigNumber,
-        startDate: number,
-        endDate: number,
-        minCommitment: BigNumber,
-        maxCommitment: BigNumber,
+        minPrice: BigNumber,
+        minBuyAmount: BigNumber,
         minRaise: BigNumber,
-        owner: string
+        orderCancelationPeriodDuration: number,
+        minimumBiddingAmountPerOrder: BigNumber,
+        tokenSupplier: string
     ) {
         return ethers.utils.defaultAbiCoder.encode(
             [
@@ -64,8 +66,8 @@ describe("SaleLauncher", async () => {
                 "address",
                 "uint256",
                 "uint256",
-                "uint256",
-                "uint256",
+                "uint96",
+                "uint96",
                 "uint256",
                 "uint256",
                 "uint256",
@@ -76,14 +78,14 @@ describe("SaleLauncher", async () => {
                 saleTemplateId,
                 tokenIn,
                 tokenOut,
-                tokenPrice,
+                duration,
                 tokensForSale,
-                startDate,
-                endDate,
-                minCommitment,
-                maxCommitment,
+                minPrice,
+                minBuyAmount,
                 minRaise,
-                owner,
+                orderCancelationPeriodDuration,
+                minimumBiddingAmountPerOrder,
+                tokenSupplier,
             ]
         );
     }
@@ -91,9 +93,9 @@ describe("SaleLauncher", async () => {
     beforeEach(async () => {
         currentBlockNumber = await ethers.provider.getBlockNumber();
         currentBlock = await ethers.provider.getBlock(currentBlockNumber);
-
         defaultStartDate = currentBlock.timestamp + 500;
-        defaultEndDate = defaultStartDate + 86400; // 24 hours
+        defaultDuration = defaultStartDate + 86400;
+        defaultOrderCancelationPeriodDuration = currentBlock.timestamp + 3600;
 
         const AquaFactory =
             await ethers.getContractFactory<AquaFactory__factory>(
@@ -218,19 +220,19 @@ describe("SaleLauncher", async () => {
 
     describe("launching sales", async () => {
         it("throws if trying to launch invalid templateId", async () => {
-            const initData = encodeInitDataFixedPrice(
+            const initData = encodeInitDataFairSale(
                 saleLauncher.address,
-                1,
-                tokenA.address,
-                tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultMinCommitment,
-                defaultMaxCommitment,
-                defaultMinRaise,
-                templateManager.address
+            1,
+            tokenA.address,
+            tokenB.address,
+            defaultDuration,
+            defaultTokensForSale,
+            defaultMinPrice,
+            defaultMinBuyAmount,
+            defaultMinRaise,
+            defaultOrderCancelationPeriodDuration,
+            defaultMinimumBiddingAmountPerOrder,
+            templateManager.address
             );
 
             await expect(
@@ -247,18 +249,18 @@ describe("SaleLauncher", async () => {
         it("throws if trying to launch sales without providing sales fee", async () => {
             await aquaFactory.setSaleFee(500);
 
-            const initData = encodeInitDataFixedPrice(
+            const initData = encodeInitDataFairSale(
                 saleLauncher.address,
                 1,
                 tokenA.address,
                 tokenB.address,
-                defaultTokenPrice,
+                defaultDuration,
                 defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultMinCommitment,
-                defaultMaxCommitment,
+                defaultMinPrice,
+                defaultMinBuyAmount,
                 defaultMinRaise,
+                defaultOrderCancelationPeriodDuration,
+                defaultMinimumBiddingAmountPerOrder,
                 templateManager.address
             );
 
@@ -278,19 +280,19 @@ describe("SaleLauncher", async () => {
 
             expect(await saleLauncher.numberOfSales()).to.be.equal(0);
 
-            const initData = encodeInitDataFixedPrice(
+            const initData = encodeInitDataFairSale(
                 saleLauncher.address,
-                1,
-                tokenA.address,
-                tokenB.address,
-                defaultTokenPrice,
-                defaultTokensForSale,
-                defaultStartDate,
-                defaultEndDate,
-                defaultMinCommitment,
-                defaultMaxCommitment,
-                defaultMinRaise,
-                templateManager.address
+            1,
+            tokenA.address,
+            tokenB.address,
+            defaultDuration,
+            defaultTokensForSale,
+            defaultMinPrice,
+            defaultMinBuyAmount,
+            defaultMinRaise,
+            defaultOrderCancelationPeriodDuration,
+            defaultMinimumBiddingAmountPerOrder,
+            templateManager.address
             );
 
             await tokenA.approve(saleLauncher.address, 10000);

@@ -10,6 +10,7 @@ export interface InitiateAuctionInput {
     minimumBiddingAmountPerOrder: BigNumberish;
     minFundingThreshold: BigNumberish;
     isAtomicClosureAllowed: boolean;
+    owner: string;
 }
 
 export const contractConstructorArgs = <T extends ContractFactory>(

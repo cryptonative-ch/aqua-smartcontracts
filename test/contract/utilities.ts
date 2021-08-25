@@ -58,7 +58,8 @@ export const encodeFairSaleInitData = (
     minBidAmountToReceive: BigNumberish,
     minimumBiddingAmountPerOrder: BigNumberish,
     minSellThreshold: BigNumberish,
-    isAtomicClosureAllowed: boolean
+    isAtomicClosureAllowed: boolean,
+    owner: string
 ) => {
     return ethers.utils.defaultAbiCoder.encode(
         [
@@ -71,6 +72,7 @@ export const encodeFairSaleInitData = (
             "uint256",
             "uint256",
             "bool",
+            "address",
         ],
         [
             tokenIn,
@@ -82,6 +84,7 @@ export const encodeFairSaleInitData = (
             minimumBiddingAmountPerOrder,
             minSellThreshold,
             isAtomicClosureAllowed,
+            owner,
         ]
     );
 };

@@ -81,7 +81,8 @@ contract FairSaleTemplate is AquaTemplate {
             _minBuyAmount,
             _minimumBiddingAmountPerOrder,
             _minRaise,
-            isAtomicClosureAllowed
+            isAtomicClosureAllowed,
+            tokenSupplier
         );
 
         emit TemplateInitialized(
