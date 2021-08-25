@@ -206,5 +206,8 @@ describe("FairSaleTemplate", async () => {
         await expect(
             fairSaleTemplate.connect(user_2).createSale()
         ).to.be.revertedWith("FairSaleTemplate: FORBIDDEN");
+
+        await tokenB.approve(saleLauncher.address, expandTo18Decimals(3000));
+        await expect(fairSaleTemplate.createSale()).not.to.be.reverted;
     });
 });
