@@ -25,8 +25,8 @@ contract FairSale {
         _;
     }
 
-    modifier onlyDeployer() {
-        require(msg.sender == deployer, "FixedPriceSale: FORBIDDEN");
+    modifier onlyOwner() {
+        require(msg.sender == owner, "FairSale: FORBIDDEN");
         _;
     }
 
@@ -102,7 +102,7 @@ contract FairSale {
     event UserRegistration(address indexed user, uint64 userId);
 
     string public constant TEMPLATE_NAME = "FairSale";
-    address private deployer;
+    address public owner;
     IERC20 public tokenOut;
     IERC20 public tokenIn;
     uint256 public orderCancellationEndDate;
@@ -123,10 +123,6 @@ contract FairSale {
     IdToAddressBiMap.Data private registeredUsers;
     uint64 public numUsers;
 
-    constructor() public {
-        deployer = msg.sender;
-    }
-
     // @dev: function to intiate a new auction
     // Warning: In case the auction is expected to raise more than
     // 2^96 units of the tokenIn, don't start the auction, as
@@ -145,7 +141,8 @@ contract FairSale {
         uint96 _minBuyAmount,
         uint256 _minimumBiddingAmountPerOrder,
         uint256 _minFundingThreshold,
-        bool _isAtomicClosureAllowed
+        bool _isAtomicClosureAllowed,
+        address _owner
     ) internal {
         // withdraws sellAmount
         initialized = true;
@@ -182,7 +179,7 @@ contract FairSale {
         );
         sellOrders.initializeEmptyList();
         uint64 userId = getUserId(msg.sender);
-
+        owner = _owner;
         tokenOut = _tokenOut;
         tokenIn = _tokenIn;
         orderCancellationEndDate = _orderCancellationEndDate;
@@ -555,7 +552,7 @@ contract FairSale {
         sendOutTokens(sumTokenOutAmount, sumTokenInAmount, userId); //[3]
     }
 
-    function init(bytes calldata _data) public notInitialized onlyDeployer {
+    function init(bytes calldata _data) public notInitialized {
         (
             IERC20 _tokenIn,
             IERC20 _tokenOut,
@@ -566,7 +563,8 @@ contract FairSale {
             uint96 _minBidAmountToReceive,
             uint256 _minimumBiddingAmountPerOrder,
             uint256 _minSellThreshold,
-            bool _isAtomicClosureAllowed
+            bool _isAtomicClosureAllowed,
+            address _owner
         ) = abi.decode(
                 _data,
                 (
@@ -579,7 +577,8 @@ contract FairSale {
                     uint96,
                     uint256,
                     uint256,
-                    bool
+                    bool,
+                    address
                 )
             );
 
@@ -593,7 +592,8 @@ contract FairSale {
             _minBidAmountToReceive,
             _minimumBiddingAmountPerOrder,
             _minSellThreshold,
-            _isAtomicClosureAllowed
+            _isAtomicClosureAllowed,
+            _owner
         );
     }
 

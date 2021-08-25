@@ -38,8 +38,8 @@ export const config: HardhatUserConfig = {
             accounts: [`${process.env.PRIVATE_KEY}`],
         },
         hardhat: {
-            hardfork: process.env.CODE_COVERAGE ? "berlin" : "london"
-        }
+            hardfork: process.env.CODE_COVERAGE ? "berlin" : "london",
+        },
     },
     mocha: {
         timeout: "600s",

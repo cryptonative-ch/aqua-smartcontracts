@@ -19,7 +19,8 @@ contract FairSaleTemplate is AquaTemplate {
     event TemplateInitialized(
         address tokenIn,
         address tokenOut,
-        uint256 duration,
+        uint256 auctionStartDate,
+        uint256 auctionEndDate,
         uint256 tokensForSale,
         uint96 minPrice,
         uint96 minBuyAmount,
@@ -39,7 +40,8 @@ contract FairSaleTemplate is AquaTemplate {
     /// @param _saleTemplateId Aqua Auction TemplateId
     /// @param _tokenIn token to bid on auction
     /// @param _tokenOut token to be auctioned
-    /// @param _duration auction duration in seconds
+    /// @param _auctionStartDate unix timestamp when the auction starts
+    /// @param _auctionEndDate unix timestamp when the auction ends
     /// @param _tokensForSale amount of tokens to be auctioned
     /// @param _minPrice minimum Price that token should be auctioned for
     /// @param _minBuyAmount minimum amount of tokens an investor has to buy
@@ -50,7 +52,8 @@ contract FairSaleTemplate is AquaTemplate {
         uint256 _saleTemplateId,
         address _tokenIn,
         address _tokenOut,
-        uint256 _duration,
+        uint256 _auctionStartDate,
+        uint256 _auctionEndDate,
         uint256 _tokensForSale,
         uint96 _minPrice,
         uint96 _minBuyAmount,
@@ -76,18 +79,21 @@ contract FairSaleTemplate is AquaTemplate {
             IERC20(_tokenIn),
             IERC20(_tokenOut),
             _orderCancelationPeriodDuration,
-            _duration,
+            _auctionStartDate,
+            _auctionEndDate,
             uint96(_tokensForSale),
             _minBuyAmount,
             _minimumBiddingAmountPerOrder,
             _minRaise,
-            isAtomicClosureAllowed
+            isAtomicClosureAllowed,
+            tokenSupplier
         );
 
         emit TemplateInitialized(
             _tokenIn,
             _tokenOut,
-            _duration,
+            _auctionStartDate,
+            _auctionEndDate,
             _tokensForSale,
             _minPrice,
             _minBuyAmount,
@@ -119,7 +125,8 @@ contract FairSaleTemplate is AquaTemplate {
             uint256 _saleTemplateId,
             address _tokenIn,
             address _tokenOut,
-            uint256 _duration,
+            uint256 _auctionStartDate,
+            uint256 _auctionEndDate,
             uint256 _tokensForSale,
             uint96 _minPrice,
             uint96 _minBuyAmount,
@@ -134,6 +141,7 @@ contract FairSaleTemplate is AquaTemplate {
                     uint256,
                     address,
                     address,
+                    uint256,
                     uint256,
                     uint256,
                     uint96,
@@ -151,7 +159,8 @@ contract FairSaleTemplate is AquaTemplate {
                 _saleTemplateId,
                 _tokenIn,
                 _tokenOut,
-                _duration,
+                _auctionStartDate,
+                _auctionEndDate,
                 _tokensForSale,
                 _minPrice,
                 _minBuyAmount,

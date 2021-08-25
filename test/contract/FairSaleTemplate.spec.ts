@@ -38,14 +38,15 @@ describe("FairSaleTemplate", async () => {
 
     let defaultOrderCancelationPeriodDuration: number;
     let defaultStartDate: number;
-    let defaultDuration: number;
+    let defaultEndDate: number;
 
     function encodeInitDataFairSale(
         saleLauncher: string,
         saleTemplateId: number,
         tokenIn: string,
         tokenOut: string,
-        duration: number,
+        auctionStartDate: number,
+        auctionEndDate: number,
         tokensForSale: BigNumber,
         minPrice: BigNumber,
         minBuyAmount: BigNumber,
@@ -62,6 +63,7 @@ describe("FairSaleTemplate", async () => {
                 "address",
                 "uint256",
                 "uint256",
+                "uint256",
                 "uint96",
                 "uint96",
                 "uint256",
@@ -74,7 +76,8 @@ describe("FairSaleTemplate", async () => {
                 saleTemplateId,
                 tokenIn,
                 tokenOut,
-                duration,
+                auctionStartDate,
+                auctionEndDate,
                 tokensForSale,
                 minPrice,
                 minBuyAmount,
@@ -90,7 +93,7 @@ describe("FairSaleTemplate", async () => {
         currentBlockNumber = await ethers.provider.getBlockNumber();
         currentBlock = await ethers.provider.getBlock(currentBlockNumber);
         defaultStartDate = currentBlock.timestamp + 500;
-        defaultDuration = defaultStartDate + 86400;
+        defaultEndDate = defaultStartDate + 86400;
         defaultOrderCancelationPeriodDuration = currentBlock.timestamp + 3600;
 
         aquaFactory = await new AquaFactory__factory(templateManager).deploy(
@@ -137,7 +140,8 @@ describe("FairSaleTemplate", async () => {
             1,
             tokenA.address,
             tokenB.address,
-            defaultDuration,
+            defaultStartDate,
+            defaultEndDate,
             defaultTokensForSale,
             defaultMinPrice,
             defaultMinBuyAmount,
@@ -152,7 +156,8 @@ describe("FairSaleTemplate", async () => {
             .withArgs(
                 tokenA.address,
                 tokenB.address,
-                defaultDuration,
+                defaultStartDate,
+                defaultEndDate,
                 defaultTokensForSale,
                 defaultMinPrice,
                 defaultMinBuyAmount,
@@ -172,7 +177,8 @@ describe("FairSaleTemplate", async () => {
             1,
             tokenA.address,
             tokenB.address,
-            defaultDuration,
+            defaultStartDate,
+            defaultEndDate,
             defaultTokensForSale,
             defaultMinPrice,
             defaultMinBuyAmount,
@@ -187,7 +193,8 @@ describe("FairSaleTemplate", async () => {
             .withArgs(
                 tokenA.address,
                 tokenB.address,
-                defaultDuration,
+                defaultStartDate,
+                defaultEndDate,
                 defaultTokensForSale,
                 defaultMinPrice,
                 defaultMinBuyAmount,
@@ -199,5 +206,8 @@ describe("FairSaleTemplate", async () => {
         await expect(
             fairSaleTemplate.connect(user_2).createSale()
         ).to.be.revertedWith("FairSaleTemplate: FORBIDDEN");
+
+        await tokenB.approve(saleLauncher.address, expandTo18Decimals(3000));
+        await expect(fairSaleTemplate.createSale()).not.to.be.reverted;
     });
 });
