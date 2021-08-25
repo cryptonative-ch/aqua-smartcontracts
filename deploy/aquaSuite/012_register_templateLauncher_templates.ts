@@ -20,7 +20,9 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     ).toNumber();
     if (!isFSTAdded) {
         deployments.log(`Registering FairSaleTemplate on TemplateLauncher...`);
-        await templateLauncherInstance.addTemplate(FairSaleTemplate.address);
+        await (
+            await templateLauncherInstance.addTemplate(FairSaleTemplate.address)
+        ).wait(2);
         deployments.log(
             `FairSaleTemplate (${FairSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`
         );
@@ -35,9 +37,11 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         deployments.log(
             `Registering FixedPriceSaleTemplate on TemplateLauncher...`
         );
-        await templateLauncherInstance.addTemplate(
-            FixedPriceSaleTemplate.address
-        );
+        await (
+            await templateLauncherInstance.addTemplate(
+                FixedPriceSaleTemplate.address
+            )
+        ).wait(2);
         deployments.log(
             `FixedPriceSaleTemplate (${FixedPriceSaleTemplate.address}) registered on TemplateLauncher (${TemplateLauncher.address})`
         );

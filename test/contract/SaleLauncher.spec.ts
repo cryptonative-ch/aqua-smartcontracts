@@ -222,17 +222,17 @@ describe("SaleLauncher", async () => {
         it("throws if trying to launch invalid templateId", async () => {
             const initData = encodeInitDataFairSale(
                 saleLauncher.address,
-            1,
-            tokenA.address,
-            tokenB.address,
-            defaultDuration,
-            defaultTokensForSale,
-            defaultMinPrice,
-            defaultMinBuyAmount,
-            defaultMinRaise,
-            defaultOrderCancelationPeriodDuration,
-            defaultMinimumBiddingAmountPerOrder,
-            templateManager.address
+                1,
+                tokenA.address,
+                tokenB.address,
+                defaultDuration,
+                defaultTokensForSale,
+                defaultMinPrice,
+                defaultMinBuyAmount,
+                defaultMinRaise,
+                defaultOrderCancelationPeriodDuration,
+                defaultMinimumBiddingAmountPerOrder,
+                templateManager.address
             );
 
             await expect(
@@ -282,17 +282,17 @@ describe("SaleLauncher", async () => {
 
             const initData = encodeInitDataFairSale(
                 saleLauncher.address,
-            1,
-            tokenA.address,
-            tokenB.address,
-            defaultDuration,
-            defaultTokensForSale,
-            defaultMinPrice,
-            defaultMinBuyAmount,
-            defaultMinRaise,
-            defaultOrderCancelationPeriodDuration,
-            defaultMinimumBiddingAmountPerOrder,
-            templateManager.address
+                1,
+                tokenA.address,
+                tokenB.address,
+                defaultDuration,
+                defaultTokensForSale,
+                defaultMinPrice,
+                defaultMinBuyAmount,
+                defaultMinRaise,
+                defaultOrderCancelationPeriodDuration,
+                defaultMinimumBiddingAmountPerOrder,
+                templateManager.address
             );
 
             await tokenA.approve(saleLauncher.address, 10000);
