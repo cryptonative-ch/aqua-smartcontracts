@@ -5,7 +5,7 @@ import { encodeFairSaleInitData } from "./utilities";
 import { InitiateAuctionInput } from "../../src/ts/types";
 
 type PartialAuctionInput = Partial<InitiateAuctionInput> &
-    Pick<InitiateAuctionInput, "tokenOut" | "tokenIn">;
+    Pick<InitiateAuctionInput, "tokenOut" | "tokenIn" | "owner">;
 
 async function createAuctionInputWithDefaults(
     parameters: PartialAuctionInput
@@ -21,14 +21,25 @@ async function createAuctionInputWithDefaults(
         parameters.minimumBiddingAmountPerOrder ?? 1,
         parameters.minFundingThreshold ?? 0,
         parameters.isAtomicClosureAllowed ?? false,
+        parameters.owner,
     ];
 }
 
 export async function createAuctionWithDefaults(
     fairSale: FairSale,
-    parameters: PartialAuctionInput
+    parameters: Partial<InitiateAuctionInput> &
+        Pick<InitiateAuctionInput, "tokenOut" | "tokenIn">
 ) {
-    const defaultValues = await createAuctionInputWithDefaults(parameters);
+    if (
+        !parameters.owner ||
+        parameters.owner === ethers.constants.AddressZero
+    ) {
+        const owner = await fairSale.signer.getAddress();
+        parameters.owner = owner;
+    }
+    const defaultValues = await createAuctionInputWithDefaults(
+        parameters as PartialAuctionInput
+    );
     const params = encodeFairSaleInitData(...defaultValues);
 
     return fairSale.init(params);
