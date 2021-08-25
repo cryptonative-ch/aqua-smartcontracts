@@ -21,7 +21,11 @@ const deployment: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
         TemplateLauncher.address.toLowerCase()
     ) {
         deployments.log(`Registering Template Launcher on AquaFactory...`);
-        await aquaFactoryInstance.setTemplateLauncher(TemplateLauncher.address);
+        await (
+            await aquaFactoryInstance.setTemplateLauncher(
+                TemplateLauncher.address
+            )
+        ).wait(2);
         deployments.log(
             `Template Launcher (${TemplateLauncher.address}) registered on AquaFactory(${AquaFactory.address})`
         );

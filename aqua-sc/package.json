@@ -6,7 +6,7 @@
         "name": "Daniel Cybulka",
         "email": "danielcybulka@gmail.com"
     },
-    "version": "0.1.1",
+    "version": "0.1.2",
     "main": "index.js",
     "types": "index.d.ts",
     "repository": {
