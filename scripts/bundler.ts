@@ -211,7 +211,7 @@ const bundleArtifacts = async () => {
 
 const createIndexFile = async () => {
     // Write imports
-    const writeImports = `import addresses from './${config.addresses.fileName}.json';`;
+    const writeImports = `import * as addresses from './${config.addresses.fileName}.json';`;
 
     // Write reexports
     const writeReexports = `export * from './typechain/index'`;
