@@ -19,6 +19,7 @@ const config = {
         outDir: join(ROOT, "aqua-sc"), // Path to root folder
         deployments: join(ROOT, "deployments"), // Path to folder with deployments (compatible with hardhat-deploy only)
         artifacts: join(ROOT, "build/artifacts"), // Path to folder with artifacts to be copied
+        encoders: join(ROOT, "src/encoders.ts"), // Full path to a file with encoders
     },
     addresses: {
         fileName: "addresses", // Name of the file to which addresses will be saved in .json format
@@ -37,32 +38,25 @@ const config = {
     },
     artifacts: {
         dirName: "artifacts", // Name of folder to which artifacts will be saved
-        ignoredPaths: [
-            // Array of globs to be omitted
-            "**/*.dbg.json",
-            "**/build-info/*.*",
-            "**/@openzeppelin/**/*[!ERC20]*.*",
-            "**/test/**/[!ERC]*.*",
-            "**/libraries/**/*.*",
-            "**/hardhat/**/*.*",
-            `**/I*.json`, // interfaces
-            "**/CloneFactory.json",
-            "**/Address.json",
-            "**/Context.json",
+        includedContracts: [
+            // Name of contracts (will match filename) to be included in artifacts bundle
+            "AquaFactory",
+            "AquaTemplate",
+            "AquaTemplateId",
+            "FairSale",
+            "FairSaleTemplate",
+            "FixedPriceSale",
+            "FixedPriceSaleTemplate",
+            "ParticipantList",
+            "ParticipantListLauncher",
+            "SaleLauncher",
+            "TemplateLauncher",
         ],
     },
     chains: {
         // chain name => networkId mapping used to build enum
         rinkeby: 4,
         xdai: 100,
-    },
-    build: {
-        perservedFiles: [
-            // Array of filenames that will NOT be deleted between builds
-            "README.md",
-            `CHANGELOG.md`,
-            "package.json",
-        ],
     },
 };
 
@@ -75,17 +69,17 @@ const camelize = (str: string) => {
         .replace(/\s+/g, "");
 };
 
-const recreateDir = async (path: string, rmIfExists: boolean = false) => {
-    const exists = existsSync(path);
+const recreateDirs = async (paths: string[]) => {
+    for (const path of paths) {
+        const exists = existsSync(path);
 
-    if (exists && rmIfExists) {
-        await rm(path, {
-            recursive: true,
-            force: true,
-        });
-    }
+        if (exists) {
+            await rm(path, {
+                recursive: true,
+                force: true,
+            });
+        }
 
-    if (!exists) {
         await mkdir(path, {
             recursive: true,
         });
@@ -103,21 +97,6 @@ const execAsync = (cmd: string) => {
             resolve(stdout ? stdout : stderr);
         });
     });
-};
-
-const clearDirExcept = async (
-    dir: string,
-    patternsToIgnore: string[],
-    maxDepth = 1
-) => {
-    const ignoredPatterns = patternsToIgnore.map((pattern) => {
-        return `-not -name "${pattern}"`;
-    });
-    await execAsync(
-        `find ${dir} -maxdepth ${maxDepth} -type f ${ignoredPatterns.join(
-            " "
-        )} -delete`
-    );
 };
 
 // BUNDLERS
@@ -183,24 +162,31 @@ const bundleAddresses = async () => {
     }
 
     if (Object.keys(addresses).length > 0) {
-        await recreateDir(config.paths.outDir);
+        const subfolders = ["src", "dist"];
 
-        await writeFile(
-            join(config.paths.outDir, `${config.addresses.fileName}.json`),
-            JSON.stringify(addresses),
-            {}
-        );
+        for (const subfolder of subfolders) {
+            await writeFile(
+                join(
+                    join(config.paths.outDir, subfolder),
+                    `${config.addresses.fileName}.json`
+                ),
+                JSON.stringify(addresses),
+                {}
+            );
+        }
     }
 };
 
 const bundleArtifacts = async () => {
     const artifactsOutDir = join(config.paths.outDir, config.artifacts.dirName);
-    const artifacts = await glob(`${config.paths.artifacts}/**/*.json`, {
-        cwd: resolve(__dirname),
-        ignore: config.artifacts.ignoredPaths,
-    });
+    const includedFiles = config.artifacts.includedContracts.join("|");
 
-    await recreateDir(artifactsOutDir);
+    const artifacts = await glob(
+        `${config.paths.artifacts}/**/@(${includedFiles}).json`,
+        {
+            cwd: resolve(__dirname),
+        }
+    );
 
     for (const artifact of artifacts) {
         const contractProps = parse(artifact);
@@ -209,12 +195,24 @@ const bundleArtifacts = async () => {
     }
 };
 
+const bundleEncoders = async () => {
+    await copyFile(
+        config.paths.encoders,
+        join(config.paths.outDir, "src", "encoders.ts")
+    );
+};
+
 const createIndexFile = async () => {
     // Write imports
-    const writeImports = `import addresses from './${config.addresses.fileName}.json';`;
+    const writeImports = [
+        `import * as addresses from './${config.addresses.fileName}.json';`,
+    ].join("\n\t");
 
     // Write reexports
-    const writeReexports = `export * from './typechain/index'`;
+    const writeReexports = [
+        `export * from './typechain/index';`,
+        `export * from './encoders';`,
+    ].join("\n\t");
 
     // Write ContractAddresses interface
     const artifacts = await glob(
@@ -290,33 +288,44 @@ const createIndexFile = async () => {
     ${writeFunction}
     `;
 
-    await writeFile(join(config.paths.outDir, "index.ts"), writeIndexFile);
+    await writeFile(
+        join(config.paths.outDir, "src", "index.ts"),
+        writeIndexFile
+    );
 };
 
 const run = async () => {
     log(`Aqua-sc bundler`);
     log("=====================");
     log("Cleaning old files...");
-    await clearDirExcept(config.paths.outDir, config.build.perservedFiles, 3);
+    await recreateDirs([
+        join(config.paths.outDir, "src"),
+        join(config.paths.outDir, "dist"),
+        join(config.paths.outDir, "artifacts"),
+    ]);
     log("Bundling addresses...");
     await bundleAddresses();
     log("Bundling artifacts...");
     await bundleArtifacts();
+    log("Bundling encoders...");
+    await bundleEncoders();
     log("Creating index.ts...");
     await createIndexFile();
     log("Running typechain...");
     await execAsync(
         `yarn typechain --target ethers-v5 --out-dir ${join(
             config.paths.outDir,
+            "src",
             "typechain"
         )} '${join(config.paths.outDir, config.artifacts.dirName)}/*.json'`
     );
     log("Running tsc...");
     await execAsync(
-        `tsc --declaration true ${join(config.paths.outDir, "*.ts")}`
+        `tsc --declaration true --outDir ${join(
+            config.paths.outDir,
+            "dist"
+        )} ${join(config.paths.outDir, "src", "*.ts")}`
     );
-    // log('Removing .ts files...')
-    // await execAsync(`find ${config.paths.outDir} -type f -name '*[!d].ts' -delete`)
     log("=====================");
     log(`Bundle successfully created in '${config.paths.outDir}' folder.`);
 };
