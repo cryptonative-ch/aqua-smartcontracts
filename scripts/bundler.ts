@@ -69,6 +69,12 @@ const camelize = (str: string) => {
         .replace(/\s+/g, "");
 };
 
+const copyFiles = async (paths: string[], outDir: string) => {
+    for (const path of paths) {
+        await copyFile(path, join(outDir, parse(path).base));
+    }
+};
+
 const recreateDirs = async (paths: string[]) => {
     for (const path of paths) {
         const exists = existsSync(path);
@@ -312,12 +318,12 @@ const run = async () => {
     log("Creating index.ts...");
     await createIndexFile();
     log("Running typechain...");
+    const typechainSrc = join(config.paths.outDir, "src", "typechain");
     await execAsync(
-        `yarn typechain --target ethers-v5 --out-dir ${join(
+        `yarn typechain --target ethers-v5 --out-dir ${typechainSrc} '${join(
             config.paths.outDir,
-            "src",
-            "typechain"
-        )} '${join(config.paths.outDir, config.artifacts.dirName)}/*.json'`
+            config.artifacts.dirName
+        )}/*.json'`
     );
     log("Running tsc...");
     await execAsync(
@@ -325,6 +331,13 @@ const run = async () => {
             config.paths.outDir,
             "dist"
         )} ${join(config.paths.outDir, "src", "*.ts")}`
+    );
+    const declarationFiles = await glob(`${typechainSrc}/*.d.ts`, {
+        cwd: resolve(__dirname),
+    });
+    await copyFiles(
+        declarationFiles,
+        join(config.paths.outDir, "dist", "typechain")
     );
     log("=====================");
     log(`Bundle successfully created in '${config.paths.outDir}' folder.`);
