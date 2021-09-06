@@ -1,24 +1,25 @@
 {
-    "name": "aqua-sc",
+    "name": "@dxdao/aqua-sc",
     "license": "LGPL-3.0 License",
-    "description": "Utility pack from Aqua/smartcontracts",
+    "description": "Utility pack from aqua-smartcontracts",
     "author": {
         "name": "Daniel Cybulka",
         "email": "danielcybulka@gmail.com"
     },
-    "version": "0.1.2",
-    "main": "index.js",
-    "types": "index.d.ts",
+    "version": "0.1.2-0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/cryptonative-ch/mesa-smartcontracts"
+        "url": "git+https://github.com/cryptonative-ch/aqua-smartcontracts"
     },
     "bugs": {
-        "url": "https://github.com/cryptonative-ch/mesa-smartcontracts/issues"
+        "url": "https://github.com/cryptonative-ch/aqua-smartcontracts/issues"
     },
-    "homepage": "https://github.com/cryptonative-ch/mesa-smartcontracts",
+    "homepage": "https://github.com/cryptonative-ch/aqua-smartcontracts",
     "publishConfig": {
-        "registry": "https://registry.npmjs.org"
+        "registry": "https://registry.npmjs.org",
+        "access": "public"
     },
     "keywords": [
         "aqua",
