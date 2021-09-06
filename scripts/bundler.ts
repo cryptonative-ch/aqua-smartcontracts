@@ -309,6 +309,8 @@ const run = async () => {
         join(config.paths.outDir, "dist"),
         join(config.paths.outDir, "artifacts"),
     ]);
+    log("Compiling contracts...");
+    await execAsync("yarn compile");
     log("Bundling addresses...");
     await bundleAddresses();
     log("Bundling artifacts...");
